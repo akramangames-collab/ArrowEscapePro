@@ -658,7 +658,26 @@ public class ArrowGameView extends View {
         screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;
         mistakes=0;winReward=0;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         generateLevel(level);saveProgress();invalidate();
-    }return true;}
+    }
+
+    private boolean handleLevelsTouch(float x,float y) {
+        float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
+        if(x<dp(70)&&y<top+dp(65)){screen=Screen.PLAY;invalidate();return true;}
+        float gap=dp(10),left=dp(20),bw=(w-left*2-gap*3)/4f,bh=dp(62),y0=top+dp(78);
+        if(x>=left&&y>=y0&&y<y0+5*(bh+gap)) {
+            int col=(int)((x-left)/(bw+gap)),row=(int)((y-y0)/(bh+gap));
+            if(col>=0&&col<4&&row>=0&&row<5) {
+                int lv=levelPage*20+row*4+col+1;
+                if(lv<=maxUnlocked&&lv<=MAX_LEVEL){startLevel(lv);return true;}
+            }
+        }
+        if(y>h-insetBottom-dp(90)) {
+            if(x<w/2&&levelPage>0)levelPage--;
+            else if(x>=w/2&&levelPage<9)levelPage++;
+            invalidate();
+        }
+        return true;
+    }
 
     private Piece findPieceAt(float x,float y){Piece best=null;float bestD=Math.max(dp(16),cell*.42f);for(Piece p:pieces){if(p.removed||p.moving)continue;for(int i=0;i<p.pts.size()-1;i++){Point a=p.pts.get(i),b=p.pts.get(i+1);float ax=boardLeft+a.x*cell,ay=boardTop+a.y*cell,bx=boardLeft+b.x*cell,by=boardTop+b.y*cell;float d=pointSegDist(x,y,ax,ay,bx,by);if(d<bestD){bestD=d;best=p;}}}return best;}
 
@@ -693,8 +712,6 @@ public class ArrowGameView extends View {
 
     private int remaining(){int n=0;for(Piece p:pieces)if(!p.removed)n++;return n;}
     private String difficulty(){if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
-
-    private void startLevel(int lv){level=Math.max(1,Math.min(MAX_LEVEL,lv));prefs.edit().putInt("lastLevel",level).apply();screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;generateLevel(level);invalidate();}
 
     private void loadPackedLevels(){
         try {
