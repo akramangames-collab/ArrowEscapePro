@@ -1233,6 +1233,23 @@ jobs:
           '''
 
 
+           return (
+                  template
+                  .replace(
+                      "{feature}",
+                      str(feature)
+                  )
+                  .replace(
+                      "{{",
+                      "{"
+                  )
+                  .replace(
+                      "}}",
+                      "}"
+                  )
+              )
+
+
           def write_premium_application(
                   root,
                   feature
