@@ -89,9 +89,7 @@ jobs:
             ArrowMazeDenseV5 \
             ArrowMazeFaithfulV8
 
-          cp \
-            /tmp/v8patch/ArrowGameView.java \
-            ArrowMazeFaithfulV8/app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+
 
           cp \
             /tmp/v8patch/filter_levels_v6.py \
