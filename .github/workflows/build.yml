@@ -453,7 +453,7 @@ jobs:
 
           def premium_application(feature):
 
-              return f'''
+            template = r'''
           package com.arrowescape.pro;
 
           import android.app.Application;
