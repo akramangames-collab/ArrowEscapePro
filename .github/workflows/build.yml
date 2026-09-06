@@ -29,6 +29,68 @@ jobs:
           python -c "from pathlib import Path; line=Path('ArrowMazeFaithfulV6/app/src/main/assets/levels.txt').read_text().splitlines()[42]; assert len(line.split('|',1)[1].split(';'))==72; print('Level 43 verified: 72 pieces')"
 
       - uses: actions/setup-java@v5
+            - name: Apply V7 straight arrow travel
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path(
+              "ArrowMazeFaithfulV6/app/src/main/java/"
+              "com/arrowescape/pro/ArrowGameView.java"
+          )
+
+          s = path.read_text()
+
+          # OLD:
+          # Every arrow completes its movement in 0.34 sec.
+          old_update = """p.moveT += dt / 0.34f;"""
+
+          # V7:
+          # Distance controls duration.
+          # The object moves only in its arrowhead direction.
+          new_update = """float travelPx = Math.max(cell, p.moveSteps * cell);
+                  float speedPxPerSec = Math.max(getWidth() * 1.45f, cell * 10f);
+                  float travelSec = Math.max(0.28f,
+                          Math.min(0.90f, travelPx / speedPxPerSec));
+                  p.moveT += dt / travelSec;"""
+
+          if old_update not in s:
+              raise SystemExit("V7 ERROR: movement code not found")
+
+          s = s.replace(old_update, new_update, 1)
+
+          # Do NOT fade the arrow while escaping.
+          old_alpha = """int alpha = p.moving ? Math.max(30, (int)(255*(1f-p.moveT*0.65f))) : 255;"""
+          new_alpha = """int alpha = 255;"""
+
+          if old_alpha not in s:
+              raise SystemExit("V7 ERROR: animation alpha code not found")
+
+          s = s.replace(old_alpha, new_alpha, 1)
+
+          # Important verification:
+          # These two lines mean the whole rigid arrow travels ONLY
+          # in the direction of the arrowhead.
+          expected = """float sx = p.dx*shift, sy = p.dy*shift;"""
+          if expected not in s:
+              raise SystemExit("V7 ERROR: straight-direction translation missing")
+
+          path.write_text(s)
+
+          print("V7 straight travel enabled")
+          print("RIGHT  = +X only")
+          print("LEFT   = -X only")
+          print("DOWN   = +Y only")
+          print("UP     = -Y only")
+          print("No fade; piece removed only after travel completes")
+          PY
+
+          sed -i 's/versionCode = 7/versionCode = 8/' \
+            ArrowMazeFaithfulV6/app/build.gradle.kts
+
+          sed -i 's/versionName = "6.0.0"/versionName = "7.0.0"/' \
+            ArrowMazeFaithfulV6/app/build.gradle.kts
         with:
           distribution: temurin
           java-version: '17'
@@ -44,10 +106,10 @@ jobs:
         working-directory: ArrowMazeFaithfulV6
         run: gradle :app:assembleDebug --stacktrace
 
-      - name: Prepare APK
-        run: cp ArrowMazeFaithfulV6/app/build/outputs/apk/debug/app-debug.apk ArrowMazeFaithfulV6.apk
+            - name: Prepare APK
+        run: cp ArrowMazeFaithfulV6/app/build/outputs/apk/debug/app-debug.apk ArrowMazeFaithfulV7.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ArrowMazeFaithfulV6-APK
-          path: ArrowMazeFaithfulV6.apk
+          name: ArrowMazeFaithfulV7-APK
+          path: ArrowMazeFaithfulV7.apk
