@@ -1,4 +1,5 @@
-name: Build Arrow Maze Faithful V6 APK
+name: Build Arrow Maze Faithful V7 APK
+
 on:
   push:
     branches: [ main ]
@@ -7,32 +8,63 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
 
-      - name: Prepare Faithful V6 source
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Prepare V7 source
         shell: bash
         run: |
-          set -e
+          set -euo pipefail
+
           rm -rf ArrowMazeFaithfulV6 ArrowMazeDenseV5 /tmp/v6patch
+          mkdir -p /tmp/v6patch
+
+          # Recover the known-good V6 payload from the successful V6 commit.
+          git show d75a5cf10678c316bf8719a9f0762f71d1ca5d9a:.github/workflows/build.yml > /tmp/v6-success.yml
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import base64
+
+          text = Path("/tmp/v6-success.yml").read_text()
+
+          match = re.search(
+              r"echo '([^']+)' \| base64 -d > /tmp/v6payload\.tar\.xz",
+              text
+          )
+
+          if not match:
+              raise SystemExit("Could not recover V6 payload")
+
+          payload = base64.b64decode(match.group(1))
+          Path("/tmp/v6payload.tar.xz").write_bytes(payload)
+
+          print("Recovered V6 payload:", len(payload), "bytes")
+          PY
+
+          tar -xJf /tmp/v6payload.tar.xz -C /tmp/v6patch
+
           unzip -q ArrowMazeDenseV5-Source.zip
           mv ArrowMazeDenseV5 ArrowMazeFaithfulV6
-          mkdir -p /tmp/v6patch
-          echo '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' | base64 -d > /tmp/v6payload.tar.xz
-          tar -xJf /tmp/v6payload.tar.xz -C /tmp/v6patch
-          cp /tmp/v6patch/ArrowGameView.java ArrowMazeFaithfulV6/app/src/main/java/com/arrowescape/pro/ArrowGameView.java
-          cp /tmp/v6patch/filter_levels_v6.py /tmp/filter_levels_v6.py
-          python /tmp/filter_levels_v6.py
-          sed -i 's/versionCode = 6/versionCode = 7/' ArrowMazeFaithfulV6/app/build.gradle.kts
-          sed -i 's/versionName = "5.0.0"/versionName = "6.0.0"/' ArrowMazeFaithfulV6/app/build.gradle.kts
-          sed -i 's/android:label="Arrow Maze"/android:label="Arrow Escape Maze"/' ArrowMazeFaithfulV6/app/src/main/AndroidManifest.xml
-          python -c "from pathlib import Path; line=Path('ArrowMazeFaithfulV6/app/src/main/assets/levels.txt').read_text().splitlines()[42]; assert len(line.split('|',1)[1].split(';'))==72; print('Level 43 verified: 72 pieces')"
 
-      - uses: actions/setup-java@v5
-            - name: Apply V7 straight arrow travel
-        shell: bash
-        run: |
-          python - <<'PY'
+          cp /tmp/v6patch/ArrowGameView.java \
+            ArrowMazeFaithfulV6/app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+
+          cp /tmp/v6patch/filter_levels_v6.py \
+            /tmp/filter_levels_v6.py
+
+          # Preserve V6 level layouts.
+          python3 /tmp/filter_levels_v6.py
+
+          # -------------------------------
+          # V7 ARROW ESCAPE ANIMATION FIX
+          # -------------------------------
+          python3 - <<'PY'
           from pathlib import Path
 
           path = Path(
@@ -42,74 +74,179 @@ jobs:
 
           s = path.read_text()
 
-          # OLD:
-          # Every arrow completes its movement in 0.34 sec.
-          old_update = """p.moveT += dt / 0.34f;"""
+          # Old animation:
+          # every arrow vanished very quickly in 0.34 seconds.
+          old_move = "p.moveT += dt / 0.34f;"
 
-          # V7:
-          # Distance controls duration.
-          # The object moves only in its arrowhead direction.
-          new_update = """float travelPx = Math.max(cell, p.moveSteps * cell);
-                  float speedPxPerSec = Math.max(getWidth() * 1.45f, cell * 10f);
-                  float travelSec = Math.max(0.28f,
-                          Math.min(0.90f, travelPx / speedPxPerSec));
+          new_move = """float travelPx = Math.max(cell, p.moveSteps * cell);
+                  float speedPxPerSec =
+                          Math.max(getWidth() * 1.25f, cell * 8f);
+
+                  float travelSec = Math.max(
+                          0.32f,
+                          Math.min(
+                                  0.95f,
+                                  travelPx / speedPxPerSec
+                          )
+                  );
+
                   p.moveT += dt / travelSec;"""
 
-          if old_update not in s:
-              raise SystemExit("V7 ERROR: movement code not found")
+          if old_move not in s:
+              raise SystemExit(
+                  "V7 ERROR: old movement code was not found"
+              )
 
-          s = s.replace(old_update, new_update, 1)
+          s = s.replace(
+              old_move,
+              new_move,
+              1
+          )
 
-          # Do NOT fade the arrow while escaping.
-          old_alpha = """int alpha = p.moving ? Math.max(30, (int)(255*(1f-p.moveT*0.65f))) : 255;"""
-          new_alpha = """int alpha = 255;"""
+          # Remove fade-out.
+          old_alpha = (
+              "int alpha = p.moving ? "
+              "Math.max(30, (int)(255*(1f-p.moveT*0.65f))) "
+              ": 255;"
+          )
 
           if old_alpha not in s:
-              raise SystemExit("V7 ERROR: animation alpha code not found")
+              raise SystemExit(
+                  "V7 ERROR: movement fade code was not found"
+              )
 
-          s = s.replace(old_alpha, new_alpha, 1)
+          s = s.replace(
+              old_alpha,
+              "int alpha = 255;",
+              1
+          )
 
-          # Important verification:
-          # These two lines mean the whole rigid arrow travels ONLY
-          # in the direction of the arrowhead.
-          expected = """float sx = p.dx*shift, sy = p.dy*shift;"""
-          if expected not in s:
-              raise SystemExit("V7 ERROR: straight-direction translation missing")
+          # Critical:
+          # whole arrow translates ONLY along arrow-head direction.
+          required = (
+              "float sx = p.dx*shift, "
+              "sy = p.dy*shift;"
+          )
+
+          if required not in s:
+              raise SystemExit(
+                  "V7 ERROR: straight-line translation missing"
+              )
 
           path.write_text(s)
 
-          print("V7 straight travel enabled")
-          print("RIGHT  = +X only")
-          print("LEFT   = -X only")
-          print("DOWN   = +Y only")
-          print("UP     = -Y only")
-          print("No fade; piece removed only after travel completes")
+          print("================================")
+          print("V7 STRAIGHT ARROW TRAVEL ENABLED")
+          print("RIGHT -> moves only right")
+          print("LEFT  -> moves only left")
+          print("UP    -> moves only up")
+          print("DOWN  -> moves only down")
+          print("Whole bent arrow stays rigid")
+          print("No fade while travelling")
+          print("Removed only after exit")
+          print("================================")
           PY
 
-          sed -i 's/versionCode = 7/versionCode = 8/' \
-            ArrowMazeFaithfulV6/app/build.gradle.kts
+          # Set V7 version.
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
 
-          sed -i 's/versionName = "6.0.0"/versionName = "7.0.0"/' \
-            ArrowMazeFaithfulV6/app/build.gradle.kts
+          gradle = Path(
+              "ArrowMazeFaithfulV6/app/build.gradle.kts"
+          )
+
+          s = gradle.read_text()
+
+          s = re.sub(
+              r"versionCode\s*=\s*\d+",
+              "versionCode = 8",
+              s,
+              count=1
+          )
+
+          s = re.sub(
+              r'versionName\s*=\s*"[^"]+"',
+              'versionName = "7.0.0"',
+              s,
+              count=1
+          )
+
+          gradle.write_text(s)
+
+          manifest = Path(
+              "ArrowMazeFaithfulV6/app/src/main/"
+              "AndroidManifest.xml"
+          )
+
+          s = manifest.read_text()
+
+          s = re.sub(
+              r'android:label="[^"]+"',
+              'android:label="Arrow Escape Maze"',
+              s,
+              count=1
+          )
+
+          manifest.write_text(s)
+          PY
+
+          # Verify level 43 still contains 72 arrows.
+          python3 - <<'PY'
+          from pathlib import Path
+
+          lines = Path(
+              "ArrowMazeFaithfulV6/app/src/main/"
+              "assets/levels.txt"
+          ).read_text().splitlines()
+
+          level43 = lines[42]
+
+          pieces = len(
+              level43.split("|", 1)[1].split(";")
+          )
+
+          assert pieces == 72, (
+              f"Level 43 expected 72 arrows, got {pieces}"
+          )
+
+          print("Level 43 verified:", pieces, "arrows")
+          PY
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
-      - uses: android-actions/setup-android@v3
-      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Set up Android
+        uses: android-actions/setup-android@v3
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Install Android SDK
+        shell: bash
+        run: |
+          sdkmanager \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.6.0'
+          gradle-version: "9.6.0"
 
-      - name: Build APK
+      - name: Build V7 APK
         working-directory: ArrowMazeFaithfulV6
-        run: gradle :app:assembleDebug --stacktrace
+        run: |
+          gradle :app:assembleDebug --stacktrace
 
-            - name: Prepare APK
-        run: cp ArrowMazeFaithfulV6/app/build/outputs/apk/debug/app-debug.apk ArrowMazeFaithfulV7.apk
+      - name: Prepare APK
+        run: |
+          cp \
+            ArrowMazeFaithfulV6/app/build/outputs/apk/debug/app-debug.apk \
+            ArrowMazeFaithfulV7.apk
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload V7 APK
+        uses: actions/upload-artifact@v4
         with:
           name: ArrowMazeFaithfulV7-APK
           path: ArrowMazeFaithfulV7.apk
