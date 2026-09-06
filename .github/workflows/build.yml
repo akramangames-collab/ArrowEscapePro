@@ -23,7 +23,7 @@ jobs:
           rm -rf ArrowMazeFaithfulV8 ArrowMazeDenseV5 /tmp/v8patch
           mkdir -p /tmp/v8patch
 
-          # Recover known-good V6 source patch.
+          # Recover the known-good V6 source.
           git show d75a5cf10678c316bf8719a9f0762f71d1ca5d9a:.github/workflows/build.yml \
             > /tmp/v6-success.yml
 
@@ -60,529 +60,63 @@ jobs:
 
           python3 /tmp/filter_levels_v8.py
 
+          # Recover the V8 snake-animation Python patch
+          # from the previous V8 commit.
           python3 - <<'PY'
           from pathlib import Path
+          import subprocess
+          import re
 
-          path = Path(
-              "ArrowMazeFaithfulV8/app/src/main/java/"
-              "com/arrowescape/pro/ArrowGameView.java"
+          bad = subprocess.check_output(
+              [
+                  "git",
+                  "show",
+                  "07aff3ffb0c113ab6da2dc5c37cb9f920b653083:.github/workflows/build.yml"
+              ],
+              text=True
           )
 
-          s = path.read_text()
-
-          # ---------------------------------------
-          # V8 ANIMATION SPEED
-          # ---------------------------------------
-
-          s = s.replace(
-              "p.moveT += dt / 0.34f;",
-              """float travelPx = Math.max(cell, p.moveSteps * cell);
-                  float speedPxPerSec =
-                          Math.max(getWidth() * 1.45f, cell * 10f);
-
-                  float travelSec =
-                          Math.max(0.30f,
-                          Math.min(1.25f,
-                          travelPx / speedPxPerSec));
-
-                  p.moveT += dt / travelSec;""",
-              1
+          blocks = re.findall(
+              r"          python3 - <<'PY'\n(.*?)\n          PY",
+              bad,
+              re.S
           )
 
-          # ---------------------------------------
-          # REPLACE DRAWING WITH SNAKE MOVEMENT
-          # ---------------------------------------
+          if len(blocks) < 2:
+              raise SystemExit("Could not recover V8 patch")
 
-          start = s.index(
-              "    private void drawPieces(Canvas c, long now) {"
+          block = blocks[1]
+
+          lines = []
+
+          for line in block.splitlines():
+              if line.startswith("          "):
+                  line = line[10:]
+              lines.append(line)
+
+          script = "\n".join(lines) + "\n"
+
+          Path("/tmp/v8_patch.py").write_text(script)
+
+          print(
+              "Recovered V8 snake escape patch:",
+              len(script),
+              "characters"
           )
-
-          end = s.index(
-              "    private void drawArrowHead(",
-              start
-          )
-
-          new_draw = r'''
-    private float piecePathLength(Piece p) {
-        float len = 0f;
-
-        for (int i = 0; i < p.pts.size() - 1; i++) {
-            Point a = p.pts.get(i);
-            Point b = p.pts.get(i + 1);
-
-            len += Math.abs(b.x - a.x)
-                    + Math.abs(b.y - a.y);
-        }
-
-        return len;
-    }
-
-    private android.graphics.PointF routePoint(
-            Piece p,
-            float distance
-    ) {
-        if (distance <= 0f) {
-            Point q = p.pts.get(0);
-
-            return new android.graphics.PointF(
-                    q.x,
-                    q.y
-            );
-        }
-
-        float walked = 0f;
-
-        for (int i = 0; i < p.pts.size() - 1; i++) {
-            Point a = p.pts.get(i);
-            Point b = p.pts.get(i + 1);
-
-            float seg =
-                    Math.abs(b.x - a.x)
-                    + Math.abs(b.y - a.y);
-
-            if (distance <= walked + seg) {
-                float t =
-                        (distance - walked)
-                        / Math.max(0.0001f, seg);
-
-                return new android.graphics.PointF(
-                        a.x + (b.x - a.x) * t,
-                        a.y + (b.y - a.y) * t
-                );
-            }
-
-            walked += seg;
-        }
-
-        Point tip = p.pts.get(
-                p.pts.size() - 1
-        );
-
-        float extra = distance - walked;
-
-        return new android.graphics.PointF(
-                tip.x + p.dx * extra,
-                tip.y + p.dy * extra
-        );
-    }
-
-    private void buildMovingSnakePath(
-            Path path,
-            Piece p,
-            float advance
-    ) {
-        float total = piecePathLength(p);
-
-        android.graphics.PointF start =
-                routePoint(p, advance);
-
-        path.moveTo(
-                boardLeft + start.x * cell,
-                boardTop + start.y * cell
-        );
-
-        float walked = 0f;
-
-        for (int i = 0; i < p.pts.size() - 1; i++) {
-            Point a = p.pts.get(i);
-            Point b = p.pts.get(i + 1);
-
-            float seg =
-                    Math.abs(b.x - a.x)
-                    + Math.abs(b.y - a.y);
-
-            walked += seg;
-
-            if (walked > advance) {
-                path.lineTo(
-                        boardLeft + b.x * cell,
-                        boardTop + b.y * cell
-                );
-            }
-        }
-
-        android.graphics.PointF head =
-                routePoint(
-                        p,
-                        advance + total
-                );
-
-        path.lineTo(
-                boardLeft + head.x * cell,
-                boardTop + head.y * cell
-        );
-    }
-
-    private void drawArrowHeadAt(
-            Canvas c,
-            float gx,
-            float gy,
-            int dx,
-            int dy,
-            int col,
-            int alpha
-    ) {
-        float tx = boardLeft + gx * cell;
-        float ty = boardTop + gy * cell;
-
-        float size =
-                Math.max(dp(5.5f), cell * 0.28f);
-
-        float px = -dy;
-        float py = dx;
-
-        float bx = tx - dx * size * 1.25f;
-        float by = ty - dy * size * 1.25f;
-
-        Path arrow = new Path();
-
-        arrow.moveTo(
-                tx + dx * size * 0.35f,
-                ty + dy * size * 0.35f
-        );
-
-        arrow.lineTo(
-                bx + px * size * 0.62f,
-                by + py * size * 0.62f
-        );
-
-        arrow.lineTo(
-                bx - px * size * 0.62f,
-                by - py * size * 0.62f
-        );
-
-        arrow.close();
-
-        paint.setColor(
-                Color.argb(
-                        alpha,
-                        Color.red(col),
-                        Color.green(col),
-                        Color.blue(col)
-                )
-        );
-
-        c.drawPath(arrow, paint);
-    }
-
-    private void drawPieces(Canvas c, long now) {
-        float stroke =
-                Math.max(dp(2.2f), cell * 0.12f);
-
-        for (Piece p : pieces) {
-            if (p.removed) continue;
-
-            float shake = 0f;
-
-            if (p.flashUntil > now) {
-                shake =
-                        (float)Math.sin(now * 0.085)
-                        * dp(3.5f);
-            }
-
-            int col =
-                    p.flashUntil > now
-                    ? Color.rgb(228, 65, 71)
-                    : (
-                        p.hintUntil > now
-                        ? Color.rgb(236, 167, 28)
-                        : NAVY
-                    );
-
-            int alpha = 255;
-
-            paint.setColor(col);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(stroke);
-            paint.setStrokeCap(Paint.Cap.SQUARE);
-            paint.setStrokeJoin(Paint.Join.ROUND);
-
-            Path path = new Path();
-
-            if (p.moving) {
-
-                float advance =
-                        p.moveT
-                        * p.moveSteps;
-
-                buildMovingSnakePath(
-                        path,
-                        p,
-                        advance
-                );
-
-                c.drawPath(path, paint);
-
-                float total =
-                        piecePathLength(p);
-
-                android.graphics.PointF head =
-                        routePoint(
-                                p,
-                                advance + total
-                        );
-
-                paint.setStyle(Paint.Style.FILL);
-
-                drawArrowHeadAt(
-                        c,
-                        head.x,
-                        head.y,
-                        p.dx,
-                        p.dy,
-                        col,
-                        alpha
-                );
-
-            } else {
-
-                for (int i = 0;
-                     i < p.pts.size();
-                     i++) {
-
-                    Point q = p.pts.get(i);
-
-                    float px =
-                            boardLeft
-                            + q.x * cell
-                            + (p.dy != 0 ? shake : 0);
-
-                    float py =
-                            boardTop
-                            + q.y * cell
-                            + (p.dx != 0 ? shake : 0);
-
-                    if (i == 0) {
-                        path.moveTo(px, py);
-                    } else {
-                        path.lineTo(px, py);
-                    }
-                }
-
-                c.drawPath(path, paint);
-
-                paint.setStyle(Paint.Style.FILL);
-
-                drawArrowHead(
-                        c,
-                        p,
-                        0f,
-                        0f,
-                        shake,
-                        col,
-                        alpha
-                );
-            }
-        }
-
-        paint.setStyle(Paint.Style.FILL);
-    }
-
-'''
-
-          s = s[:start] + new_draw + s[end:]
-
-          # ---------------------------------------
-          # SNAKE ESCAPE DISTANCE
-          # ---------------------------------------
-
-          marker = (
-              "    private int exitSteps(Piece p)"
-          )
-
-          insert_at = s.index(marker)
-
-          snake_helper = r'''
-    private int snakeTravelSteps(Piece p) {
-        int length = 0;
-
-        for (int i = 0;
-             i < p.pts.size() - 1;
-             i++) {
-
-            Point a = p.pts.get(i);
-            Point b = p.pts.get(i + 1);
-
-            length +=
-                    Math.abs(b.x - a.x)
-                    + Math.abs(b.y - a.y);
-        }
-
-        Point tip =
-                p.pts.get(
-                        p.pts.size() - 1
-                );
-
-        int exitDistance;
-
-        if (p.dx > 0) {
-            exitDistance =
-                    gridW - tip.x + 3;
-        } else if (p.dx < 0) {
-            exitDistance =
-                    tip.x + 3;
-        } else if (p.dy > 0) {
-            exitDistance =
-                    gridH - tip.y + 3;
-        } else {
-            exitDistance =
-                    tip.y + 3;
-        }
-
-        return length
-                + Math.max(3, exitDistance);
-    }
-
-'''
-
-          s = (
-              s[:insert_at]
-              + snake_helper
-              + s[insert_at:]
-          )
-
-          # Every successful arrow now uses snake travel.
-          s = s.replace(
-              "p.moveSteps=exitSteps(p);",
-              "p.moveSteps=snakeTravelSteps(p);"
-          )
-
-          # ---------------------------------------
-          # COLLISION:
-          # CHECK ONLY ARROWHEAD'S STRAIGHT EXIT RAY
-          # ---------------------------------------
-
-          old_clear = (
-              "    private boolean isClear(Piece target)"
-              "{HashSet<Long> nodes=new HashSet<>(),"
-              "edges=new HashSet<>();"
-              "for(Piece p:pieces)"
-              "{if(p==target||p.removed||p.moving)"
-              "continue;nodes.addAll(p.nodes);"
-              "edges.addAll(p.edges);}"
-              "return clearAgainst(target,nodes,edges);}"
-          )
-
-          new_clear = r'''
-    private boolean isClear(Piece target) {
-        HashSet<Long> nodes =
-                new HashSet<>();
-
-        HashSet<Long> edges =
-                new HashSet<>();
-
-        for (Piece p : pieces) {
-            if (p == target
-                    || p.removed
-                    || p.moving) {
-                continue;
-            }
-
-            nodes.addAll(p.nodes);
-            edges.addAll(p.edges);
-        }
-
-        Point tip =
-                target.pts.get(
-                        target.pts.size() - 1
-                );
-
-        int x = tip.x;
-        int y = tip.y;
-
-        int max =
-                gridW + gridH + 20;
-
-        for (int step = 1;
-             step <= max;
-             step++) {
-
-            int nx =
-                    x + target.dx * step;
-
-            int ny =
-                    y + target.dy * step;
-
-            int px =
-                    x + target.dx * (step - 1);
-
-            int py =
-                    y + target.dy * (step - 1);
-
-            if (nx < 0
-                    || nx > gridW
-                    || ny < 0
-                    || ny > gridH) {
-
-                return true;
-            }
-
-            if (nodes.contains(
-                    nodeKey(nx, ny))) {
-
-                return false;
-            }
-
-            if (target.dx != 0) {
-
-                if (edges.contains(
-                        edgeKey(
-                                Math.min(px, nx),
-                                py,
-                                1))) {
-
-                    return false;
-                }
-
-            } else {
-
-                if (edges.contains(
-                        edgeKey(
-                                px,
-                                Math.min(py, ny),
-                                2))) {
-
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-'''
-
-          if old_clear not in s:
-              raise SystemExit(
-                  "Could not locate old isClear method"
-              )
-
-          s = s.replace(
-              old_clear,
-              new_clear,
-              1
-          )
-
-          path.write_text(s)
-
-          print("==============================")
-          print("V8 SNAKE ESCAPE ENABLED")
-          print("Arrow head travels straight")
-          print("Body follows through bends")
-          print("Corners progressively disappear")
-          print("Body straightens into exit line")
-          print("No rigid translation")
-          print("==============================")
           PY
 
+          python3 /tmp/v8_patch.py
+
+          # Set V8 version.
           python3 - <<'PY'
           from pathlib import Path
           import re
 
-          gradle = Path(
+          p = Path(
               "ArrowMazeFaithfulV8/app/build.gradle.kts"
           )
 
-          s = gradle.read_text()
+          s = p.read_text()
 
           s = re.sub(
               r"versionCode\s*=\s*\d+",
@@ -598,7 +132,24 @@ jobs:
               count=1
           )
 
-          gradle.write_text(s)
+          p.write_text(s)
+          PY
+
+          # Verify the main comparison level.
+          python3 - <<'PY'
+          from pathlib import Path
+
+          line = Path(
+              "ArrowMazeFaithfulV8/app/src/main/assets/levels.txt"
+          ).read_text().splitlines()[42]
+
+          count = len(
+              line.split("|", 1)[1].split(";")
+          )
+
+          assert count == 72
+
+          print("Level 43 verified:", count, "arrows")
           PY
 
       - name: Set up Java
