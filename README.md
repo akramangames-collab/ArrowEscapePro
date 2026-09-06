@@ -24,7 +24,7 @@ The arrowhead exits straight ahead and its body follows the original bends. V15 
 The workflow validates all 200 mazes, checks wallet persistence and duplicate rewards, builds both variants, checks compiled ad IDs/version metadata, runs native Android tests and captures screenshots.
 
 - Debug: `ArrowEscape-PuzzleMaze-V16-test.apk`, official Google test IDs, package `com.arrowescape.pro.debug` so it can coexist with installed production builds.
-- Release: `ArrowEscape-PuzzleMaze-V16-release-unsigned.apk`, supplied production IDs, package `com.arrowescape.pro`, version `16.0.0` / code `17`. Sign with the owner's private release key before installing or distributing. Private signing keys must never be committed.
+- Release: `ArrowEscape-PuzzleMaze-V16-release-unsigned.apk`, supplied production IDs, package `com.arrowescape.pro`, version `16.0.0` / code `17`. CI keeps the release APK unsigned so signing credentials stay private. The final V16 download is signed separately with the V16 release key; retain its private backup for future updates. Private signing keys must never be committed. V15 used a different test certificate, so the signed release requires a fresh installation when that V15 APK is already installed.
 
 Production AdMob mapping supplied in the project conversation:
 

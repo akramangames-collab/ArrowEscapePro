@@ -171,7 +171,8 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     private void updateBalance() { if (menuBalance != null) menuBalance.setText(wallet.balance() + " coins"); }
     private void showMenu(boolean rewards) {
         if (isDestroyed() || showingAd) return;
-        if (menu != null) menu.dismiss();
+        if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
+        destroyBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
         game.setPaused(true);
         LinearLayout body = new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(dp(22),dp(16),dp(22),dp(20));
         LinearLayout brand = new LinearLayout(this); brand.setGravity(Gravity.CENTER_VERTICAL);
