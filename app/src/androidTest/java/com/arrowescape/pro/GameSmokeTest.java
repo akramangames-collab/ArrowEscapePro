@@ -1,6 +1,7 @@
 package com.arrowescape.pro;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
@@ -51,14 +52,30 @@ public class GameSmokeTest {
                 set(game,"hints",0);int before=wallet.balance();call(game,"useHint",new Class[]{});assertEquals(before-25,wallet.balance());
                 call(game,"useHint",new Class[]{});assertEquals(before-25,wallet.balance());
                 call(game,"tapPiece",new Class[]{safe.getClass()},safe);game.saveProgress();game.release();
-                ArrowGameView restored=new ArrowGameView(context,new Host(),new Wallet(new PreferenceWalletStorage(context)));restored.setPaused(true);
+                ArrowGameView restored=new ArrowGameView(context,new Host(),new Wallet(new PreferenceWalletStorage(context)));restored.setPaused(true);set(restored,"tutorial",false);
                 assertEquals(0,get(restored,"hints"));int remaining=(Integer)call(restored,"remaining",new Class[]{});assertEquals(47,remaining);assertEquals(75,wallet.balance());
                 for(int lv:new int[]{100,200}){call(restored,"startLevel",new Class[]{int.class},lv);render(context,restored,"03-level-"+lv);}
                 set(restored,"finished",true);set(restored,"winReward",50);render(context,restored,"04-win");
                 set(restored,"finished",false);set(restored,"failed",true);set(restored,"hearts",0);render(context,restored,"05-fail");restored.release();
                 assertTrue(BuildConfig.DEBUG);assertTrue(BuildConfig.ADMOB_REWARDED_ID.startsWith("ca-app-pub-3940256099942544/"));
+                context.getSharedPreferences("arrow_puzzle_faithful",0).edit().remove("v16_progress").putInt("lastLevel",1).putBoolean("tutorialSeen",true).commit();
             }catch(Throwable t){error[0]=t;}
         });
         if(error[0]!=null)throw new AssertionError(error[0]);
+        android.app.Instrumentation instrumentation=InstrumentationRegistry.getInstrumentation();
+        Context context=instrumentation.getTargetContext();
+        MainActivity activity=(MainActivity)instrumentation.startActivitySync(new Intent(context,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        instrumentation.waitForIdleSync();
+        captureWindow(context,"06-device-puzzle");
+        instrumentation.runOnMainSync(activity::openWallet);instrumentation.waitForIdleSync();
+        captureWindow(context,"07-device-wallet");
+        instrumentation.runOnMainSync(activity::openSettings);instrumentation.waitForIdleSync();
+        captureWindow(context,"08-device-settings");
+        instrumentation.runOnMainSync(activity::finish);
+    }
+    private static void captureWindow(Context context,String name) throws Exception {
+        Bitmap bitmap=InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();assertNotNull(bitmap);
+        File directory=new File(context.getExternalFilesDir(null),"screenshots");directory.mkdirs();
+        try(FileOutputStream file=new FileOutputStream(new File(directory,name+".png"))){bitmap.compress(Bitmap.CompressFormat.PNG,100,file);}bitmap.recycle();
     }
 }

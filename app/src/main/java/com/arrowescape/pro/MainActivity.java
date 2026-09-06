@@ -50,6 +50,8 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         game = new ArrowGameView(this, this, wallet);
         setContentView(game);
         consent = UserMessagingPlatform.getConsentInformation(this);
+        // Demo ad units do not depend on the publisher's production UMP setup.
+        if (BuildConfig.DEBUG) { startAdsIfAllowed(); return; }
         ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();
         consent.requestConsentInfoUpdate(this, parameters,
             () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, error -> startAdsIfAllowed()),
@@ -58,14 +60,14 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     }
 
     private void startAdsIfAllowed() {
-        if (adsStarted || !consent.canRequestAds() || isDestroyed()) return;
+        if (adsStarted || (!BuildConfig.DEBUG && !consent.canRequestAds()) || isDestroyed()) return;
         adsStarted = true;
         MobileAds.initialize(this, status -> runOnUiThread(() -> {
             if (isDestroyed()) return;
             loadInterstitial(); loadRewarded();
         }));
     }
-    private boolean canRequestAds() { return adsStarted && consent != null && consent.canRequestAds() && !isDestroyed(); }
+    private boolean canRequestAds() { return adsStarted && consent != null && (BuildConfig.DEBUG || consent.canRequestAds()) && !isDestroyed(); }
     private void loadInterstitial() {
         if (!canRequestAds() || loadingInterstitial || interstitial != null) return;
         loadingInterstitial = true;
@@ -185,7 +187,8 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
                 int earned = wallet.claimDaily(System.currentTimeMillis());
                 toast(earned > 0 ? "+100 coins · Come back tomorrow" : "Daily reward already claimed or could not be saved");
                 updateBalance(); game.invalidate();
-                daily[0].setText("Daily reward claimed"); daily[0].setEnabled(wallet.canClaimDaily(System.currentTimeMillis()));
+                boolean available = wallet.canClaimDaily(System.currentTimeMillis());
+                daily[0].setText(available ? "Claim daily reward  ·  +100" : "Daily reward claimed"); daily[0].setEnabled(available);
                 streak.setText("Daily streak: "+wallet.streak()+"  ·  Resets at 00:00 UTC");
             },true);
             daily[0].setEnabled(wallet.canClaimDaily(System.currentTimeMillis())); body.addView(daily[0]); body.addView(streak);
