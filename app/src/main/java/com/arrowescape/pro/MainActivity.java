@@ -193,9 +193,17 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
                 streak.setText("Daily streak: "+wallet.streak()+"  ·  Resets at 00:00 UTC");
             },true);
             daily[0].setEnabled(wallet.canClaimDaily(System.currentTimeMillis())); body.addView(daily[0]); body.addView(streak);
+
+            long challengeDay = System.currentTimeMillis() / Wallet.DAY_MS;
+            boolean challengeRewardAvailable = wallet.canRewardDailyChallenge(challengeDay);
+            int challengeStars = game.bestDailyStarsToday();
+            String challengeLabel = challengeRewardAvailable ? "Daily Challenge  ·  up to +150" : "Replay Daily Challenge  ·  "+(challengeStars>0?challengeStars+"★":"reward claimed");
+            body.addView(button(challengeLabel,()->{ menu.dismiss(); game.startDailyChallenge(); },true));
+            body.addView(text(challengeRewardAvailable ? "One deterministic SUPER HARD puzzle each UTC day. Everyone gets the same challenge." : "Today's coin reward is claimed. Replay it to improve your stars.",12,MUTED));
+
             watchButton = button("Watch ad  ·  +75 coins",() -> { if (rewardReady()) requestRewardedCoins(); else loadRewarded(); },false);
             body.addView(watchButton); rewardStatus = text("",13,MUTED); body.addView(rewardStatus); updateRewardStatus(); loadRewarded();
-            body.addView(text("Complete a maze: +15\nPerfect clear: +5 bonus\nEvery fifth level: +30 bonus\nTwo free hints each level, then 25 coins each.",14,MUTED));
+            body.addView(text("1–3 stars on every level · 3★ means no mistakes and no assists\nClear: +15 · 3★ bonus: +10\nSUPER HARD milestone: +75 bonus · Boss milestone: +150 bonus\nDaily Challenge: up to +150 · Two free hints, then 25 coins.",14,MUTED));
             if (game.canBuyHeart()) body.addView(button("Add one heart  ·  40 coins",() -> { if (game.buyHeart()) { updateBalance(); toast("Heart restored"); } else toast("Not enough coins"); },false));
             if (game.needsRevive()) body.addView(button("Continue  ·  60 coins",() -> { if (game.buyContinue()) { menu.dismiss(); toast("Back in the maze"); } else toast("Not enough coins"); },false));
         } else {
