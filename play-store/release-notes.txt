@@ -1,0 +1,5 @@
+<en-US>
+200 challenging arrow mazes with smooth path-following movement.
+Persistent coins, level bonuses, daily rewards and helpful hints.
+Maze-arrow-coin branding, polished controls and an in-app privacy policy.
+</en-US>

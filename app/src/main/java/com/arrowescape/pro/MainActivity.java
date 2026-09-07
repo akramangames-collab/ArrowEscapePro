@@ -209,6 +209,7 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
                 toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();game.invalidate();});body.addView(toggle);
             }
             body.addView(button("How to play",()->{menu.dismiss();game.showTutorialAgain();},false));
+            body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
             body.addView(button("Restart this level",()->{menu.dismiss();new AlertDialog.Builder(this).setTitle("Restart level?").setMessage("Your coin balance is kept. This puzzle starts again.").setNegativeButton("Keep playing",null).setPositiveButton("Restart",(d,w)->game.restartCurrentLevel()).show();},false));
             if(consent.getPrivacyOptionsRequirementStatus()==ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
                 body.addView(button("Privacy choices",()-> UserMessagingPlatform.showPrivacyOptionsForm(this,error->{
@@ -216,7 +217,7 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
                     if(!consent.canRequestAds()){interstitial=null;rewarded=null;destroyBanner();}else startAdsIfAllowed();
                 }),false));
             }
-            body.addView(text("Version 16.0.0"+(BuildConfig.DEBUG ? " · Test ads" : ""),12,MUTED));
+            body.addView(text("Version "+BuildConfig.VERSION_NAME+(BuildConfig.DEBUG ? " · Test ads" : ""),12,MUTED));
         }
         body.addView(button("Back to puzzle",()->menu.dismiss(),true));
         // Banner is attached only inside the menu; never on the puzzle board.
@@ -232,6 +233,18 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         if(menu.getWindow()!=null) menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
     private void destroyBanner() { if(banner!=null){banner.destroy();banner=null;} }
+    private void showPrivacyPolicy() {
+        StringBuilder policy = new StringBuilder();
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(getAssets().open("privacy-policy.txt"), java.nio.charset.StandardCharsets.UTF_8))) {
+            String line; while ((line = reader.readLine()) != null) policy.append(line).append('\n');
+        } catch (java.io.IOException error) { toast("Privacy policy could not be opened."); return; }
+        TextView content = text(policy.toString(),14,NAVY);
+        content.setPadding(dp(22),dp(12),dp(22),dp(16));
+        android.text.util.Linkify.addLinks(content,android.text.util.Linkify.WEB_URLS);
+        content.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+        ScrollView scroll = new ScrollView(this); scroll.addView(content);
+        new AlertDialog.Builder(this).setTitle("Privacy policy").setView(scroll).setPositiveButton("Back",null).show();
+    }
     private void toast(String message) { if(!isDestroyed()) Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     @Override protected void onPause(){ super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause(); }
     @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd || (menu!=null&&menu.isShowing()));if(banner!=null)banner.resume();}
