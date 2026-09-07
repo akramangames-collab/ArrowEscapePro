@@ -46,6 +46,8 @@ public class ArrowGameView extends View {
     private static final int LOST_HEART = Color.rgb(229, 235, 243);
     private static final int TEXT = Color.rgb(20, 24, 31);
     private static final int SUPER_HARD = Color.rgb(218, 72, 55);
+    private static final int BOSS_GOLD = Color.rgb(185, 116, 9);
+    private static final int DAILY_PURPLE = Color.rgb(116, 78, 194);
 
     private enum Screen { PLAY, LEVELS }
 
@@ -55,7 +57,10 @@ public class ArrowGameView extends View {
     private final SharedPreferences settings;
     private final Wallet wallet;
     private boolean paused;
-    private int mistakes, winReward;
+    private int mistakes, winReward, earnedStars, assistsUsed;
+    private boolean dailyChallenge;
+    private long challengeDay = -1L, milestoneIntroUntil = 0L;
+    private int normalLevelBeforeChallenge = 1;
     private String runId;
     private final RectF walletHit = new RectF(), hintHit = new RectF(), eraseHit = new RectF(), rewardHit = new RectF();
     private final RectF primaryHit = new RectF(), secondaryHit = new RectF(), tertiaryHit = new RectF();
@@ -181,14 +186,21 @@ public class ArrowGameView extends View {
         }
         if (!finished && !failed && remaining() == 0) {
             finished = true;
-            if (level >= maxUnlocked && level < MAX_LEVEL) {
-                maxUnlocked = level + 1;
-                prefs.edit().putInt("maxUnlocked", maxUnlocked).apply();
+            earnedStars = computeStars();
+            if (dailyChallenge) {
+                saveDailyChallengeStars(challengeDay, earnedStars);
+                winReward = wallet.rewardDailyChallenge(challengeDay, earnedStars);
+            } else {
+                if (level >= maxUnlocked && level < MAX_LEVEL) {
+                    maxUnlocked = level + 1;
+                    prefs.edit().putInt("maxUnlocked", maxUnlocked).apply();
+                }
+                prefs.edit().putInt("lastLevel", Math.min(MAX_LEVEL, level + 1)).apply();
+                saveBestStars(level, earnedStars);
+                winReward = wallet.rewardLevel(runId, level, earnedStars);
             }
-            prefs.edit().putInt("lastLevel", Math.min(MAX_LEVEL, level + 1)).apply();
             playSound(ToneGenerator.TONE_PROP_ACK, 180);
-            buzz(70);
-            winReward = wallet.rewardLevel(runId, level, mistakes == 0);
+            buzz(isBoss(level) ? 140 : 70);
             saveProgress();
             host.onLevelCompleted();
             any = true;
@@ -199,9 +211,11 @@ public class ArrowGameView extends View {
     private void drawPlay(Canvas c, long now) {
         float w = getWidth(), h = getHeight(), top = insetTop + dp(8);
         drawBack(c, dp(28), top + dp(30));
-        label(c, "Level " + level, w/2, top + dp(29), 23, NAVY, true);
-        int difficultyColor = isSuperHard(level) ? SUPER_HARD : Color.rgb(100,116,139);
-        label(c, difficulty() + "  ·  " + level + " / 200", w/2, top + dp(49), 11, difficultyColor, isSuperHard(level));
+        String title = dailyChallenge ? "Daily Challenge" : (isBoss(level) ? "Boss Level " + level : "Level " + level);
+        label(c, title, w/2, top + dp(29), 23, NAVY, true);
+        int difficultyColor = dailyChallenge ? DAILY_PURPLE : (isBoss(level) ? BOSS_GOLD : isSuperHard(level) ? SUPER_HARD : Color.rgb(100,116,139));
+        String sub = dailyChallenge ? "SUPER HARD DAILY  ·  puzzle " + level : difficulty() + "  ·  " + level + " / 200";
+        label(c, sub, w/2, top + dp(49), 11, difficultyColor, dailyChallenge || isSuperHard(level));
         drawGear(c, w-dp(31), top+dp(30));
         float statY = top + dp(84);
         pill(c,new RectF(dp(16),statY-dp(21),dp(94),statY+dp(21)),PALE);
@@ -229,7 +243,7 @@ public class ArrowGameView extends View {
         drawCoin(c,rewardHit.centerX(),controlY-dp(8),dp(11));
         label(c,"Get coins",rewardHit.centerX(),controlY+dp(18),11,NAVY,true);
         label(c,"ARROW ESCAPE  /  PUZZLE MAZE",w/2,h-insetBottom-dp(10),9,Color.rgb(115,130,153),false);
-        if(tutorial)drawTutorial(c);else if(finished)drawWin(c);else if(failed)drawFail(c);
+        if(tutorial)drawTutorial(c);else if(finished)drawWin(c);else if(failed)drawFail(c);else if(milestoneIntroUntil>now)drawMilestoneIntro(c);
     }
 
     private void drawDottedGrid(Canvas c) {
@@ -535,6 +549,16 @@ public class ArrowGameView extends View {
         c.drawPath(a,paint);
     }
 
+    private void drawMilestoneIntro(Canvas c) {
+        RectF r=modal(c,dailyChallenge?250:270);
+        int accent=dailyChallenge?DAILY_PURPLE:(isBoss(level)?BOSS_GOLD:SUPER_HARD);
+        label(c,dailyChallenge?"DAILY CHALLENGE":(isBoss(level)?"BOSS MILESTONE":"SUPER HARD"),r.centerX(),r.top+dp(52),28,accent,true);
+        label(c,dailyChallenge?"Same challenge for everyone today":"Level "+level+" is a milestone",r.centerX(),r.top+dp(89),15,NAVY,true);
+        label(c,isBoss(level)&&!dailyChallenge?"The toughest checkpoint in this chapter":"Expect deeper blocking chains and fewer obvious exits.",r.centerX(),r.top+dp(121),13,TEXT,false);
+        label(c,dailyChallenge?"Reward: 100–150 coins based on stars":(isBoss(level)?"Boss bonus: +150 coins":"Milestone bonus: +75 coins"),r.centerX(),r.top+dp(153),13,accent,true);
+        label(c,"Tap anywhere to begin",r.centerX(),r.bottom-dp(28),12,Color.rgb(111,124,145),false);
+    }
+
     private void drawTutorial(Canvas c) {
         RectF r = modal(c, 410);
         label(c,"Find the way out",r.centerX(),r.top+dp(43),24,NAVY,true);
@@ -546,7 +570,7 @@ public class ArrowGameView extends View {
         Path demo=new Path();demo.moveTo(r.centerX()-dp(72),y+dp(25));demo.lineTo(r.centerX()-dp(14),y+dp(25));demo.lineTo(r.centerX()-dp(14),y);demo.lineTo(r.centerX()+dp(62),y);c.drawPath(demo,paint);paint.setStyle(Paint.Style.FILL);drawMiniArrow(c,r.centerX()+dp(63),y,dp(15),NAVY,0);
         label(c,"Blocked taps cost one heart.",r.centerX(),r.top+dp(253),14,TEXT,false);
         label(c,"Two free hints, then 25 coins each.",r.centerX(),r.top+dp(280),14,TEXT,false);
-        label(c,"Clear every arrow to earn coins.",r.centerX(),r.top+dp(306),14,TEXT,false);
+        label(c,"Clear cleanly for 3★ and bigger rewards.",r.centerX(),r.top+dp(306),14,TEXT,false);
         primaryHit.set(r.left+dp(22),r.bottom-dp(72),r.right-dp(22),r.bottom-dp(22));
         action(c,primaryHit,"Let's play",BLUE,Color.WHITE);
     }
@@ -558,26 +582,28 @@ public class ArrowGameView extends View {
         float w=getWidth(),h=getHeight();
         paint.setColor(Color.argb(18,255,255,255));
         c.drawCircle(w*.85f,h*.12f,dp(145),paint);c.drawCircle(w*.05f,h*.80f,dp(125),paint);
-        float top=Math.max(insetTop+dp(18),(h-dp(480))/2);
-        label(c,level==200?"All 200 mazes cleared!":"Maze escaped!",w/2,top+dp(32),26,Color.WHITE,true);
-        label(c,"Level "+level+" complete",w/2,top+dp(61),16,Color.rgb(176,206,246),false);
-        for(int i=0;i<20;i++) {
-            paint.setColor(i%2==0?Color.rgb(255,201,65):BLUE);
-            float x=dp(20)+(i*67%Math.max(1,(int)(w-dp(40))));float y=top+dp(85)+(i*29%110);
-            c.drawCircle(x,y,dp(i%3+1),paint);
-        }
-        drawCoin(c,w/2,top+dp(127),dp(33));
-        RectF card=new RectF(dp(26),top+dp(179),w-dp(26),top+dp(314));pill(c,card,Color.WHITE);
-        label(c,"+"+winReward+" coins",w/2,card.top+dp(39),28,NAVY,true);
-        label(c,"Clear +15"+(mistakes==0?"  ·  Perfect +5":""),w/2,card.top+dp(71),14,TEXT,false);
-        label(c,level%5==0?"Milestone bonus +30":"Next milestone: level "+(Math.min(200,((level/5)+1)*5)),w/2,card.top+dp(96),13,Color.rgb(111,124,145),false);
-        label(c,"Wallet: "+wallet.balance()+" coins",w/2,card.top+dp(119),13,NAVY,true);
-        primaryHit.set(dp(26),top+dp(334),w-dp(26),top+dp(386));
-        secondaryHit.set(dp(26),top+dp(398),w-dp(26),top+dp(448));
-        tertiaryHit.set(dp(26),top+dp(453),w-dp(26),top+dp(491));
-        action(c,primaryHit,level<200?"Next level":"View all levels",BLUE,Color.WHITE);
+        float top=Math.max(insetTop+dp(18),(h-dp(520))/2);
+        String headline=dailyChallenge?"Daily challenge cleared!":(level==200?"All 200 mazes cleared!":isBoss(level)?"Boss escaped!":"Maze escaped!");
+        label(c,headline,w/2,top+dp(32),26,Color.WHITE,true);
+        label(c,dailyChallenge?"Puzzle of the day complete":"Level "+level+" complete",w/2,top+dp(61),16,Color.rgb(176,206,246),false);
+        label(c,starString(earnedStars),w/2,top+dp(108),31,Color.rgb(255,204,57),true);
+        label(c,earnedStars==3?"Perfect clear":earnedStars==2?"Strong clear":"Cleared",w/2,top+dp(136),13,Color.rgb(205,220,242),false);
+        RectF card=new RectF(dp(26),top+dp(166),w-dp(26),top+dp(326));pill(c,card,Color.WHITE);
+        label(c,winReward>0?"+"+winReward+" coins":"Reward already claimed",w/2,card.top+dp(38),26,NAVY,true);
+        String rewardLine;
+        if(dailyChallenge) rewardLine="Daily challenge · "+(earnedStars==3?"+150":earnedStars==2?"+125":"+100");
+        else if(isBoss(level)) rewardLine="Clear +15 · Star bonus · Boss bonus +150";
+        else if(isSuperHard(level)) rewardLine="Clear +15 · Star bonus · Milestone +75";
+        else rewardLine="Clear +15 · 2★ +5 · 3★ +10";
+        label(c,rewardLine,w/2,card.top+dp(72),13,TEXT,false);
+        label(c,dailyChallenge?"Replay anytime to improve your stars":(earnedStars==3?"Best rating saved":"Replay later to earn 3★"),w/2,card.top+dp(101),13,Color.rgb(111,124,145),false);
+        label(c,"Wallet: "+wallet.balance()+" coins",w/2,card.top+dp(132),13,NAVY,true);
+        primaryHit.set(dp(26),top+dp(347),w-dp(26),top+dp(399));
+        secondaryHit.set(dp(26),top+dp(411),w-dp(26),top+dp(461));
+        tertiaryHit.set(dp(26),top+dp(466),w-dp(26),top+dp(504));
+        action(c,primaryHit,dailyChallenge?"Back to levels":(level<200?"Next level":"View all levels"),BLUE,Color.WHITE);
         action(c,secondaryHit,"Watch ad · +75 coins",Color.rgb(255,202,69),NAVY);
-        label(c,"Level select",w/2,tertiaryHit.centerY()+dp(5),14,Color.WHITE,false);
+        label(c,dailyChallenge?"Replay from Daily Challenge menu":"Level select",w/2,tertiaryHit.centerY()+dp(5),13,Color.WHITE,false);
     }
 
     private void drawFail(Canvas c) {
@@ -596,18 +622,21 @@ public class ArrowGameView extends View {
 
     private void drawLevels(Canvas c) {
         float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
-        paint.setColor(TEXT);paint.setTextAlign(Paint.Align.CENTER);paint.setTextSize(dp(27));paint.setFakeBoldText(true);c.drawText("Levels",w/2,top+dp(35),paint);paint.setFakeBoldText(false);
+        paint.setColor(TEXT);paint.setTextAlign(Paint.Align.CENTER);paint.setTextSize(dp(27));paint.setFakeBoldText(true);c.drawText("Levels",w/2,top+dp(31),paint);paint.setFakeBoldText(false);
+        label(c,totalStars()+" / 600 stars",w/2,top+dp(55),12,Color.rgb(100,116,139),false);
         drawBack(c,dp(28),top+dp(28));
         int start=levelPage*20+1;
-        float gap=dp(10), left=dp(20), bw=(w-left*2-gap*3)/4f, bh=dp(62), y0=top+dp(78);
+        float gap=dp(10), left=dp(20), bw=(w-left*2-gap*3)/4f, bh=dp(66), y0=top+dp(82);
         for(int i=0;i<20;i++){
             int lv=start+i;if(lv>MAX_LEVEL)break;int col=i%4,row=i/4;RectF r=new RectF(left+col*(bw+gap),y0+row*(bh+gap),left+col*(bw+gap)+bw,y0+row*(bh+gap)+bh);
-            boolean open=lv<=maxUnlocked, milestone=isSuperHard(lv);
-            int cardColor=!open?Color.rgb(244,246,249):(milestone?Color.rgb(255,240,207):(lv==level?Color.rgb(223,240,255):PALE));
+            boolean open=lv<=maxUnlocked, milestone=isSuperHard(lv), boss=isBoss(lv);
+            int cardColor=!open?Color.rgb(244,246,249):(boss?Color.rgb(255,232,176):milestone?Color.rgb(255,240,207):(lv==level?Color.rgb(223,240,255):PALE));
             paint.setColor(cardColor);c.drawRoundRect(r,dp(16),dp(16),paint);
-            if(milestone){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(2));paint.setColor(open?SUPER_HARD:Color.rgb(210,190,170));c.drawRoundRect(r,dp(16),dp(16),paint);paint.setStyle(Paint.Style.FILL);}
-            paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(18));paint.setColor(open?(milestone?SUPER_HARD:TEXT):Color.rgb(171,180,194));c.drawText(open?String.valueOf(lv):"•",r.centerX(),r.centerY()+dp(6),paint);paint.setFakeBoldText(false);
-            if(milestone)label(c,"★",r.right-dp(13),r.top+dp(17),10,open?SUPER_HARD:Color.rgb(190,180,170),true);
+            if(milestone){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(boss?2.7f:2));paint.setColor(open?(boss?BOSS_GOLD:SUPER_HARD):Color.rgb(210,190,170));c.drawRoundRect(r,dp(16),dp(16),paint);paint.setStyle(Paint.Style.FILL);}
+            int stars=open?bestStars(lv):0;
+            paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(18));paint.setColor(open?(boss?BOSS_GOLD:milestone?SUPER_HARD:TEXT):Color.rgb(171,180,194));c.drawText(open?String.valueOf(lv):"•",r.centerX(),r.top+dp(30),paint);paint.setFakeBoldText(false);
+            if(open&&stars>0)label(c,starString(stars),r.centerX(),r.bottom-dp(8),9,Color.rgb(225,161,20),true);
+            if(milestone)label(c,boss?"BOSS":"★",r.right-dp(boss?22:13),r.top+dp(15),boss?7:10,open?(boss?BOSS_GOLD:SUPER_HARD):Color.rgb(190,180,170),true);
         }
         float y=h-insetBottom-dp(72);RectF prev=new RectF(dp(24),y,w*.45f,y+dp(48));RectF next=new RectF(w*.55f,y,w-dp(24),y+dp(48));
         paint.setColor(PALE);c.drawRoundRect(prev,dp(22),dp(22),paint);c.drawRoundRect(next,dp(22),dp(22),paint);paint.setColor(TEXT);paint.setTextSize(dp(15));paint.setFakeBoldText(true);c.drawText("‹ PREV",prev.centerX(),prev.centerY()+dp(5),paint);c.drawText("NEXT ›",next.centerX(),next.centerY()+dp(5),paint);paint.setFakeBoldText(false);
@@ -637,15 +666,18 @@ public class ArrowGameView extends View {
         performClick();
         float x=e.getX(),y=e.getY();rippleX=x;rippleY=y;touchRippleUntil=SystemClock.elapsedRealtime()+360;invalidate();
         if(screen==Screen.LEVELS)return handleLevelsTouch(x,y);
+        if(milestoneIntroUntil>SystemClock.elapsedRealtime()){milestoneIntroUntil=0L;invalidate();return true;}
         if(tutorial){if(primaryHit.contains(x,y)){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();}return true;}
         if(finished){
-            if(primaryHit.contains(x,y))host.onContinueAfterWin(()->{if(level<MAX_LEVEL)startLevel(level+1);else showLevelSelect();});
-            else if(secondaryHit.contains(x,y))host.requestRewardedCoins();
-            else if(tertiaryHit.contains(x,y))showLevelSelect();
+            if(primaryHit.contains(x,y)){
+                if(dailyChallenge)leaveDailyChallenge();
+                else host.onContinueAfterWin(()->{if(level<MAX_LEVEL)startLevel(level+1);else showLevelSelect();});
+            } else if(secondaryHit.contains(x,y))host.requestRewardedCoins();
+            else if(tertiaryHit.contains(x,y)){if(dailyChallenge)leaveDailyChallenge();else showLevelSelect();}
             return true;
         }
         if(failed){
-            if(primaryHit.contains(x,y))startLevel(level);
+            if(primaryHit.contains(x,y))restartCurrentLevel();
             else if(secondaryHit.contains(x,y))host.requestRewardedRevive();
             else if(tertiaryHit.contains(x,y)){if(!buyContinue())host.openWallet();}
             else if(walletHit.contains(x,y))host.openWallet();
@@ -661,11 +693,33 @@ public class ArrowGameView extends View {
     }
 
     private void startLevel(int lv) {
-        level=Math.max(1,Math.min(MAX_LEVEL,lv));prefs.edit().putInt("lastLevel",level).apply();
-        screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;
-        mistakes=0;winReward=0;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
-        generateLevel(level);saveProgress();invalidate();
+        dailyChallenge=false;challengeDay=-1L;
+        setupLevel(lv,true);
     }
+
+    private void setupLevel(int lv,boolean persistNormal) {
+        level=Math.max(1,Math.min(MAX_LEVEL,lv));
+        if(persistNormal){prefs.edit().putInt("lastLevel",level).apply();normalLevelBeforeChallenge=level;}
+        screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;
+        mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
+        generateLevel(level);
+        milestoneIntroUntil=(dailyChallenge||isSuperHard(level))?SystemClock.elapsedRealtime()+1600L:0L;
+        saveProgress();invalidate();
+    }
+
+    public void startDailyChallenge() {
+        normalLevelBeforeChallenge=Math.max(1,Math.min(MAX_LEVEL,prefs.getInt("lastLevel",level)));
+        challengeDay=System.currentTimeMillis()/Wallet.DAY_MS;
+        dailyChallenge=true;
+        setupLevel(dailyLevelForDay(challengeDay),false);
+    }
+
+    private int dailyLevelForDay(long day){return 5+(int)Math.floorMod(day*73L+19L,40L)*5;}
+    public int bestDailyStarsToday(){
+        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        return prefs.getLong("challenge_star_day",-1L)==day?prefs.getInt("challenge_best_stars",0):0;
+    }
+    private void leaveDailyChallenge(){int back=normalLevelBeforeChallenge;dailyChallenge=false;challengeDay=-1L;startLevel(back);showLevelSelect();}
 
     private boolean handleLevelsTouch(float x,float y) {
         float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
@@ -708,18 +762,29 @@ public class ArrowGameView extends View {
         for(Piece p:pieces){if(!p.removed&&!p.moving&&p.hintUntil>now)return;if(!p.removed&&!p.moving&&isClear(p))safe.add(p);}
         if(safe.isEmpty()){showToast("Wait for the moving arrows");return;}
         if(hints>0)hints--;else if(!wallet.spend(Wallet.HINT_COST)){host.openWallet();return;}
+        assistsUsed++;
         Piece p=safe.get(rng.nextInt(safe.size()));p.hintUntil=now+2400;
         saveProgress();showToast("Safe arrow highlighted");invalidate();
     }
 
-    private void useEraser(){if(erasers<=0){host.requestRewardedErase();return;}ArrayList<Piece> active=new ArrayList<>();for(Piece p:pieces)if(!p.removed&&!p.moving)active.add(p);if(active.isEmpty())return;Piece p=active.get(rng.nextInt(active.size()));erasers--;p.moving=true;p.moveT=0;p.moveSteps=snakeTravelSteps(p);showToast("One arrow removed");saveProgress();invalidate();}
+    private void useEraser(){if(erasers<=0){host.requestRewardedErase();return;}ArrayList<Piece> active=new ArrayList<>();for(Piece p:pieces)if(!p.removed&&!p.moving)active.add(p);if(active.isEmpty())return;Piece p=active.get(rng.nextInt(active.size()));erasers--;assistsUsed++;p.moving=true;p.moveT=0;p.moveSteps=snakeTravelSteps(p);showToast("One arrow removed");saveProgress();invalidate();}
 
     public void grantEraser(){erasers++;saveProgress();showToast("Eraser added");invalidate();}
-    public void grantRevive(){if(!failed)return;failed=false;hearts=2;saveProgress();showToast("Revived with 2 hearts");invalidate();}
+    public void grantRevive(){if(!failed)return;failed=false;hearts=2;assistsUsed++;saveProgress();showToast("Revived with 2 hearts");invalidate();}
 
     private int remaining(){int n=0;for(Piece p:pieces)if(!p.removed)n++;return n;}
     private boolean isSuperHard(int lv){return lv%5==0;}
-    private String difficulty(){if(isSuperHard(level))return "SUPER HARD ★";if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
+    private boolean isBoss(int lv){return lv==25||lv==50||lv==100||lv==150||lv==200;}
+    private String difficulty(){if(isBoss(level))return "BOSS MILESTONE";if(isSuperHard(level))return "SUPER HARD ★";if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
+    private int computeStars(){if(mistakes==0&&assistsUsed==0)return 3;if(mistakes<=1&&assistsUsed<=1)return 2;return 1;}
+    private int bestStars(int lv){return Math.max(0,Math.min(3,prefs.getInt("stars_"+lv,0)));}
+    private void saveBestStars(int lv,int stars){if(stars>bestStars(lv))prefs.edit().putInt("stars_"+lv,stars).apply();}
+    private int totalStars(){int total=0;for(int lv=1;lv<=MAX_LEVEL;lv++)total+=bestStars(lv);return total;}
+    private String starString(int stars){return (stars>=1?"★":"☆")+(stars>=2?"★":"☆")+(stars>=3?"★":"☆");}
+    private void saveDailyChallengeStars(long day,int stars){
+        long savedDay=prefs.getLong("challenge_star_day",-1L);int best=savedDay==day?prefs.getInt("challenge_best_stars",0):0;
+        if(savedDay!=day||stars>best)prefs.edit().putLong("challenge_star_day",day).putInt("challenge_best_stars",Math.max(stars,best)).apply();
+    }
 
     private void loadPackedLevels(){
         try {
@@ -973,19 +1038,21 @@ public class ArrowGameView extends View {
     private void playSound(int id,int duration){if(settings.getBoolean("sound",true))tone.startTone(id,duration);}
     public boolean canBuyHeart(){return !finished&&!failed&&hearts<3;}
     public boolean needsRevive(){return failed;}
-    public boolean buyHeart(){if(!canBuyHeart()||!wallet.spend(Wallet.HEART_COST))return false;hearts++;saveProgress();invalidate();return true;}
+    public boolean buyHeart(){if(!canBuyHeart()||!wallet.spend(Wallet.HEART_COST))return false;hearts++;assistsUsed++;saveProgress();invalidate();return true;}
     public boolean buyContinue(){if(!failed||!wallet.spend(Wallet.CONTINUE_COST))return false;grantRevive();return true;}
-    public void restartCurrentLevel(){startLevel(level);}
+    public void restartCurrentLevel(){if(dailyChallenge)setupLevel(level,false);else startLevel(level);}
     public void showTutorialAgain(){screen=Screen.PLAY;tutorial=true;invalidate();}
     private void showLevelSelect(){screen=Screen.LEVELS;levelPage=(level-1)/20;saveProgress();invalidate();}
-    public boolean handleBack(){if(screen==Screen.LEVELS){screen=Screen.PLAY;invalidate();return true;}if(tutorial){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();return true;}host.openSettings();return true;}
+    public boolean handleBack(){if(screen==Screen.LEVELS){screen=Screen.PLAY;invalidate();return true;}if(tutorial){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();return true;}if(dailyChallenge){leaveDailyChallenge();return true;}host.openSettings();return true;}
     public void saveProgress(){
         if(runId==null)return;
         try {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
             state.put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
-                 .put("mistakes",mistakes).put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
+                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars)
+                 .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("normalLevel",normalLevelBeforeChallenge)
+                 .put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
             prefs.edit().putString("v16_progress",state.toString()).commit();
         }catch(org.json.JSONException ignored){}
     }
@@ -994,8 +1061,12 @@ public class ArrowGameView extends View {
         try {
             org.json.JSONObject state=new org.json.JSONObject(checkpoint);int savedLevel=state.getInt("level");
             if(savedLevel<1||savedLevel>MAX_LEVEL)return;
-            startLevel(savedLevel);runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
+            boolean savedDaily=state.optBoolean("dailyChallenge",false);
+            if(savedDaily){dailyChallenge=true;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);}
+            else startLevel(savedLevel);
+            runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
             hints=Math.max(0,Math.min(2,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
+            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);
             finished=state.optBoolean("finished",false);failed=state.optBoolean("failed",false);winReward=state.optInt("winReward",0);
             org.json.JSONArray removed=state.getJSONArray("removed");java.util.HashSet<Integer> ids=new java.util.HashSet<>();
             for(int i=0;i<removed.length();i++)ids.add(removed.getInt(i));for(Piece p:pieces)p.removed=ids.contains(p.id);
