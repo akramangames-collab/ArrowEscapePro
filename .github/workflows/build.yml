@@ -1,7 +1,7 @@
 name: Build Arrow Escape V16
 on:
   push:
-    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones]
+    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones, v16-retention-upgrade]
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,6 +24,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
+      - name: Generate dependency-driven milestone mazes
+        run: python3 scripts/generate-hard-levels.py
       - name: Verify 200 hard mazes and V15 movement
         run: python3 scripts/verify-levels.py
       - name: Verify wallet transactions and persistence
