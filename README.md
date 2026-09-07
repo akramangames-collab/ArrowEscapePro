@@ -24,7 +24,7 @@ The arrowhead exits straight ahead and its body follows the original bends. V15 
 The workflow validates all 200 mazes, checks wallet persistence and duplicate rewards, builds both variants, checks compiled ad IDs/version metadata, runs native Android tests and captures screenshots.
 
 - Debug: `ArrowEscape-PuzzleMaze-V16-test.apk`, official Google test IDs, package `com.arrowescape.pro.debug` so it can coexist with installed production builds.
-- Release: `ArrowEscape-PuzzleMaze-V16-release-unsigned.apk`, supplied production IDs, package `com.arrowescape.pro`, version `16.0.0` / code `17`. CI keeps the release APK unsigned so signing credentials stay private. The final V16 download is signed separately with the V16 release key; retain its private backup for future updates. Private signing keys must never be committed. V15 used a different test certificate, so the signed release requires a fresh installation when that V15 APK is already installed.
+- Release: `ArrowEscape-PuzzleMaze-V16-release-unsigned.apk`, supplied production IDs, package `com.arrowescape.pro`, version `16.0.1` / code `18`. CI keeps the release APK unsigned so signing credentials stay private. The final V16 download is signed separately with the V16 release key; retain its private backup for future updates. Private signing keys must never be committed. V15 used a different test certificate, so the signed release requires a fresh installation when that V15 APK is already installed.
 
 Production AdMob mapping supplied in the project conversation:
 
@@ -48,3 +48,9 @@ gradle :app:assembleDebug :app:assembleRelease :app:assembleDebugAndroidTest
 ```
 
 Regenerate the deterministic harder layouts using `python3 scripts/generate-hard-levels.py`. The original recovered V15 layouts are retained only as the generator fixture in `tests/v15-levels.txt`.
+
+## Google Play preparation
+
+The approved V16 gameplay and wallet are preserved. Store build 16.0.1 / code 18 adds an offline privacy-policy screen, production App Bundle output and 1080x1920 listing captures. GitHub Actions uploads `ArrowEscape-V16-Play-Bundle`; sign this bundle privately with the existing V16 key before the first Play upload. The original signed V16 APK remains available separately.
+
+English listing text is in `play-store/`. The privacy text in `PRIVACY.md` matches `app/src/main/assets/privacy-policy.txt`. Select the intended audience and complete the publisher/account declarations in Play Console before submitting the app.

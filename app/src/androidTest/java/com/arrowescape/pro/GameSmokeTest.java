@@ -26,9 +26,9 @@ public class GameSmokeTest {
         public void onLevelCompleted(){} public void requestRewardedErase(){} public void requestRewardedRevive(){} public void requestRewardedCoins(){} public void openWallet(){} public void openSettings(){} public void onContinueAfterWin(Runnable p){p.run();}
     }
     private static void render(Context context,ArrowGameView game,String name) throws Exception {
-        float density=context.getResources().getDisplayMetrics().density;int width=(int)(360*density),height=(int)(780*density);
+        int width=1080,height=1920;
         game.measure(android.view.View.MeasureSpec.makeMeasureSpec(width,android.view.View.MeasureSpec.EXACTLY),android.view.View.MeasureSpec.makeMeasureSpec(height,android.view.View.MeasureSpec.EXACTLY));game.layout(0,0,width,height);
-        Bitmap bitmap=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);game.draw(new Canvas(bitmap));
+        Bitmap bitmap=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);bitmap.setHasAlpha(false);game.draw(new Canvas(bitmap));
         File directory=new File(context.getExternalFilesDir(null),"screenshots");directory.mkdirs();
         try(FileOutputStream file=new FileOutputStream(new File(directory,name+".png"))){bitmap.compress(Bitmap.CompressFormat.PNG,100,file);}bitmap.recycle();
     }
@@ -58,6 +58,7 @@ public class GameSmokeTest {
                 set(restored,"finished",true);set(restored,"winReward",50);render(context,restored,"04-win");
                 set(restored,"finished",false);set(restored,"failed",true);set(restored,"hearts",0);render(context,restored,"05-fail");restored.release();
                 assertTrue(BuildConfig.DEBUG);assertTrue(BuildConfig.ADMOB_REWARDED_ID.startsWith("ca-app-pub-3940256099942544/"));
+                exportStoreGraphics(context);
                 context.getSharedPreferences("arrow_puzzle_faithful",0).edit().remove("v16_progress").putInt("lastLevel",1).putBoolean("tutorialSeen",true).commit();
             }catch(Throwable t){error[0]=t;}
         });
@@ -77,5 +78,28 @@ public class GameSmokeTest {
         Bitmap bitmap=InstrumentationRegistry.getInstrumentation().getUiAutomation().takeScreenshot();assertNotNull(bitmap);
         File directory=new File(context.getExternalFilesDir(null),"screenshots");directory.mkdirs();
         try(FileOutputStream file=new FileOutputStream(new File(directory,name+".png"))){bitmap.compress(Bitmap.CompressFormat.PNG,100,file);}bitmap.recycle();
+    }
+    private static void exportStoreGraphics(Context context) throws Exception {
+        File directory=new File(context.getExternalFilesDir(null),"screenshots");directory.mkdirs();
+        android.graphics.drawable.Drawable icon=context.getDrawable(R.drawable.icon_art);
+        Bitmap storeIcon=Bitmap.createBitmap(512,512,Bitmap.Config.ARGB_8888);
+        Canvas iconCanvas=new Canvas(storeIcon);iconCanvas.drawColor(0xFF081D49);
+        icon.setBounds(0,0,512,512);icon.draw(iconCanvas);
+        try(FileOutputStream file=new FileOutputStream(new File(directory,"play-icon-512.png"))){storeIcon.compress(Bitmap.CompressFormat.PNG,100,file);}storeIcon.recycle();
+        Bitmap feature=Bitmap.createBitmap(1024,500,Bitmap.Config.ARGB_8888);feature.setHasAlpha(false);
+        Canvas canvas=new Canvas(feature);canvas.drawColor(0xFF081D49);
+        android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(0xFF163464);canvas.drawCircle(900,160,360,paint);
+        paint.setColor(0xFF217FE7);canvas.drawCircle(80,525,220,paint);
+        icon.setBounds(654,95,964,405);icon.draw(canvas);
+        paint.setTypeface(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.BOLD));
+        paint.setColor(android.graphics.Color.WHITE);paint.setTextSize(58);canvas.drawText("Arrow Escape",60,165,paint);
+        paint.setColor(0xFFFFCC39);paint.setTextSize(45);canvas.drawText("Puzzle Maze",60,223,paint);
+        paint.setTypeface(android.graphics.Typeface.create("sans-serif",android.graphics.Typeface.NORMAL));
+        paint.setColor(0xFFBDD6FA);paint.setTextSize(25);canvas.drawText("200 mazes. One clear way out.",62,282,paint);
+        android.graphics.Path route=new android.graphics.Path();route.moveTo(65,375);route.lineTo(215,375);route.lineTo(215,330);route.lineTo(382,330);
+        paint.setStyle(android.graphics.Paint.Style.STROKE);paint.setStrokeWidth(10);paint.setStrokeJoin(android.graphics.Paint.Join.ROUND);paint.setColor(android.graphics.Color.WHITE);canvas.drawPath(route,paint);
+        paint.setStyle(android.graphics.Paint.Style.FILL);android.graphics.Path tip=new android.graphics.Path();tip.moveTo(412,330);tip.lineTo(379,311);tip.lineTo(379,349);tip.close();canvas.drawPath(tip,paint);
+        try(FileOutputStream file=new FileOutputStream(new File(directory,"play-feature-1024x500.png"))){feature.compress(Bitmap.CompressFormat.PNG,100,file);}feature.recycle();
     }
 }
