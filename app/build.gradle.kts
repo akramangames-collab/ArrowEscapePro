@@ -7,8 +7,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 23
         targetSdk = 36
-        versionCode = 19
-        versionName = "16.0.2"
+        versionCode = 20
+        versionName = "16.0.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
