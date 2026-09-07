@@ -1,18 +1,18 @@
 package com.arrowescape.pro;
 
-/** One wallet shared by gameplay, daily rewards and earned-ad callbacks. */
+/** One wallet shared by gameplay, daily rewards, daily challenges and earned-ad callbacks. */
 public final class Wallet {
     public static final int STARTER = 100, HINT_COST = 25, DAILY = 100, AD_REWARD = 75;
     public static final int HEART_COST = 40, CONTINUE_COST = 60;
     public static final long DAY_MS = 86400000L;
     public static final class State {
         public int coins = STARTER, streak;
-        public long dailyDay = -1;
+        public long dailyDay = -1, challengeDay = -1;
         public String levelToken = "", adToken = "";
         public boolean initialized;
         public State copy() {
             State s = new State();
-            s.coins = coins; s.streak = streak; s.dailyDay = dailyDay;
+            s.coins = coins; s.streak = streak; s.dailyDay = dailyDay; s.challengeDay = challengeDay;
             s.levelToken = levelToken; s.adToken = adToken; s.initialized = initialized;
             return s;
         }
@@ -36,6 +36,7 @@ public final class Wallet {
     public synchronized int balance() { state = storage.load().copy(); return state.coins; }
     public synchronized int streak() { state = storage.load().copy(); return state.streak; }
     public synchronized boolean canClaimDaily(long now) { state = storage.load().copy(); return now >= 0 && now / DAY_MS > state.dailyDay; }
+    public synchronized boolean canRewardDailyChallenge(long day) { state = storage.load().copy(); return day >= 0 && day > state.challengeDay; }
     public synchronized boolean spend(int price) {
         state = storage.load().copy();
         if (price <= 0 || state.coins < price) return false;
@@ -51,14 +52,25 @@ public final class Wallet {
         next.coins = add(next.coins, DAILY);
         return commit(next) ? DAILY : 0;
     }
-    public synchronized int rewardLevel(String token, int level, boolean perfect) {
+    public synchronized int rewardLevel(String token, int level, int stars) {
         state = storage.load().copy();
-        if (token == null || token.isEmpty() || token.equals(state.levelToken) || level < 1 || level > 200) return 0;
-        int amount = 15 + (perfect ? 5 : 0) + (level % 5 == 0 ? 30 : 0);
+        if (token == null || token.isEmpty() || token.equals(state.levelToken) || level < 1 || level > 200 || stars < 1 || stars > 3) return 0;
+        boolean milestone = level % 5 == 0;
+        boolean boss = level == 25 || level == 50 || level == 100 || level == 150 || level == 200;
+        int amount = 15 + (stars == 3 ? 10 : stars == 2 ? 5 : 0) + (milestone ? 75 : 0) + (boss ? 75 : 0);
         State next = state.copy(); next.coins = add(next.coins, amount); next.levelToken = token;
         return commit(next) ? amount : 0;
     }
-    /** Call only from OnUserEarnedRewardListener, with a unique token per shown ad. */
+    public synchronized int rewardLevel(String token, int level, boolean perfect) {
+        return rewardLevel(token, level, perfect ? 3 : 1);
+    }
+    public synchronized int rewardDailyChallenge(long day, int stars) {
+        state = storage.load().copy();
+        if (day < 0 || day <= state.challengeDay || stars < 1 || stars > 3) return 0;
+        int amount = 75 + stars * 25;
+        State next = state.copy(); next.coins = add(next.coins, amount); next.challengeDay = day;
+        return commit(next) ? amount : 0;
+    }
     public synchronized int rewardAd(String token) {
         state = storage.load().copy();
         if (token == null || token.isEmpty() || token.equals(state.adToken)) return 0;
