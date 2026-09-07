@@ -45,6 +45,7 @@ public class ArrowGameView extends View {
     private static final int RED = Color.rgb(255, 76, 83);
     private static final int LOST_HEART = Color.rgb(229, 235, 243);
     private static final int TEXT = Color.rgb(20, 24, 31);
+    private static final int SUPER_HARD = Color.rgb(218, 72, 55);
 
     private enum Screen { PLAY, LEVELS }
 
@@ -199,7 +200,8 @@ public class ArrowGameView extends View {
         float w = getWidth(), h = getHeight(), top = insetTop + dp(8);
         drawBack(c, dp(28), top + dp(30));
         label(c, "Level " + level, w/2, top + dp(29), 23, NAVY, true);
-        label(c, difficulty() + "  ·  " + level + " / 200", w/2, top + dp(49), 11, Color.rgb(100,116,139), false);
+        int difficultyColor = isSuperHard(level) ? SUPER_HARD : Color.rgb(100,116,139);
+        label(c, difficulty() + "  ·  " + level + " / 200", w/2, top + dp(49), 11, difficultyColor, isSuperHard(level));
         drawGear(c, w-dp(31), top+dp(30));
         float statY = top + dp(84);
         pill(c,new RectF(dp(16),statY-dp(21),dp(94),statY+dp(21)),PALE);
@@ -600,7 +602,12 @@ public class ArrowGameView extends View {
         float gap=dp(10), left=dp(20), bw=(w-left*2-gap*3)/4f, bh=dp(62), y0=top+dp(78);
         for(int i=0;i<20;i++){
             int lv=start+i;if(lv>MAX_LEVEL)break;int col=i%4,row=i/4;RectF r=new RectF(left+col*(bw+gap),y0+row*(bh+gap),left+col*(bw+gap)+bw,y0+row*(bh+gap)+bh);
-            boolean open=lv<=maxUnlocked;paint.setColor(open?(lv==level?Color.rgb(223,240,255):PALE):Color.rgb(244,246,249));c.drawRoundRect(r,dp(16),dp(16),paint);paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(18));paint.setColor(open?TEXT:Color.rgb(171,180,194));c.drawText(open?String.valueOf(lv):"•",r.centerX(),r.centerY()+dp(6),paint);paint.setFakeBoldText(false);
+            boolean open=lv<=maxUnlocked, milestone=isSuperHard(lv);
+            int cardColor=!open?Color.rgb(244,246,249):(milestone?Color.rgb(255,240,207):(lv==level?Color.rgb(223,240,255):PALE));
+            paint.setColor(cardColor);c.drawRoundRect(r,dp(16),dp(16),paint);
+            if(milestone){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(2));paint.setColor(open?SUPER_HARD:Color.rgb(210,190,170));c.drawRoundRect(r,dp(16),dp(16),paint);paint.setStyle(Paint.Style.FILL);}
+            paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(18));paint.setColor(open?(milestone?SUPER_HARD:TEXT):Color.rgb(171,180,194));c.drawText(open?String.valueOf(lv):"•",r.centerX(),r.centerY()+dp(6),paint);paint.setFakeBoldText(false);
+            if(milestone)label(c,"★",r.right-dp(13),r.top+dp(17),10,open?SUPER_HARD:Color.rgb(190,180,170),true);
         }
         float y=h-insetBottom-dp(72);RectF prev=new RectF(dp(24),y,w*.45f,y+dp(48));RectF next=new RectF(w*.55f,y,w-dp(24),y+dp(48));
         paint.setColor(PALE);c.drawRoundRect(prev,dp(22),dp(22),paint);c.drawRoundRect(next,dp(22),dp(22),paint);paint.setColor(TEXT);paint.setTextSize(dp(15));paint.setFakeBoldText(true);c.drawText("‹ PREV",prev.centerX(),prev.centerY()+dp(5),paint);c.drawText("NEXT ›",next.centerX(),next.centerY()+dp(5),paint);paint.setFakeBoldText(false);
@@ -711,7 +718,8 @@ public class ArrowGameView extends View {
     public void grantRevive(){if(!failed)return;failed=false;hearts=2;saveProgress();showToast("Revived with 2 hearts");invalidate();}
 
     private int remaining(){int n=0;for(Piece p:pieces)if(!p.removed)n++;return n;}
-    private String difficulty(){if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
+    private boolean isSuperHard(int lv){return lv%5==0;}
+    private String difficulty(){if(isSuperHard(level))return "SUPER HARD ★";if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
 
     private void loadPackedLevels(){
         try {

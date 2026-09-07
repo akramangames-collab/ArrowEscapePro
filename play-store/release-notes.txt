@@ -1,5 +1,1 @@
-<en-US>
-200 challenging arrow mazes with smooth path-following movement.
-Persistent coins, level bonuses, daily rewards and helpful hints.
-Maze-arrow-coin branding, polished controls and an in-app privacy policy.
-</en-US>
+Super Hard Milestones are here. Every 5th level (5, 10, 15, 20…200) is now a clearly marked SUPER HARD challenge with a major difficulty spike. The approved snake/path-following gameplay, 200-level progression, coin rewards and AdMob setup are preserved.

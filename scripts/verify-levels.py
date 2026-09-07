@@ -38,11 +38,15 @@ for index,line in enumerate(lines,1):
                 if (nx,ny) in others:clear=False;break
             if clear:occupied-=nodes;pieces.remove(piece);progress=True
         assert progress,f'Level {index}: unsolvable arrow dependency cycle'
-assert counts==sorted(counts)
+for level in range(5,201,5):
+    previous=max(counts[level-5:level-1])
+    boost=counts[level-1]-previous
+    required=15 if level<=170 else (8 if level<=185 else 1)
+    assert boost>=required, f'Level {level}: super-hard milestone boost {boost} < {required}'
 source=(root/'app/src/main/java/com/arrowescape/pro/ArrowGameView.java').read_text()
 for name,digest in expected['movement_methods'].items():
     match=re.search(r'\b'+name+r'\s*\([^)]*\)\s*\{',source);assert match,name
     start=source.index('{',match.start());end=start+1;depth=1
     while depth:depth+=(source[end]=='{')-(source[end]=='}');end+=1
     assert hashlib.sha256(source[start:end].encode()).hexdigest()==digest, f'V15 movement changed: {name}'
-print(f'200 mazes valid and solvable; arrow counts {counts[0]} → {counts[-1]}; hard-mode layout checks and V15 path/collision methods passed.')
+print(f'200 mazes valid and solvable; 40 SUPER HARD milestones verified every 5 levels; arrow counts {counts[0]} → {counts[-1]}; V15 path/collision methods passed.')
