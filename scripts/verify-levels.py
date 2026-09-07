@@ -28,14 +28,15 @@ for index,line in enumerate(lines,1):
         pieces.append((nodes,(tx,ty),dx,dy))
     counts.append(len(pieces))
     all_nodes=[p[0] for p in pieces]
+    owner={node:j for j,nodes in enumerate(all_nodes) for node in nodes}
     deps=[]
     for i,(nodes,(x,y),dx,dy) in enumerate(pieces):
         blockers=set()
         for step in range(1,width+height+20):
             nx=x+dx*step;ny=y+dy*step
             if nx<0 or nx>width or ny<0 or ny>height:break
-            for j,other in enumerate(all_nodes):
-                if i!=j and (nx,ny) in other:blockers.add(j)
+            j=owner.get((nx,ny))
+            if j is not None and j!=i:blockers.add(j)
         deps.append(blockers)
     safe_counts.append(sum(not d for d in deps))
     todo=set(range(len(deps)));node_depth={}
