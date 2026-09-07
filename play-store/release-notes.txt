@@ -1,1 +1,7 @@
-Super Hard Milestones are here. Every 5th level (5, 10, 15, 20…200) is now a clearly marked SUPER HARD challenge with a major difficulty spike. The approved snake/path-following gameplay, 200-level progression, coin rewards and AdMob setup are preserved.
+V16.0.3 makes progression more rewarding and replayable:
+• Every level now earns a 1–3 star rating; 3★ requires no mistakes and no assists.
+• A deterministic Daily Challenge gives everyone the same SUPER HARD puzzle each UTC day, with up to 150 coins.
+• Every 5th level gets deeper dependency chains, fewer obvious exits and a +75 milestone bonus.
+• Levels 25, 50, 100, 150 and 200 are Boss Milestones with an additional +75 bonus.
+• Milestone intros, boss styling and saved best-star ratings make progression feel more special.
+The approved snake/path-following arrow movement and production/test AdMob separation are preserved.

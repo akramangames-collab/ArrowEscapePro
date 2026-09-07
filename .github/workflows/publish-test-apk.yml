@@ -1,0 +1,25 @@
+name: Publish V16.0.3 Test APK
+on:
+  push:
+    branches: [v16-retention-upgrade]
+    paths: [.github/workflows/publish-test-apk.yml]
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download successful V16.0.3 APK artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist
+          gh run download 34097349682 --repo akramangames-collab/ArrowEscapePro --name ArrowEscape-V16-APKs --dir dist
+          test -f dist/ArrowEscape-PuzzleMaze-V16-test.apk
+      - name: Publish direct APK download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v16.0.3-test --repo akramangames-collab/ArrowEscapePro --yes --cleanup-tag 2>/dev/null || true
+          gh release create v16.0.3-test             dist/ArrowEscape-PuzzleMaze-V16-test.apk             --repo akramangames-collab/ArrowEscapePro             --target "${{ github.sha }}"             --title "Arrow Escape: Puzzle Maze V16.0.3 Test APK"             --notes "Install this APK for device testing. It uses Google's official test ad units, not production ads."             --prerelease
