@@ -48,7 +48,12 @@ def self_profile(piece,w,h):
     return True,crossings
 
 def safe_indices(pieces,occupancy,rays):
-    return [i for i,p in enumerate(pieces) if not set(rays[i])&(occupancy-nodes(p))]
+    out=[]
+    for i,p in enumerate(pieces):
+        own=nodes(p)
+        if not any(q in occupancy and q not in own for q in rays[i]):
+            out.append(i)
+    return out
 
 def open_ray_cells(piece,w,h,occupancy):
     return [q for q in ray(piece,w,h) if q not in occupancy]
@@ -83,18 +88,19 @@ def build_body(rng,tip,direction,occupancy,w,h,milestone):
 def candidate(rng,pieces,occupancy,rays,w,h,milestone,want_block):
     safe=safe_indices(pieces,occupancy,rays)
     dirs=((1,0),(-1,0),(0,1),(0,-1))
-    best=None;best_score=-1e18
-    attempts=280 if want_block else 160
+    safe_ray_union=set()
+    if not want_block:
+        for i in safe:safe_ray_union.update(rays[i])
 
+    # We accept the first strong valid candidate instead of scoring hundreds
+    # of alternatives. This keeps all 200 levels fast to generate in CI.
+    attempts=70 if milestone else 48
     for _ in range(attempts):
-        # When the safe pool is already at its target, place the new arrowhead
-        # directly on the ray of an existing safe arrow. That guarantees the
-        # new body blocks at least one formerly-valid move without cycles.
         if want_block and safe:
             victim=rng.choice(safe)
-            cells=open_ray_cells(pieces[victim],w,h,occupancy)
+            cells=[q for q in rays[victim] if q not in occupancy]
             if not cells:continue
-            tx,ty=rng.choice(cells[:max(1,min(len(cells),12))])
+            tx,ty=rng.choice(cells[:min(len(cells),10)])
         else:
             tx=rng.randrange(1,w);ty=rng.randrange(1,h)
             if (tx,ty) in occupancy:continue
@@ -103,24 +109,20 @@ def candidate(rng,pieces,occupancy,rays,w,h,milestone,want_block):
         direction=None
         for d in choices:
             probe=(d[0],d[1],[(tx,ty)])
-            if not (set(ray(probe,w,h))&occupancy):
+            if all(q not in occupancy for q in ray(probe,w,h)):
                 direction=d;break
         if direction is None:continue
 
         built=build_body(rng,(tx,ty),direction,occupancy,w,h,milestone)
         if built is None:continue
         p,taken,crossings=built
-        blocked_safe=sum(bool(taken&set(rays[i])) for i in safe)
 
-        if want_block and blocked_safe<1:continue
-        if not want_block and blocked_safe>0:continue
-
-        blocked_any=sum(bool(taken&set(r)) for r in rays)
-        turns=max(0,len(p[2])-2)
-        score=blocked_safe*600+blocked_any*8+turns*(11 if milestone else 5)+crossings*12+len(taken)*.4+rng.random()
-        if score>best_score:
-            best=(p,taken,blocked_safe);best_score=score
-    return best
+        if not want_block and taken&safe_ray_union:
+            continue
+        # In blocking mode the tip itself sits on the victim's open ray, so
+        # this new piece definitely removes at least one previously-safe move.
+        return p,taken,1 if want_block and safe else 0
+    return None
 
 def target_safe(level):
     if level%5==0:return 1
