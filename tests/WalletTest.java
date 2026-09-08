@@ -13,14 +13,16 @@ public class WalletTest {
         yes(w.spend(25));eq(75,new Wallet(s).balance());
         eq(25,w.rewardLevel("run1",1,3));eq(0,w.rewardLevel("run1",1,3));
         eq(90,w.rewardLevel("run5",5,1));eq(100,w.rewardLevel("run10",10,3));
-        eq(175,w.rewardLevel("boss25",25,3));eq(465,w.balance());
+        eq(175,w.rewardLevel("boss25",25,3));
+        eq(50,w.rewardChest(5,50));eq(0,w.rewardChest(5,50));yes(w.isChestClaimed(5));
+        eq(100,w.rewardChest(25,100));eq(2,w.chestCount());
         eq(100,w.claimDaily(10*Wallet.DAY_MS));eq(0,new Wallet(s).claimDaily(10*Wallet.DAY_MS));
         eq(100,w.claimDaily(11*Wallet.DAY_MS));eq(2,w.streak());
         yes(w.canRewardDailyChallenge(13));eq(150,w.rewardDailyChallenge(13,3));eq(0,new Wallet(s).rewardDailyChallenge(13,3));
         eq(125,w.rewardDailyChallenge(14,2));eq(75,w.rewardAd("ad1"));eq(0,new Wallet(s).rewardAd("ad1"));
-        s.fail=true;int balance=w.balance();eq(0,w.rewardAd("failed"));eq(balance,w.balance());s.fail=false;eq(75,w.rewardAd("failed"));
+        s.fail=true;int balance=w.balance();eq(0,w.rewardChest(10,50));eq(balance,w.balance());s.fail=false;eq(50,w.rewardChest(10,50));
         Storage legacy=new Storage();legacy.state.coins=460;legacy.state.dailyDay=20;legacy.state.streak=4;
-        Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(100,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.streak());
-        System.out.println("Wallet: "+assertions+" assertions passed.");
+        Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(100,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.streak());eq(0,migrated.chestCount());
+        System.out.println("Wallet: "+assertions+" assertions passed (stars, bosses, treasure, challenge, persistence and anti-farming).");
     }
 }

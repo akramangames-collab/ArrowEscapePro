@@ -44,9 +44,9 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         super.onCreate(state);
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
         wallet = new Wallet(new PreferenceWalletStorage(this));
-        getWindow().setStatusBarColor(Color.WHITE);
-        getWindow().setNavigationBarColor(Color.WHITE);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        getWindow().setStatusBarColor(NAVY);
+        getWindow().setNavigationBarColor(NAVY);
+        getWindow().getDecorView().setSystemUiVisibility(0);
         game = new ArrowGameView(this, this, wallet);
         setContentView(game);
         consent = UserMessagingPlatform.getConsentInformation(this);

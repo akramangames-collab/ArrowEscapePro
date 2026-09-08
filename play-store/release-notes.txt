@@ -1,7 +1,9 @@
-V16.0.3 makes progression more rewarding and replayable:
-• Every level now earns a 1–3 star rating; 3★ requires no mistakes and no assists.
-• A deterministic Daily Challenge gives everyone the same SUPER HARD puzzle each UTC day, with up to 150 coins.
-• Every 5th level gets deeper dependency chains, fewer obvious exits and a +75 milestone bonus.
-• Levels 25, 50, 100, 150 and 200 are Boss Milestones with an additional +75 bonus.
-• Milestone intros, boss styling and saved best-star ratings make progression feel more special.
-The approved snake/path-following arrow movement and production/test AdMob separation are preserved.
+V16.0.4 introduces the new premium Arrow Escape experience:
+• New dark navy / electric-blue home screen with clear Play, Levels, Daily Challenge, Rewards and Achievements navigation.
+• Level select has premium dark cards, saved stars, SUPER HARD markers and Boss styling.
+• Treasure chests now appear inside verified empty pockets of selected mazes. They never block arrows or affect collision/solvability.
+• Clear the arrows around a chest to open it. Normal treasures award 25 coins, SUPER HARD treasures 50, and Boss treasures 100.
+• Each campaign treasure can be rewarded only once, so replay/restart cannot be used to farm coins.
+• New achievement screen tracks level progress, stars and treasure collection.
+• Gameplay board stays clean and readable instead of copying the heavy 3D block style.
+• Approved snake/path-following movement, 200 solvable levels, stars, Daily Challenge and AdMob separation are preserved.
