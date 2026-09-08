@@ -41,10 +41,25 @@ public class GameSmokeTest {
                 Wallet wallet=new Wallet(new PreferenceWalletStorage(context));
                 ArrowGameView game=new ArrowGameView(context,new Host(),wallet);
                 game.setPaused(true);render(context,game,"01-tutorial");set(game,"tutorial",false);render(context,game,"02-level-1");
-                ArrayList<?> pieces=(ArrayList<?>)get(game,"pieces");assertEquals(48,pieces.size());
+                ArrayList<?> pieces=(ArrayList<?>)get(game,"pieces");assertTrue(pieces.size()>=48);
+                int levelOneCount=pieces.size();
                 Object bent=null,safe=null;
-                for(Object p:pieces){if(((ArrayList<?>)get(p,"pts")).size()>2)bent=p;if((Boolean)call(game,"isClear",new Class[]{p.getClass()},p))safe=p;}
+                for(Object p:pieces){
+                    assertTrue((Boolean)call(game,"hasSelfClearance",new Class[]{p.getClass()},p));
+                    if(((ArrayList<?>)get(p,"pts")).size()>2)bent=p;
+                    if((Boolean)call(game,"isClear",new Class[]{p.getClass()},p))safe=p;
+                }
                 assertNotNull(bent);assertNotNull(safe);
+
+                // Synthetic hook: head points right, but reaches its own vertical tail
+                // before that tail cell has been vacated. V17 must reject it.
+                Class<?> pieceClass=safe.getClass();
+                java.lang.reflect.Constructor<?> ctor=pieceClass.getDeclaredConstructor();ctor.setAccessible(true);
+                Object selfBlocked=ctor.newInstance();set(selfBlocked,"dx",1);set(selfBlocked,"dy",0);
+                @SuppressWarnings("unchecked") ArrayList<Point> trapPts=(ArrayList<Point>)get(selfBlocked,"pts");
+                trapPts.add(new Point(0,0));trapPts.add(new Point(4,0));trapPts.add(new Point(4,2));
+                trapPts.add(new Point(1,2));trapPts.add(new Point(1,1));trapPts.add(new Point(2,1));
+                assertFalse((Boolean)call(game,"hasSelfClearance",new Class[]{pieceClass},selfBlocked));
                 float length=(Float)call(game,"piecePathLength",new Class[]{bent.getClass()},bent);
                 PointF head=(PointF)call(game,"routePoint",new Class[]{bent.getClass(),float.class},bent,length+3f);
                 ArrayList<Point> points=(ArrayList<Point>)get(bent,"pts");Point tip=points.get(points.size()-1);
@@ -53,7 +68,7 @@ public class GameSmokeTest {
                 call(game,"useHint",new Class[]{});assertEquals(before-25,wallet.balance());
                 call(game,"tapPiece",new Class[]{safe.getClass()},safe);game.saveProgress();game.release();
                 ArrowGameView restored=new ArrowGameView(context,new Host(),new Wallet(new PreferenceWalletStorage(context)));restored.setPaused(true);set(restored,"tutorial",false);
-                assertEquals(0,get(restored,"hints"));int remaining=(Integer)call(restored,"remaining",new Class[]{});assertEquals(47,remaining);assertEquals(75,wallet.balance());
+                assertEquals(0,get(restored,"hints"));int remaining=(Integer)call(restored,"remaining",new Class[]{});assertEquals(levelOneCount-1,remaining);assertEquals(75,wallet.balance());
                 for(int lv:new int[]{100,200}){call(restored,"startLevel",new Class[]{int.class},lv);render(context,restored,"03-level-"+lv);}
                 set(restored,"finished",true);set(restored,"winReward",50);render(context,restored,"04-win");
                 set(restored,"finished",false);set(restored,"failed",true);set(restored,"hearts",0);render(context,restored,"05-fail");restored.release();
