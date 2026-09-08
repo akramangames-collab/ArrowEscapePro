@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
-"""Generate 200 deterministic, solvable mazes for the V17 self-clearance rules."""
+"""Generate 200 deterministic V17 mazes with full self-tail clearance.
+
+Levels are constructed in reverse-removal order. Every newly-added arrow can
+escape against the arrows already placed, which guarantees a solution by
+removing arrows in reverse construction order. Later arrows deliberately block
+earlier safe arrows so the finished board exposes only a few valid choices.
+"""
 import random, json
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-
-def unpack(line):
-    header,body=line.split('|')
-    w,h=map(int,header.split(','))
-    pieces=[]
-    for v in body.split(';'):
-        a=list(map(int,v.split(',')))
-        pieces.append((a[0],a[1],list(zip(a[2::2],a[3::2]))))
-    return w,h,pieces
 
 def nodes(piece):
     out=set();pts=piece[2]
@@ -30,17 +27,9 @@ def ray(piece,w,h):
         out.append((x,y))
 
 def self_profile(piece,w,h):
-    """Return (can fully escape, safe self-crossings).
-
-    The head moves one grid unit forward for each unit the tail advances along
-    the existing polyline. A self intersection is a collision only if that body
-    cell has not yet been vacated when the head reaches it.
-    """
     dx,dy,pts=piece
     if len(pts)<2:return False,0
-    distance={}
-    walked=0
-    distance[pts[0]]=0
+    distance={pts[0]:0};walked=0
     for (ax,ay),(bx,by) in zip(pts,pts[1:]):
         sx=(bx>ax)-(bx<ax);sy=(by>ay)-(by<ay)
         length=abs(bx-ax)+abs(by-ay)
@@ -48,8 +37,7 @@ def self_profile(piece,w,h):
             walked+=1
             q=(ax+sx*k,ay+sy*k)
             distance[q]=max(distance.get(q,-1),walked)
-    crossings=0
-    x,y=pts[-1]
+    crossings=0;x,y=pts[-1]
     for step in range(1,w+h+20):
         x+=dx;y+=dy
         if x<0 or x>w or y<0 or y>h:return True,crossings
@@ -59,155 +47,158 @@ def self_profile(piece,w,h):
             crossings+=1
     return True,crossings
 
-def stats(pieces,w,h):
-    ns=[nodes(p) for p in pieces]
-    rs=[set(ray(p,w,h)) for p in pieces]
-    profiles=[self_profile(p,w,h) for p in pieces]
-    assert all(ok for ok,_ in profiles),'self-blocked piece entered final level'
-    deps=[{j for j,n in enumerate(ns) if i!=j and n&rs[i]} for i in range(len(pieces))]
-    initial=sum(not d for d in deps)
-    todo=set(range(len(pieces)));depth={}
-    while todo:
-        ready=[i for i in todo if not (deps[i]&todo)]
-        if not ready:raise AssertionError('Dependency cycle')
-        for i in ready:depth[i]=1+max((depth[j] for j in deps[i]),default=0)
-        todo-=set(ready)
-    return {
-        'arrows':len(pieces),
-        'initial_safe_arrows':initial,
-        'dependency_depth':max(depth.values(),default=0),
-        'occupied_nodes':len(set().union(*ns)) if ns else 0,
-        'self_crossing_arrows':sum(crossings>0 for _,crossings in profiles),
-        'grid':[w,h],
-    }
-
-def available_indices(pieces,occupancy,rays):
+def safe_indices(pieces,occupancy,rays):
     return [i for i,p in enumerate(pieces) if not set(rays[i])&(occupancy-nodes(p))]
 
-def make_candidate(rng,pieces,occupancy,rays,w,h,milestone,aggressive=False):
-    available=available_indices(pieces,occupancy,rays)
+def open_ray_cells(piece,w,h,occupancy):
+    return [q for q in ray(piece,w,h) if q not in occupancy]
+
+def build_body(rng,tip,direction,occupancy,w,h,milestone):
+    dx,dy=direction;tx,ty=tip
+    pts=[(tx,ty)];taken={(tx,ty)};cx,cy=tx,ty;bx,by=-dx,-dy
+    segments=rng.randrange(5,9) if milestone else rng.randrange(3,8)
+    for segment in range(segments):
+        if segment:
+            opts=[(0,1),(0,-1)] if bx else [(1,0),(-1,0)]
+            rng.shuffle(opts)
+            selected=next(((vx,vy) for vx,vy in opts
+                           if (cx+vx,cy+vy) not in occupancy|taken
+                           and 0<=cx+vx<=w and 0<=cy+vy<=h),None)
+            if selected is None:break
+            bx,by=selected
+        length=0
+        for _ in range(rng.randrange(2,7 if milestone else 6)):
+            nx,ny=cx+bx,cy+by
+            if not (0<=nx<=w and 0<=ny<=h) or (nx,ny) in occupancy or (nx,ny) in taken:break
+            cx,cy=nx,ny;taken.add((cx,cy));length+=1
+        if not length:break
+        pts.append((cx,cy))
+    if len(pts)<3 or len(taken)<5:return None
+    p=(dx,dy,list(reversed(pts)))
+    ok,crossings=self_profile(p,w,h)
+    if not ok:return None
+    if set(ray(p,w,h))&occupancy:return None
+    return p,taken,crossings
+
+def candidate(rng,pieces,occupancy,rays,w,h,milestone,want_block):
+    safe=safe_indices(pieces,occupancy,rays)
+    dirs=((1,0),(-1,0),(0,1),(0,-1))
     best=None;best_score=-1e18
-    attempts=(360 if milestone else 240) if aggressive else (220 if milestone else 140)
+    attempts=280 if want_block else 160
+
     for _ in range(attempts):
-        tx=rng.randrange(1,w);ty=rng.randrange(1,h)
-        if (tx,ty) in occupancy:continue
-        dx,dy=rng.choice(((1,0),(-1,0),(0,1),(0,-1)))
-        seed=(dx,dy,[(tx,ty)])
-        if set(ray(seed,w,h))&occupancy:continue
+        # When the safe pool is already at its target, place the new arrowhead
+        # directly on the ray of an existing safe arrow. That guarantees the
+        # new body blocks at least one formerly-valid move without cycles.
+        if want_block and safe:
+            victim=rng.choice(safe)
+            cells=open_ray_cells(pieces[victim],w,h,occupancy)
+            if not cells:continue
+            tx,ty=rng.choice(cells[:max(1,min(len(cells),12))])
+        else:
+            tx=rng.randrange(1,w);ty=rng.randrange(1,h)
+            if (tx,ty) in occupancy:continue
 
-        pts=[(tx,ty)];taken={(tx,ty)};cx,cy=tx,ty;bx,by=-dx,-dy
-        segment_count=rng.randrange(5,9) if milestone else rng.randrange(3,8)
-        for segment in range(segment_count):
-            if segment:
-                opts=[(0,1),(0,-1)] if bx else [(1,0),(-1,0)]
-                rng.shuffle(opts)
-                selected=next(((vx,vy) for vx,vy in opts
-                               if (cx+vx,cy+vy) not in occupancy|taken
-                               and 0<=cx+vx<=w and 0<=cy+vy<=h),None)
-                if selected is None:break
-                bx,by=selected
-            length=0
-            for _ in range(rng.randrange(2,7 if milestone else 6)):
-                nx,ny=cx+bx,cy+by
-                if not (0<=nx<=w and 0<=ny<=h) or (nx,ny) in occupancy or (nx,ny) in taken:break
-                cx,cy=nx,ny;taken.add((cx,cy));length+=1
-            if not length:break
-            pts.append((cx,cy))
+        choices=list(dirs);rng.shuffle(choices)
+        direction=None
+        for d in choices:
+            probe=(d[0],d[1],[(tx,ty)])
+            if not (set(ray(probe,w,h))&occupancy):
+                direction=d;break
+        if direction is None:continue
 
-        if len(pts)<3 or len(taken)<5:continue
-        p=(dx,dy,list(reversed(pts)))
-        ok,self_crossings=self_profile(p,w,h)
-        if not ok:continue
-        if set(ray(p,w,h))&occupancy:continue  # new piece must be removable in reverse construction order
+        built=build_body(rng,(tx,ty),direction,occupancy,w,h,milestone)
+        if built is None:continue
+        p,taken,crossings=built
+        blocked_safe=sum(bool(taken&set(rays[i])) for i in safe)
 
-        blocked_safe=sum(bool(taken&set(rays[i])) for i in available)
+        if want_block and blocked_safe<1:continue
+        if not want_block and blocked_safe>0:continue
+
         blocked_any=sum(bool(taken&set(r)) for r in rays)
-        turns=max(0,len(pts)-2)
-        score=(
-            blocked_safe*(480 if aggressive else (300 if milestone else 170))
-            +blocked_any*(12 if milestone else 6)
-            +turns*(12 if milestone else 4)
-            +self_crossings*(18 if milestone else 7)
-            +len(taken)*.55
-            +rng.random()
-        )
-        if aggressive and blocked_safe<2:
-            score-=1000
+        turns=max(0,len(p[2])-2)
+        score=blocked_safe*600+blocked_any*8+turns*(11 if milestone else 5)+crossings*12+len(taken)*.4+rng.random()
         if score>best_score:
             best=(p,taken,blocked_safe);best_score=score
     return best
 
-def desired_safe(level,milestone):
-    if milestone:return 1
+def target_safe(level):
+    if level%5==0:return 1
     if level<=4:return 5
     if level<=20:return 4
     if level<=80:return 3
     return 2
 
-output=[];metrics=[]
-source=(ROOT/'tests/v15-levels.txt').read_text().splitlines()
-
-for level,line in enumerate(source,1):
-    original_w,original_h,original=unpack(line)
+def target_arrows(level):
     fraction=(level-1)/199
-    base_target=max(48+int(fraction*140),len(original)+30)
+    base=48+int(fraction*140)
+    if level%5==0:
+        base+=max(55,int(base*.28))
+    if level in (25,50,100,150,200):
+        base+=35
+    return min(225,base)
+
+def level_stats(pieces,w,h):
+    ns=[nodes(p) for p in pieces];rs=[set(ray(p,w,h)) for p in pieces]
+    deps=[{j for j,n in enumerate(ns) if i!=j and n&rs[i]} for i in range(len(pieces))]
+    todo=set(range(len(pieces)));depth={}
+    while todo:
+        ready=[i for i in todo if not (deps[i]&todo)]
+        if not ready:raise AssertionError('cycle')
+        for i in ready:depth[i]=1+max((depth[j] for j in deps[i]),default=0)
+        todo-=set(ready)
+    profiles=[self_profile(p,w,h) for p in pieces]
+    assert all(ok for ok,_ in profiles)
+    return {
+        'arrows':len(pieces),
+        'initial_safe_arrows':sum(not d for d in deps),
+        'dependency_depth':max(depth.values(),default=0),
+        'occupied_nodes':len(set().union(*ns)),
+        'self_crossing_arrows':sum(c>0 for _,c in profiles),
+        'grid':[w,h],
+    }
+
+output=[];metrics=[]
+
+for level in range(1,201):
+    fraction=(level-1)/199
     milestone=level%5==0
     boss=level in (25,50,100,150,200)
-    target=base_target
-    if milestone:
-        target=min(225,base_target+max(55,int(base_target*.25))+(25 if boss else 0))
-
-    extra_space=8 if milestone else 5
-    w=max(original_w+4,22+int(fraction*12))+extra_space
-    h=max(original_h+4,26+int(fraction*16))+extra_space
-    sx=(w-original_w)//2;sy=(h-original_h)//2
-
-    shifted=[(dx,dy,[(x+sx,y+sy) for x,y in pts]) for dx,dy,pts in original]
-    pieces=[p for p in shifted if self_profile(p,w,h)[0]]
-    occupancy=set().union(*(nodes(p) for p in pieces)) if pieces else set()
-    rays=[ray(p,w,h) for p in pieces]
+    target=target_arrows(level)
+    goal=target_safe(level)
+    w=24+int(fraction*19)+(7 if milestone else 0)
+    h=30+int(fraction*21)+(7 if milestone else 0)
 
     rng=random.Random(170000+level)
-    misses=0
+    pieces=[];occupancy=set();rays=[];misses=0
+
     while len(pieces)<target:
-        best=make_candidate(rng,pieces,occupancy,rays,w,h,milestone,False)
+        current_safe=len(safe_indices(pieces,occupancy,rays))
+        want_block=bool(pieces) and current_safe>=goal
+        best=candidate(rng,pieces,occupancy,rays,w,h,milestone,want_block)
+
         if best is None:
             misses+=1
-            if misses<15:continue
-            w+=2;h+=2
-            rays=[ray(p,w,h) for p in pieces]
-            misses=0
+            # A little more room makes long bent arrows possible without
+            # weakening the dependency rule.
+            if misses>=12:
+                w+=2;h+=2;rays=[ray(p,w,h) for p in pieces];misses=0
             continue
+
         p,taken,_=best
         pieces.append(p);occupancy|=taken;rays.append(ray(p,w,h));misses=0
 
-    # Tighten the opening. Each added arrow is itself removable, but is chosen
-    # to block at least two currently-safe arrows, reducing obvious first moves.
-    goal=desired_safe(level,milestone)
-    for _ in range(55):
-        safe_now=len(available_indices(pieces,occupancy,rays))
-        if safe_now<=goal:break
-        best=make_candidate(rng,pieces,occupancy,rays,w,h,milestone,True)
-        if best is None or best[2]<2:
-            w+=2;h+=2;rays=[ray(p,w,h) for p in pieces]
-            continue
-        p,taken,_=best
-        pieces.append(p);occupancy|=taken;rays.append(ray(p,w,h))
-
-    summary=stats(pieces,w,h)
-    summary['level']=level;summary['milestone']=milestone;summary['boss']=boss
-    summary['target_initial_safe']=goal
+    summary=level_stats(pieces,w,h)
+    summary.update(level=level,milestone=milestone,boss=boss,target_initial_safe=goal)
     if summary['initial_safe_arrows']>goal:
-        raise AssertionError(f"Level {level}: could not tighten opening to {goal}; got {summary['initial_safe_arrows']}")
+        raise AssertionError(f"Level {level}: opening {summary['initial_safe_arrows']} > {goal}")
     metrics.append(summary)
 
-    defs=[]
-    for dx,dy,pts in pieces:
-        defs.append(','.join(map(str,[dx,dy]+[v for xy in pts for v in xy])))
+    defs=[','.join(map(str,[dx,dy]+[v for xy in pts for v in xy])) for dx,dy,pts in pieces]
     output.append(f'{w},{h}|'+ ';'.join(defs))
-    if milestone or level<=4:
+    if level<=4 or milestone:
         print('Level',level,summary,flush=True)
 
 (ROOT/'app/src/main/assets/levels.txt').write_text('\n'.join(output)+'\n')
 (ROOT/'tests/hard-level-metrics.json').write_text(json.dumps(metrics,indent=2)+'\n')
-print('Generated 200 V17 self-clearance mazes with constrained opening choices.',flush=True)
+print('Generated 200 V17 self-clearance mazes with deliberately constrained opening moves.',flush=True)
