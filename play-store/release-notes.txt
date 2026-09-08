@@ -1,7 +1,7 @@
-V16.0.3 makes progression more rewarding and replayable:
-• Every level now earns a 1–3 star rating; 3★ requires no mistakes and no assists.
-• A deterministic Daily Challenge gives everyone the same SUPER HARD puzzle each UTC day, with up to 150 coins.
-• Every 5th level gets deeper dependency chains, fewer obvious exits and a +75 milestone bonus.
-• Levels 25, 50, 100, 150 and 200 are Boss Milestones with an additional +75 bonus.
-• Milestone intros, boss styling and saved best-star ratings make progression feel more special.
-The approved snake/path-following arrow movement and production/test AdMob separation are preserved.
+V17.0.0 makes Arrow Escape substantially more strategic:
+• Every tap now validates the arrow's complete snake/path-following escape, including its own tail.
+• If the head would reach part of its own body before the tail has cleared that space, the move is blocked.
+• All 200 levels are regenerated and solver-verified under the new rule, so no level contains a permanently impossible arrow.
+• Opening choices are deliberately constrained: early levels have only a few valid starts, advanced levels usually 2, and every SUPER HARD milestone has just 1.
+• Levels 25, 50, 100, 150 and 200 remain Boss Milestones with exactly one valid opening move.
+• Hints use the same full-clearance rule, while the approved V15 snake/path-following animation remains unchanged.
