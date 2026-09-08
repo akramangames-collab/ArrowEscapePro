@@ -1,6 +1,6 @@
 package com.arrowescape.pro;
 
-/** One wallet shared by gameplay, daily rewards, daily challenges and earned-ad callbacks. */
+/** One wallet shared by gameplay, daily rewards, treasure chests, challenges and earned-ad callbacks. */
 public final class Wallet {
     public static final int STARTER = 100, HINT_COST = 25, DAILY = 100, AD_REWARD = 75;
     public static final int HEART_COST = 40, CONTINUE_COST = 60;
@@ -8,12 +8,12 @@ public final class Wallet {
     public static final class State {
         public int coins = STARTER, streak;
         public long dailyDay = -1, challengeDay = -1;
-        public String levelToken = "", adToken = "";
+        public String levelToken = "", adToken = "", chestClaims = "";
         public boolean initialized;
         public State copy() {
             State s = new State();
             s.coins = coins; s.streak = streak; s.dailyDay = dailyDay; s.challengeDay = challengeDay;
-            s.levelToken = levelToken; s.adToken = adToken; s.initialized = initialized;
+            s.levelToken = levelToken; s.adToken = adToken; s.chestClaims = chestClaims; s.initialized = initialized;
             return s;
         }
     }
@@ -24,6 +24,7 @@ public final class Wallet {
         this.storage = storage;
         state = storage.load().copy();
         state.coins = Math.max(0, state.coins);
+        if (state.chestClaims == null) state.chestClaims = "";
         if (!state.initialized) {
             State next = state.copy(); next.initialized = true;
             if (!commit(next)) throw new IllegalStateException("Could not save wallet");
@@ -71,11 +72,40 @@ public final class Wallet {
         State next = state.copy(); next.coins = add(next.coins, amount); next.challengeDay = day;
         return commit(next) ? amount : 0;
     }
+    public synchronized boolean isChestClaimed(int level) {
+        state = storage.load().copy();
+        return level >= 1 && level <= 200 && containsClaim(state.chestClaims, level);
+    }
+    public synchronized int chestCount() {
+        state = storage.load().copy();
+        if (state.chestClaims == null || state.chestClaims.isEmpty()) return 0;
+        int count = 0;
+        for (String part : state.chestClaims.split(",")) if (!part.isEmpty()) count++;
+        return count;
+    }
+    /** Treasure is collectible once per campaign level, so replay/restart cannot farm coins. */
+    public synchronized int rewardChest(int level, int amount) {
+        state = storage.load().copy();
+        if (level < 1 || level > 200 || amount <= 0 || containsClaim(state.chestClaims, level)) return 0;
+        State next = state.copy();
+        next.coins = add(next.coins, amount);
+        next.chestClaims = appendClaim(next.chestClaims, level);
+        return commit(next) ? amount : 0;
+    }
     public synchronized int rewardAd(String token) {
         state = storage.load().copy();
         if (token == null || token.isEmpty() || token.equals(state.adToken)) return 0;
         State next = state.copy(); next.coins = add(next.coins, AD_REWARD); next.adToken = token;
         return commit(next) ? AD_REWARD : 0;
+    }
+    private static boolean containsClaim(String claims, int level) {
+        if (claims == null || claims.isEmpty()) return false;
+        String needle = "," + level + ",";
+        return ("," + claims + ",").contains(needle);
+    }
+    private static String appendClaim(String claims, int level) {
+        if (claims == null || claims.isEmpty()) return String.valueOf(level);
+        return claims + "," + level;
     }
     private static int add(int balance, int amount) { return (int)Math.min(Integer.MAX_VALUE, (long)balance + amount); }
 }
