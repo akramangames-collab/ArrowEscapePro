@@ -9,7 +9,7 @@ for variant,publisher,package in [('debug','3940256099942544','com.arrowescape.p
     apk=next(Path(f'app/build/outputs/apk/{variant}').glob('*.apk'))
     aapt=Path(os.environ['ANDROID_HOME'])/'build-tools/36.0.0/aapt'
     info=subprocess.check_output([str(aapt),'dump','badging',str(apk)],text=True)
-    assert f"name='{package}'" in info and "versionCode='20'" in info and "versionName='16.0.3'" in info
+    assert f"name='{package}'" in info and "versionCode='21'" in info and "versionName='16.0.4'" in info
     assert "application-label:'Arrow Escape: Puzzle Maze'" in info
     manifest=subprocess.check_output([str(aapt),'dump','xmltree',str(apk),'AndroidManifest.xml'],text=True)
     assert f'ca-app-pub-{publisher}~' in manifest
