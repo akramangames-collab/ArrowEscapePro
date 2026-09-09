@@ -71,14 +71,14 @@ jobs:
           command: |
             rm -rf dist
             mkdir -p dist
-            cp app/build/outputs/apk/debug/app-debug.apk dist/INSTALL-THIS-ArrowEscape-v22-test.apk
-            cp app/build/outputs/bundle/release/app-release.aab dist/PLAY-STORE-ArrowEscape-v22-unsigned.aab
+            cp app/build/outputs/apk/debug/app-debug.apk dist/INSTALL-THIS-ArrowEscape-1.0.0-test.apk
+            cp app/build/outputs/bundle/release/app-release.aab dist/PLAY-STORE-ArrowEscape-1.0.0-unsigned.aab
             {
               echo "INSTALL THIS ON PHONE/TABLET:"
-              ls -lh dist/INSTALL-THIS-ArrowEscape-v22-test.apk
+              ls -lh dist/INSTALL-THIS-ArrowEscape-1.0.0-test.apk
               echo
-              echo "PLAY STORE BUNDLE:"
-              ls -lh dist/PLAY-STORE-ArrowEscape-v22-unsigned.aab
+              echo "PLAY STORE BUNDLE (UNSIGNED — sign only after APK approval):"
+              ls -lh dist/PLAY-STORE-ArrowEscape-1.0.0-unsigned.aab
             } > dist/BUILD-SIZES.txt
             sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
 
@@ -90,12 +90,12 @@ jobs:
             - ~/gradle/gradle-9.6.0
 
       - store_artifacts:
-          path: dist/INSTALL-THIS-ArrowEscape-v22-test.apk
-          destination: INSTALL-THIS-ArrowEscape-v22-test.apk
+          path: dist/INSTALL-THIS-ArrowEscape-1.0.0-test.apk
+          destination: INSTALL-THIS-ArrowEscape-1.0.0-test.apk
 
       - store_artifacts:
-          path: dist/PLAY-STORE-ArrowEscape-v22-unsigned.aab
-          destination: PLAY-STORE-ArrowEscape-v22-unsigned.aab
+          path: dist/PLAY-STORE-ArrowEscape-1.0.0-unsigned.aab
+          destination: PLAY-STORE-ArrowEscape-1.0.0-unsigned.aab
 
       - store_artifacts:
           path: dist/BUILD-SIZES.txt
