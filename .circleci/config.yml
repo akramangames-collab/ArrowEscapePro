@@ -108,4 +108,7 @@ jobs:
 workflows:
   build-arrow-escape:
     jobs:
-      - android-build
+      - android-build:
+          filters:
+            branches:
+              ignore: v22-apk-delivery

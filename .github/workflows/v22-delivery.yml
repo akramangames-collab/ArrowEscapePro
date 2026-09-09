@@ -2,7 +2,7 @@ name: V22 Direct APK Delivery
 
 on:
   push:
-    branches: [v22-full-neon-hub]
+    branches: [v22-apk-delivery]
     paths:
       - .github/workflows/v22-delivery.yml
   workflow_dispatch:
