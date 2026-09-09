@@ -8,12 +8,12 @@ public final class Wallet {
     public static final class State {
         public int coins = STARTER, streak;
         public long dailyDay = -1, challengeDay = -1;
-        public String levelToken = "", adToken = "";
+        public String levelToken = "", adToken = "", treasureClaims = "";
         public boolean initialized;
         public State copy() {
             State s = new State();
             s.coins = coins; s.streak = streak; s.dailyDay = dailyDay; s.challengeDay = challengeDay;
-            s.levelToken = levelToken; s.adToken = adToken; s.initialized = initialized;
+            s.levelToken = levelToken; s.adToken = adToken; s.treasureClaims = treasureClaims; s.initialized = initialized;
             return s;
         }
     }
@@ -71,6 +71,20 @@ public final class Wallet {
         State next = state.copy(); next.coins = add(next.coins, amount); next.challengeDay = day;
         return commit(next) ? amount : 0;
     }
+    public synchronized int rewardTreasure(int level) {
+        state = storage.load().copy();
+        if (level < 1 || level > 200 || level % 5 != 0) return 0;
+        String marker = "," + level + ",";
+        String claims = state.treasureClaims == null ? "" : state.treasureClaims;
+        if (("," + claims + ",").contains(marker)) return 0;
+        boolean boss = level == 25 || level == 50 || level == 100 || level == 150 || level == 200;
+        int amount = boss ? 50 : 25;
+        State next = state.copy();
+        next.coins = add(next.coins, amount);
+        next.treasureClaims = claims.isEmpty() ? String.valueOf(level) : claims + "," + level;
+        return commit(next) ? amount : 0;
+    }
+
     public synchronized int rewardAd(String token) {
         state = storage.load().copy();
         if (token == null || token.isEmpty() || token.equals(state.adToken)) return 0;
