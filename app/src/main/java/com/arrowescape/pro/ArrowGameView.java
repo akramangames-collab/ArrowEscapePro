@@ -20,6 +20,7 @@ import android.view.WindowInsets;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -38,6 +39,7 @@ public class ArrowGameView extends View {
     }
 
     private static final int MAX_LEVEL = 200;
+    private static final String LEVEL_PACK_VERSION = "v17-chains-1";
     private static final int NAVY = Color.rgb(8, 29, 73);
     private static final int BLUE = Color.rgb(47, 149, 235);
     private static final int PALE = Color.rgb(242, 246, 252);
@@ -562,9 +564,9 @@ public class ArrowGameView extends View {
     private void drawTutorial(Canvas c) {
         RectF r = modal(c, 410);
         label(c,"Find the way out",r.centerX(),r.top+dp(43),24,NAVY,true);
-        label(c,"Tap an arrow with a clear path ahead.",r.centerX(),r.top+dp(83),14,TEXT,false);
-        label(c,"The head exits in a straight line.",r.centerX(),r.top+dp(108),14,TEXT,false);
-        label(c,"The body follows through its bends.",r.centerX(),r.top+dp(133),14,TEXT,false);
+        label(c,"Tap only when the full escape is clear.",r.centerX(),r.top+dp(83),14,TEXT,false);
+        label(c,"Other arrows — and your own tail — can block it.",r.centerX(),r.top+dp(108),13,TEXT,false);
+        label(c,"The body still follows through its bends.",r.centerX(),r.top+dp(133),14,TEXT,false);
         float y=r.top+dp(183);
         paint.setColor(NAVY);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(4));
         Path demo=new Path();demo.moveTo(r.centerX()-dp(72),y+dp(25));demo.lineTo(r.centerX()-dp(14),y+dp(25));demo.lineTo(r.centerX()-dp(14),y);demo.lineTo(r.centerX()+dp(62),y);c.drawPath(demo,paint);paint.setStyle(Paint.Style.FILL);drawMiniArrow(c,r.centerX()+dp(63),y,dp(15),NAVY,0);
@@ -746,13 +748,17 @@ public class ArrowGameView extends View {
     private float dist(float x1,float y1,float x2,float y2){float dx=x1-x2,dy=y1-y2;return (float)Math.sqrt(dx*dx+dy*dy);}
 
     private void tapPiece(Piece p) {
+        if(p.removed||p.moving||failed||finished)return;
+        boolean selfBlocked = !hasSelfClearance(p);
         if(isClear(p)) {
             if(settings.getBoolean("haptics",true))performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
             p.moving=true;p.moveT=0;p.moveSteps=snakeTravelSteps(p);
             playSound(ToneGenerator.TONE_PROP_BEEP,70);buzz(20);
         } else {
             p.flashUntil=SystemClock.elapsedRealtime()+390;hearts--;mistakes++;
-            playSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,110);buzz(55);showToast("Blocked path");if(hearts<=0)failed=true;
+            playSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,110);buzz(55);
+            showToast(selfBlocked ? "Tail blocks this escape" : "Blocked by another arrow");
+            if(hearts<=0)failed=true;
         }
         saveProgress();invalidate();
     }
@@ -878,6 +884,7 @@ public class ArrowGameView extends View {
         Piece p=new Piece();p.id=id;p.dx=fdx;p.dy=fdy;p.pts=rev;
         rebuildOccupancy(p);
         int expected=1;for(int i=0;i<p.pts.size()-1;i++){Point a=p.pts.get(i),b=p.pts.get(i+1);expected+=Math.abs(b.x-a.x)+Math.abs(b.y-a.y);}if(p.nodes.size()!=expected)return null;
+        if(!hasSelfClearance(p))return null;
         return p;
     }
 
@@ -935,7 +942,44 @@ public class ArrowGameView extends View {
     private int exitSteps(Piece p){for(int k=1;k<gridW+gridH+20;k++)if(allOutside(p,k))return k+1;return gridW+gridH;}
 
 
+    /**
+     * Simulates the geometry of our approved snake/path-following motion against
+     * the arrow's own body. The head travels straight while the tail advances
+     * along the existing route. If the head reaches one of its own cells before
+     * that cell has been vacated by the tail, the arrow is self-blocked.
+     */
+    private boolean hasSelfClearance(Piece target) {
+        HashMap<Long,Integer> pathDistance = new HashMap<>();
+        int walked = 0;
+        if(target.pts.isEmpty())return false;
+        Point first=target.pts.get(0);
+        pathDistance.put(nodeKey(first.x,first.y),0);
+        for(int i=0;i<target.pts.size()-1;i++){
+            Point a=target.pts.get(i),b=target.pts.get(i+1);
+            int sx=Integer.compare(b.x,a.x),sy=Integer.compare(b.y,a.y);
+            int len=Math.abs(b.x-a.x)+Math.abs(b.y-a.y);
+            for(int k=1;k<=len;k++){
+                walked++;
+                long key=nodeKey(a.x+sx*k,a.y+sy*k);
+                Integer previous=pathDistance.get(key);
+                if(previous==null||walked>previous)pathDistance.put(key,walked);
+            }
+        }
+
+        Point tip=target.pts.get(target.pts.size()-1);
+        int max=gridW+gridH+20;
+        for(int step=1;step<=max;step++){
+            int nx=tip.x+target.dx*step,ny=tip.y+target.dy*step;
+            if(nx<0||nx>gridW||ny<0||ny>gridH)return true;
+            Integer ownDistance=pathDistance.get(nodeKey(nx,ny));
+            if(ownDistance!=null&&ownDistance>=step)return false;
+        }
+        return true;
+    }
+
     private boolean isClear(Piece target) {
+        if(!hasSelfClearance(target))return false;
+
         HashSet<Long> nodes =
       new HashSet<>();
 
@@ -943,9 +987,10 @@ public class ArrowGameView extends View {
       new HashSet<>();
 
         for (Piece p : pieces) {
+  // Reserve a moving arrow's route until its tail has fully exited. Otherwise
+  // rapid taps can release a dependent arrow into a body still on the board.
   if (p == target
-          || p.removed
-          || p.moving) {
+          || p.removed) {
       continue;
   }
 
@@ -1049,7 +1094,7 @@ public class ArrowGameView extends View {
         try {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
-            state.put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
+            state.put("packVersion",LEVEL_PACK_VERSION).put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
                  .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars)
                  .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("normalLevel",normalLevelBeforeChallenge)
                  .put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
@@ -1061,6 +1106,9 @@ public class ArrowGameView extends View {
         try {
             org.json.JSONObject state=new org.json.JSONObject(checkpoint);int savedLevel=state.getInt("level");
             if(savedLevel<1||savedLevel>MAX_LEVEL)return;
+            // Piece IDs changed with regenerated levels. Preserve wallet, stars
+            // and unlocked levels, but restart an incompatible in-level board.
+            if(!LEVEL_PACK_VERSION.equals(state.optString("packVersion","")))return;
             boolean savedDaily=state.optBoolean("dailyChallenge",false);
             if(savedDaily){dailyChallenge=true;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);}
             else startLevel(savedLevel);
