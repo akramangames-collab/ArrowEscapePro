@@ -227,11 +227,28 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
                 toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")));
                 toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();game.invalidate();});body.addView(toggle);
             }
+            body.addView(text("Current puzzle shape · "+game.currentShapeName(),13,MUTED));
+            final Button[] arrowTypeButton=new Button[1];
+            arrowTypeButton[0]=button("Arrow type · "+game.currentArrowType(),()->{
+                String[] types=game.arrowTypeNames();
+                new AlertDialog.Builder(this)
+                    .setTitle("Choose arrow type")
+                    .setSingleChoiceItems(types,game.currentArrowTypeIndex(),(dialog,which)->{
+                        game.setArrowType(which);
+                        arrowTypeButton[0].setText("Arrow type · "+game.currentArrowType());
+                        toast("Arrow type: "+game.currentArrowType());
+                        dialog.dismiss();
+                    })
+                    .setNegativeButton("Cancel",null)
+                    .show();
+            },false);
+            body.addView(arrowTypeButton[0]);
+
             final Button[] arrowStyleButton=new Button[1];
-            arrowStyleButton[0]=button("Arrow style · "+game.currentArrowStyle(),()->{
+            arrowStyleButton[0]=button("Arrow color · "+game.currentArrowStyle(),()->{
                 String name=game.cycleArrowStyle();
-                arrowStyleButton[0].setText("Arrow style · "+name);
-                toast("Arrow style: "+name);
+                arrowStyleButton[0].setText("Arrow color · "+name);
+                toast("Arrow color: "+name);
             },false);
             body.addView(arrowStyleButton[0]);
             final Button[] boardThemeButton=new Button[1];
