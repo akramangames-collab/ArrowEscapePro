@@ -587,7 +587,54 @@ public class ArrowGameView extends View {
         }
     }
 
-    private void buildMovingSnakePath(Path path,Piece p,float advance) {
+    private void buildMovingSnakePath(
+  Path path,
+  Piece p,
+  float advance
+    ) {
+        float total = piecePathLength(p);
+
+        android.graphics.PointF start =
+      routePoint(p, advance);
+
+        path.moveTo(
+      boardLeft + start.x * cell,
+      boardTop + start.y * cell
+        );
+
+        float walked = 0f;
+
+        for (int i = 0; i < p.pts.size() - 1; i++) {
+  Point a = p.pts.get(i);
+  Point b = p.pts.get(i + 1);
+
+  float seg =
+          Math.abs(b.x - a.x)
+          + Math.abs(b.y - a.y);
+
+  walked += seg;
+
+  if (walked > advance) {
+      path.lineTo(
+              boardLeft + b.x * cell,
+              boardTop + b.y * cell
+      );
+  }
+        }
+
+        android.graphics.PointF head =
+      routePoint(
+              p,
+              advance + total
+      );
+
+        path.lineTo(
+      boardLeft + head.x * cell,
+      boardTop + head.y * cell
+        );
+    }
+
+    private void buildShapedMovingSnakePath(Path path,Piece p,float advance) {
         buildMappedRoutePath(path,p,advance,advance+piecePathLength(p));
     }
 
@@ -658,7 +705,7 @@ public class ArrowGameView extends View {
             Path path=new Path();
             if(p.moving){
                 float advance=p.moveT*p.moveSteps;
-                buildMovingSnakePath(path,p,advance);
+                buildShapedMovingSnakePath(path,p,advance);
                 if(arrowType()==4){paint.setStrokeWidth(stroke*2.5f);paint.setColor(Color.argb(45,Color.red(col),Color.green(col),Color.blue(col)));c.drawPath(path,paint);paint.setStrokeWidth(stroke);paint.setColor(col);}
                 c.drawPath(path,paint);
                 float total=piecePathLength(p);
