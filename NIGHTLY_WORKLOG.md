@@ -85,8 +85,15 @@
 - Fixed base dark-theme compatibility by removing windowLightNavigationBar and forceDarkAllowed declarations from the unqualified values resource; the Android 12+ qualified theme continues to carry modern dark-system-bar behavior.
 - Android 16 back-navigation finding was handled using Google's documented temporary migration path: android:enableOnBackInvokedCallback=false keeps the existing custom back stack functional while predictive-back migration is deferred to a later dedicated refactor. A narrowly scoped lint rule documents this intentional opt-out instead of suppressing unrelated lint categories.
 - Re-ran trusted GitHub quality build: level pack PASS; self-clearance/solvability/V15 movement PASS; wallet PASS; premium UI/UX contract PASS; Android lint PASS.
-- APK/AAB assembly and device smoke stage were running after lint passed at the end of this pass.
+- APK/AAB assembly completed successfully; the separate device-smoke job then failed before installation because scripts/device-smoke.sh still referenced obsolete V20 artifact filenames.
 - Fix commits: 8153b92a74e1ce6d83cdd4e76c58831c0c682a74, d5f64cf2e5761b589075bce3d32b9ddf761225f8, f43641fac4f698afa06eefb1d8948063c7249bb7, 2ace51d949f37ad3f4e206102fb5041663718ad7, e7f1f9ad98b2360b23b96847f012fe8c829d4b4c.
 - Preserved: approved snake/path-following motion, full-clearance/self-tail blocking, 200-level pack, Daily Challenge 200-coin rule and 10/15/20/30/40/50/75 streak ladder were not altered.
 
-Next: inspect the completed APK/AAB + device smoke result, then continue visual hierarchy/accessibility polish and remove stale legacy Store copy if it is still unreachable dead code.
+## Pass 9 — device-smoke delivery path repair
+- Exact failure isolated from GitHub Actions device-test logs: emulator booted correctly, but installation stopped at `dist/ArrowEscape-PuzzleMaze-V20-test.apk: No such file or directory`.
+- Fixed scripts/device-smoke.sh to install the current V23/1.0.0 artifact names: INSTALL-THIS-ArrowEscape-1.0.0-test.apk and ArrowEscape-1.0.0-tests.apk.
+- This is a validation-path fix only; gameplay and UI behavior are unchanged.
+- Commit: d1ff4a1ed4edb39e445d0ccf4871805668724ac8.
+- Trusted GitHub quality workflow rerun is in progress; build job is executing the full validation chain before device smoke.
+
+Next: inspect device-smoke result and screenshots, then continue any remaining visual hierarchy/accessibility polish.
