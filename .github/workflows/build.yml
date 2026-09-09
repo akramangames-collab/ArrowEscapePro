@@ -1,7 +1,7 @@
 name: Build Arrow Escape V18
 on:
   push:
-    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones, v16-retention-upgrade, v18-self-clearance, v18-gameplay-upgrade]
+    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones, v16-retention-upgrade, v17-self-clearance, v18-gameplay-upgrade]
   workflow_dispatch:
 permissions:
   contents: read
