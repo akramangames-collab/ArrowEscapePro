@@ -24,6 +24,9 @@
 - Fixed: Wallet.streak() now reports an effective current streak of 0 once a full day has been missed, while preserving stored claim history until the next legitimate claim resets it to Day 1.
 - Preserved: streak reward ladder remains exactly 10 / 15 / 20 / 30 / 40 / 50 / 75 coins, with 75 coins for continuing days after Day 7.
 - Preserved: Daily Challenge remains one 200-coin reward per UTC day and uses the full-clearance/self-tail rule.
-- Commit: 806acf8ebd8202510d7eb78dc4d8a0375e347d74.
+- Initial build result: FAILED on commits 806acf8ebd8202510d7eb78dc4d8a0375e347d74 and 971d2b276cce40ee9fb00ed88e29dfade5bdf96e.
+- Failure isolated: wallet tests used synthetic epoch-day timestamps for claims but asserted streak() using the real device clock. The new expiry-aware streak() correctly returned 0 for those ancient synthetic days, so the test contract—not gameplay—was stale.
+- Fixed validation: added currentStreak(now) test assertions using the same synthetic clock, plus explicit tests that a one-day grace keeps the streak active and a missed full day resets current streak to 0 / next reward to Day 1.
+- Gameplay logic unchanged.
 
-Next: validate Pass 2 build, then continue premium visual polish and first-launch/accessibility checks without changing approved gameplay.
+Next: validate corrected Pass 2 build, then continue premium visual polish and first-launch/accessibility checks.
