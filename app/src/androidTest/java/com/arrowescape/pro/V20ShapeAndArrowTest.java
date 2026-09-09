@@ -26,6 +26,9 @@ public class V20ShapeAndArrowTest {
     private static Object get(Object o,String key)throws Exception{
         Field f=o.getClass().getDeclaredField(key);f.setAccessible(true);return f.get(o);
     }
+    private static void set(Object o,String key,Object value)throws Exception{
+        Field f=o.getClass().getDeclaredField(key);f.setAccessible(true);f.set(o,value);
+    }
     private static Object call(Object o,String name,Class<?>[] types,Object... args)throws Exception{
         Method m=o.getClass().getDeclaredMethod(name,types);m.setAccessible(true);return m.invoke(o,args);
     }
@@ -62,6 +65,79 @@ public class V20ShapeAndArrowTest {
                 Path path=(Path)get(game,"normalizedShapePath");
                 assertFalse("Shape outline must not be empty at level "+lv,path.isEmpty());
             }
+        }finally{game.release();}
+    });}
+
+    @Test public void premiumThemeUnlockSpendsCoinsAndPersists() throws Exception { onMain(()->{
+        SharedPreferences gamePrefs=context().getSharedPreferences("arrow_puzzle_faithful",0);
+        SharedPreferences appPrefs=context().getSharedPreferences("arrow_escape_pro",0);
+        gamePrefs.edit().clear().putBoolean("tutorialSeen",true).commit();
+        appPrefs.edit().clear()
+            .putBoolean("wallet_v16_ready",true)
+            .putInt("coins",1500)
+            .putInt("wallet_theme_mask",1)
+            .commit();
+
+        Wallet wallet=new Wallet(new PreferenceWalletStorage(context()));
+        ArrowGameView game=new ArrowGameView(context(),new Host(),wallet);
+        game.setPaused(true);
+        assertFalse(game.isBoardThemeOwned(5));
+        assertEquals(650,game.boardThemePrice(5));
+        assertEquals("Ember sparks",game.boardThemeFeature(5));
+        assertTrue(game.unlockAndSelectBoardTheme(5));
+        assertEquals("Lava",game.currentBoardTheme());
+        assertEquals(850,wallet.balance());
+        game.release();
+
+        Wallet restoredWallet=new Wallet(new PreferenceWalletStorage(context()));
+        ArrowGameView restored=new ArrowGameView(context(),new Host(),restoredWallet);
+        restored.setPaused(true);
+        try{
+            assertTrue(restored.isBoardThemeOwned(5));
+            assertEquals("Lava",restored.currentBoardTheme());
+            assertTrue(restored.unlockAndSelectBoardTheme(5));
+            assertEquals(850,restoredWallet.balance());
+        }finally{restored.release();}
+    });}
+
+    @Test public void fiveFastCorrectMovesEarnFlowShieldAndItSavesAHeart() throws Exception { onMain(()->{
+        SharedPreferences gamePrefs=context().getSharedPreferences("arrow_puzzle_faithful",0);
+        SharedPreferences appPrefs=context().getSharedPreferences("arrow_escape_pro",0);
+        gamePrefs.edit().clear().putBoolean("tutorialSeen",true).commit();
+        appPrefs.edit().clear().commit();
+        ArrowGameView game=new ArrowGameView(context(),new Host(),new Wallet(new PreferenceWalletStorage(context())));
+        game.setPaused(true);
+        try{
+            for(int step=0;step<5;step++){
+                @SuppressWarnings("unchecked")
+                ArrayList<Object> pieces=(ArrayList<Object>)get(game,"pieces");
+                Object safe=null;
+                for(Object p:pieces){
+                    if((Boolean)get(p,"removed")||(Boolean)get(p,"moving"))continue;
+                    boolean clear=(Boolean)call(game,"isClear",new Class[]{p.getClass()},p);
+                    if(clear){safe=p;break;}
+                }
+                assertNotNull("Need a safe arrow for flow step "+step,safe);
+                call(game,"tapPiece",new Class[]{safe.getClass()},safe);
+                set(safe,"moving",false);set(safe,"removed",true);
+            }
+            assertTrue((Boolean)get(game,"flowShield"));
+            assertTrue((Integer)get(game,"combo")>=5);
+            int hearts=(Integer)get(game,"hearts");
+
+            @SuppressWarnings("unchecked")
+            ArrayList<Object> pieces=(ArrayList<Object>)get(game,"pieces");
+            Object blocked=null;
+            for(Object p:pieces){
+                if((Boolean)get(p,"removed")||(Boolean)get(p,"moving"))continue;
+                boolean clear=(Boolean)call(game,"isClear",new Class[]{p.getClass()},p);
+                if(!clear){blocked=p;break;}
+            }
+            assertNotNull("Need a blocked arrow to consume Flow Shield",blocked);
+            call(game,"tapPiece",new Class[]{blocked.getClass()},blocked);
+            assertEquals("Flow Shield must protect one heart",hearts,(int)get(game,"hearts"));
+            assertFalse((Boolean)get(game,"flowShield"));
+            assertEquals(0,(int)get(game,"combo"));
         }finally{game.release();}
     });}
 
