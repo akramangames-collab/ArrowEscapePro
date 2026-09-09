@@ -68,6 +68,25 @@
 - Added Android :app:lintDebug to CI before packaging so resource, manifest and Android-quality regressions fail before an APK is presented for morning review.
 - Preserved: no gameplay movement, level generation, rewards or full-clearance/self-tail behavior changed.
 - Code commits: 4aebfdd857ef4f018b501a8aa1a905f59ed411a0 and 17696f6e4c0c17c7132c037f9d57db7353bdbb30.
-- Build: CircleCI android-build pending at end of this pass; new UI contract guard and lint are part of this run.
+- Build: CircleCI android-build FAILED after the new lint gate correctly exposed Android compatibility defects; product/gameplay verification itself remained green.
 
-Next: inspect Pass 6 lint/build result. If lint exposes accessibility/resource defects, fix those first; otherwise continue Home/Store/Levels/Achievements hierarchy audit without touching gameplay rules.
+## Pass 7 — independent CI diagnosis + exact lint isolation
+- Added the existing GitHub Actions build path to the V23 branch so failures have step-level diagnostics instead of treating the CircleCI red status as opaque.
+- Verified before lint: generated level pack PASS; self-clearance/solvability/V15 movement PASS; wallet PASS with 64 assertions; premium UI/UX contract PASS.
+- Android lint then reported 6 errors and 17 warnings, isolating the actual reason the strengthened quality gate failed.
+- Errors found: legacy Activity.onBackPressed is not invoked by Android 16 predictive-back gestures; two ArrayList.sort calls require API 24 while minSdk was 23; three base-theme attributes were declared below their platform API availability.
+- Added/updated trusted GitHub build workflow so future V23 runs validate level pack, gameplay rules, wallet, premium UI contract, Android lint, APK/AAB assembly and device smoke tests in one reproducible path.
+- Diagnostic workflow experiment was removed after the failure source was isolated so it cannot leave a permanent unrelated red check on later commits.
+- Commits: 38715666b1913a3740cd8047fa1f7049b560d5d8 (diagnostic experiment), 0b628651ed017dc591340c863210ae342ea73f9b (trusted V23 quality build), e7f1f9ad98b2360b23b96847f012fe8c829d4b4c (diagnostic cleanup).
+- Gameplay logic unchanged.
+
+## Pass 8 — Android compatibility repairs + lint gate recovery
+- Fixed API-23 runtime risk from ArrayList.sort by setting the supported runtime floor to API 24 (Android 7.0+), matching APIs already used by the level validator/game code instead of shipping a potential Android 6 crash path.
+- Fixed base dark-theme compatibility by removing windowLightNavigationBar and forceDarkAllowed declarations from the unqualified values resource; the Android 12+ qualified theme continues to carry modern dark-system-bar behavior.
+- Android 16 back-navigation finding was handled using Google's documented temporary migration path: android:enableOnBackInvokedCallback=false keeps the existing custom back stack functional while predictive-back migration is deferred to a later dedicated refactor. A narrowly scoped lint rule documents this intentional opt-out instead of suppressing unrelated lint categories.
+- Re-ran trusted GitHub quality build: level pack PASS; self-clearance/solvability/V15 movement PASS; wallet PASS; premium UI/UX contract PASS; Android lint PASS.
+- APK/AAB assembly and device smoke stage were running after lint passed at the end of this pass.
+- Fix commits: 8153b92a74e1ce6d83cdd4e76c58831c0c682a74, d5f64cf2e5761b589075bce3d32b9ddf761225f8, f43641fac4f698afa06eefb1d8948063c7249bb7, 2ace51d949f37ad3f4e206102fb5041663718ad7, e7f1f9ad98b2360b23b96847f012fe8c829d4b4c.
+- Preserved: approved snake/path-following motion, full-clearance/self-tail blocking, 200-level pack, Daily Challenge 200-coin rule and 10/15/20/30/40/50/75 streak ladder were not altered.
+
+Next: inspect the completed APK/AAB + device smoke result, then continue visual hierarchy/accessibility polish and remove stale legacy Store copy if it is still unreachable dead code.
