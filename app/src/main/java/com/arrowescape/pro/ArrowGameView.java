@@ -8,6 +8,9 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.RectF;
+import android.graphics.Matrix;
+import android.graphics.Region;
+import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
 import android.os.Build;
@@ -23,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -87,6 +91,10 @@ public class ArrowGameView extends View {
     private int levelPage = 0;
 
     private float boardLeft, boardTop, cell, boardW, boardH;
+    private static final int SHAPE_MASK_ROWS = 121;
+    private int shapeMaskLevel = -1;
+    private final ArrayList<float[]> shapeMaskIntervals = new ArrayList<>();
+    private final Path normalizedShapePath = new Path();
     private int insetTop = 0, insetBottom = 0;
     private long lastFrame = 0L;
     private long touchRippleUntil = 0L;
@@ -289,65 +297,114 @@ public class ArrowGameView extends View {
         label(c,"BOSS WORLD · "+(level==25?"DIAMOND":level==50?"CROWN":level==100?"INFINITY":level==150?"ROCKET":"GRANDMASTER"),w/2,h*.20f,11,accent,true);
     }
 
-    private int shapeIndexForLevel(int lv) { return Math.floorMod(lv-1,12); }
-    public String shapeNameForLevel(int lv) {
-        switch(shapeIndexForLevel(lv)){
-            case 0:return "Heart"; case 1:return "Star"; case 2:return "Diamond"; case 3:return "Crown";
-            case 4:return "Butterfly"; case 5:return "Rocket"; case 6:return "Shield"; case 7:return "Leaf";
-            case 8:return "Gem"; case 9:return "Drop"; case 10:return "Bell"; default:return "Kite";
-        }
-    }
-    public String currentShapeName(){ return shapeNameForLevel(level); }
+    private static final String[] SPECIAL_SHAPES={
+        "Heart","Star","Crown","Rocket","Butterfly","Diamond","Shield","Lightning","Moon","Flower"
+    };
 
-    private float clamp01(float v){ return Math.max(0f,Math.min(1f,v)); }
-    private float shapeWidth(float v,int shape){
-        v=clamp01(v);
-        switch(shape){
-            case 0: return .50f+.48f*(float)Math.sqrt(Math.max(0f,1f-v)); // heart
-            case 1: return .60f+.36f*(.5f+.5f*(float)Math.cos(v*Math.PI*4)); // star
-            case 2: return .50f+.48f*(1f-Math.abs(2f*v-1f)); // diamond
-            case 3: return .78f+.18f*(1f-v); // crown
-            case 4: return .54f+.42f*(float)Math.pow(Math.abs(2f*v-1f),.72); // butterfly
-            case 5: // rocket
-                if(v<.24f)return .48f+1.85f*v;
-                if(v<.78f)return .92f;
-                return .92f-.72f*(v-.78f);
-            case 6: return .96f-.44f*(float)Math.pow(v,1.65); // shield
-            case 7: return .50f+.46f*(float)Math.pow(Math.sin(Math.PI*v),.62); // leaf
-            case 8: return .56f+.40f*(1f-Math.abs(2f*v-1f)); // gem
-            case 9: return .48f+.47f*(float)Math.pow(Math.sin(Math.PI*Math.min(1f,v*.93f)),.62); // drop
-            case 10:return .52f+.43f*(float)Math.pow(v,.72); // bell
-            default:return .52f+.43f*(1f-Math.abs(2f*v-1f)); // kite
+    public String shapeNameForLevel(int lv) {
+        int index=Math.floorMod(lv-1,46);
+        if(index<26)return String.valueOf((char)('A'+index));
+        if(index<36)return String.valueOf((char)('0'+index-26));
+        return SPECIAL_SHAPES[index-36];
+    }
+    public String currentShapeName(){return shapeNameForLevel(level);}
+    private boolean alphanumericShape(String token){return token.length()==1&&Character.isLetterOrDigit(token.charAt(0));}
+    private float clamp01(float v){return Math.max(0f,Math.min(1f,v));}
+
+    private void ensureShapeMask(){
+        if(shapeMaskLevel==level&&!shapeMaskIntervals.isEmpty())return;
+        shapeMaskLevel=level;shapeMaskIntervals.clear();normalizedShapePath.reset();
+        String token=shapeNameForLevel(level);
+        if(alphanumericShape(token)) buildGlyphShape(token,normalizedShapePath);
+        else buildSpecialShape(token,normalizedShapePath);
+        normalizedShapePath.setFillType(Path.FillType.EVEN_ODD);
+
+        Region region=new Region();
+        region.setPath(normalizedShapePath,new Region(0,0,1000,1200));
+        for(int row=0;row<SHAPE_MASK_ROWS;row++){
+            int y=Math.round(60f+1080f*row/(SHAPE_MASK_ROWS-1f));
+            ArrayList<Float> spans=new ArrayList<>();
+            boolean inside=false;int startX=0;
+            for(int x=20;x<=980;x++){
+                boolean now=region.contains(x,y);
+                if(now&&!inside){inside=true;startX=x;}
+                if(!now&&inside){inside=false;spans.add((float)startX);spans.add((float)(x-1));}
+            }
+            if(inside){spans.add((float)startX);spans.add(980f);}
+            float[] packed=new float[spans.size()];
+            for(int i=0;i<spans.size();i++)packed[i]=spans.get(i);
+            shapeMaskIntervals.add(packed);
         }
     }
-    private float shapeCenter(float v,int shape){
-        if(shape==7)return .055f*(float)Math.sin((v-.5f)*Math.PI); // leaf lean
-        if(shape==11)return .045f*(v-.5f); // kite tilt
-        return 0f;
+
+    private void buildGlyphShape(String token,Path out){
+        Paint glyph=new Paint(Paint.ANTI_ALIAS_FLAG);
+        glyph.setTypeface(Typeface.create(Typeface.DEFAULT,Typeface.BOLD));
+        glyph.setTextSize(1000f);
+        glyph.getTextPath(token,0,token.length(),0,0,out);
+        RectF bounds=new RectF();out.computeBounds(bounds,true);
+        float targetW=850f,targetH=1030f;
+        float scale=Math.min(targetW/Math.max(1f,bounds.width()),targetH/Math.max(1f,bounds.height()));
+        Matrix m=new Matrix();m.setScale(scale,scale);out.transform(m);
+        out.computeBounds(bounds,true);
+        Matrix move=new Matrix();move.setTranslate(500f-bounds.centerX(),600f-bounds.centerY());out.transform(move);
     }
-    private float shapeVerticalWarp(float u,float v,int shape){
-        // Boundary warps make Heart/Crown/Star visibly distinct while the same
-        // transform is applied to every arrow, blocker and touch target.
-        if(shape==0) return .075f*(1f-v)*(float)Math.exp(-Math.pow((u-.5f)/.17f,2)); // heart notch
-        if(shape==3) {
-            float peaks=(float)(.5+.5*Math.cos(u*Math.PI*6));
-            return .075f*(1f-v)*(1f-peaks);
+
+    private void buildSpecialShape(String token,Path p){
+        if("Heart".equals(token)){
+            p.moveTo(500,1110);p.cubicTo(430,1000,90,760,90,390);p.cubicTo(90,160,360,90,500,305);p.cubicTo(640,90,910,160,910,390);p.cubicTo(910,760,570,1000,500,1110);p.close();
+        }else if("Star".equals(token)){
+            for(int i=0;i<10;i++){double a=-Math.PI/2+i*Math.PI/5;float r=(i%2==0)?500:225;float x=500+(float)Math.cos(a)*r,y=610+(float)Math.sin(a)*r;if(i==0)p.moveTo(x,y);else p.lineTo(x,y);}p.close();
+        }else if("Crown".equals(token)){
+            p.moveTo(85,1030);p.lineTo(115,320);p.lineTo(300,570);p.lineTo(500,150);p.lineTo(700,570);p.lineTo(885,320);p.lineTo(915,1030);p.close();
+        }else if("Rocket".equals(token)){
+            p.moveTo(500,80);p.cubicTo(760,250,800,590,690,900);p.lineTo(885,1080);p.lineTo(650,1030);p.lineTo(500,1140);p.lineTo(350,1030);p.lineTo(115,1080);p.lineTo(310,900);p.cubicTo(200,590,240,250,500,80);p.close();
+        }else if("Butterfly".equals(token)){
+            p.moveTo(485,170);p.cubicTo(350,120,90,220,120,520);p.cubicTo(140,700,330,660,430,590);p.cubicTo(300,770,250,1090,455,1020);p.lineTo(500,680);p.lineTo(545,1020);p.cubicTo(750,1090,700,770,570,590);p.cubicTo(670,660,860,700,880,520);p.cubicTo(910,220,650,120,515,170);p.close();
+        }else if("Diamond".equals(token)){
+            p.moveTo(500,70);p.lineTo(925,600);p.lineTo(500,1130);p.lineTo(75,600);p.close();
+        }else if("Shield".equals(token)){
+            p.moveTo(500,80);p.cubicTo(670,180,800,190,900,190);p.lineTo(860,690);p.cubicTo(830,900,650,1050,500,1130);p.cubicTo(350,1050,170,900,140,690);p.lineTo(100,190);p.cubicTo(200,190,330,180,500,80);p.close();
+        }else if("Lightning".equals(token)){
+            p.moveTo(560,70);p.lineTo(210,650);p.lineTo(450,650);p.lineTo(350,1130);p.lineTo(790,500);p.lineTo(545,500);p.close();
+        }else if("Moon".equals(token)){
+            p.addCircle(500,600,470,Path.Direction.CW);p.addCircle(675,510,390,Path.Direction.CW);
+        }else{
+            p.addCircle(500,600,150,Path.Direction.CW);
+            for(int i=0;i<8;i++){double a=i*Math.PI/4;float x=500+(float)Math.cos(a)*300,y=600+(float)Math.sin(a)*300;p.addCircle(x,y,190,Path.Direction.CW);}
         }
-        if(shape==1) {
-            float peaks=(float)(.5+.5*Math.cos(u*Math.PI*4));
-            return .045f*(1f-v)*(1f-peaks);
-        }
-        return 0f;
     }
+
+    private float[] nearestMaskRow(int row){
+        ensureShapeMask();row=Math.max(0,Math.min(SHAPE_MASK_ROWS-1,row));
+        if(shapeMaskIntervals.get(row).length>0)return shapeMaskIntervals.get(row);
+        for(int d=1;d<SHAPE_MASK_ROWS;d++){
+            int a=row-d,b=row+d;
+            if(a>=0&&shapeMaskIntervals.get(a).length>0)return shapeMaskIntervals.get(a);
+            if(b<SHAPE_MASK_ROWS&&shapeMaskIntervals.get(b).length>0)return shapeMaskIntervals.get(b);
+        }
+        return new float[]{100,900};
+    }
+
+    private float maskX(float u,float v){
+        int row=Math.round(clamp01(v)*(SHAPE_MASK_ROWS-1));
+        float[] spans=nearestMaskRow(row);
+        float total=0f;for(int i=0;i<spans.length;i+=2)total+=Math.max(1f,spans[i+1]-spans[i]);
+        float target=clamp01(u)*total;
+        for(int i=0;i<spans.length;i+=2){
+            float width=Math.max(1f,spans[i+1]-spans[i]);
+            if(target<=width)return (spans[i]+target)/1000f;
+            target-=width;
+        }
+        return spans[spans.length-1]/1000f;
+    }
+
     private android.graphics.PointF shapePointInside(float gx,float gy){
         float u=clamp01(gx/Math.max(1f,gridW)),v=clamp01(gy/Math.max(1f,gridH));
-        int shape=shapeIndexForLevel(level);
-        float width=shapeWidth(v,shape);
-        float xn=.5f+shapeCenter(v,shape)+(u-.5f)*width;
-        float yn=v+shapeVerticalWarp(u,v,shape);
-        yn=Math.max(0f,Math.min(1f,yn));
+        float xn=maskX(u,v),yn=.05f+.90f*v;
         return new android.graphics.PointF(boardLeft+xn*boardW,boardTop+yn*boardH);
     }
+
     private android.graphics.PointF shapePoint(float gx,float gy){
         float bx=Math.max(0f,Math.min(gridW,gx)),by=Math.max(0f,Math.min(gridH,gy));
         android.graphics.PointF base=shapePointInside(bx,by);
@@ -363,26 +420,24 @@ public class ArrowGameView extends View {
         float scale=Math.max(.001f,Math.abs(inward));
         return new android.graphics.PointF(base.x+(base.x-inner.x)/scale*Math.abs(gy-by),base.y+(base.y-inner.y)/scale*Math.abs(gy-by));
     }
+
     private android.graphics.PointF shapeDirection(float gx,float gy,float dx,float dy){
         android.graphics.PointF a=shapePoint(gx,gy),b=shapePoint(gx+dx*.35f,gy+dy*.35f);
         float vx=b.x-a.x,vy=b.y-a.y,len=(float)Math.sqrt(vx*vx+vy*vy);
         if(len<.001f)return new android.graphics.PointF(dx,dy);
         return new android.graphics.PointF(vx/len,vy/len);
     }
+
     private void drawShapeOutline(Canvas c){
-        Path outline=new Path();
-        boolean first=true;
-        int samples=48;
-        for(int i=0;i<=samples;i++){android.graphics.PointF p=shapePointInside(gridW*i/(float)samples,0);if(first){outline.moveTo(p.x,p.y);first=false;}else outline.lineTo(p.x,p.y);}
-        for(int i=1;i<=samples;i++){android.graphics.PointF p=shapePointInside(gridW,gridH*i/(float)samples);outline.lineTo(p.x,p.y);}
-        for(int i=1;i<=samples;i++){android.graphics.PointF p=shapePointInside(gridW*(1f-i/(float)samples),gridH);outline.lineTo(p.x,p.y);}
-        for(int i=1;i<=samples;i++){android.graphics.PointF p=shapePointInside(0,gridH*(1f-i/(float)samples));outline.lineTo(p.x,p.y);}
-        outline.close();
+        ensureShapeMask();
+        Path screen=new Path(normalizedShapePath);
+        Matrix m=new Matrix();m.setScale(boardW/1000f,boardH/1200f);m.postTranslate(boardLeft,boardTop);screen.transform(m);
         int accent=selectedArrowColor();
-        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(14,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(outline,paint);
-        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.4f));paint.setColor(Color.argb(55,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(outline,paint);
+        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(11,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(screen,paint);
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.4f));paint.setColor(Color.argb(52,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(screen,paint);
         paint.setStyle(Paint.Style.FILL);
     }
+
     private void drawPathPreview(Canvas c) {
         Piece p=previewPiece;
         if(p==null||p.removed||p.moving||p.pts.isEmpty())return;
