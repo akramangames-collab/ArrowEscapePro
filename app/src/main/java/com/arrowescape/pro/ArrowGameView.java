@@ -990,7 +990,7 @@ public class ArrowGameView extends View {
         if(paused)return true;
         float x=e.getX(),y=e.getY();
         if(e.getAction()==MotionEvent.ACTION_DOWN){
-            pressPiece=(screen==Screen.PLAY&&!tutorial&&!finished&&!failed)?findPieceAt(x,y):null;
+            pressPiece=(screen==Screen.PLAY&&!tutorial&&!finished&&!failed)?findShapedPieceAt(x,y):null;
             longPressPreview=false;
             if(pressPiece!=null){
                 final Piece candidate=pressPiece;
@@ -1037,7 +1037,7 @@ public class ArrowGameView extends View {
         if(walletHit.contains(x,y)||rewardHit.contains(x,y)){host.openWallet();return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
         if(eraseHit.contains(x,y)){useEraser();return true;}
-        Piece piece=findPieceAt(x,y);if(piece!=null)tapPiece(piece);return true;
+        Piece piece=findShapedPieceAt(x,y);if(piece!=null)tapPiece(piece);return true;
     }
 
     private void startLevel(int lv) {
@@ -1104,7 +1104,9 @@ public class ArrowGameView extends View {
         return true;
     }
 
-    private Piece findPieceAt(float x,float y){
+    private Piece findPieceAt(float x,float y){Piece best=null;float bestD=Math.max(dp(16),cell*.42f);for(Piece p:pieces){if(p.removed||p.moving)continue;for(int i=0;i<p.pts.size()-1;i++){Point a=p.pts.get(i),b=p.pts.get(i+1);float ax=boardLeft+a.x*cell,ay=boardTop+a.y*cell,bx=boardLeft+b.x*cell,by=boardTop+b.y*cell;float d=pointSegDist(x,y,ax,ay,bx,by);if(d<bestD){bestD=d;best=p;}}}return best;}
+
+    private Piece findShapedPieceAt(float x,float y){
         Piece best=null;float bestD=Math.max(dp(16),cell*.46f);
         for(Piece p:pieces){
             if(p.removed||p.moving)continue;
