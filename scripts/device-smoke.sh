@@ -10,7 +10,7 @@ from pathlib import Path
 import re
 s=Path('device-results/instrumentation.txt').read_text()
 result=re.search(r'OK \((\d+) tests?\)',s)
-assert result and int(result.group(1))>=5 and 'FAILURES' not in s, s
+assert result and int(result.group(1))>=8 and 'FAILURES' not in s, s
 PY
 adb shell am force-stop com.arrowescape.pro.debug
 adb shell am start -W -n com.arrowescape.pro.debug/com.arrowescape.pro.MainActivity
