@@ -39,6 +39,16 @@
 - Improved: dialog background upgraded from a flat fill to a subtle navy gradient with a cleaner blue edge while preserving 24dp rounded corners.
 - Gameplay movement, level generation and full-clearance/self-tail rules unchanged.
 - Commit: ab197409beefc644713ae5b9cd177210f72c0c0a.
+- Build: CircleCI android-build SUCCESS.
+
+## Pass 4 — premium motion + overlay depth consistency
+- Audited transition feel between Home, Store, Achievements, Daily Challenge, Settings and native confirmation/privacy surfaces.
+- Found: premium surfaces appeared/disappeared with default platform dialog motion, which visually clashed with the custom neon cards and made screen changes feel abrupt.
+- Improved: added a restrained 180 ms fade/2% rise enter transition and 120 ms fade/1% lift exit transition for premium dialog/full-screen surfaces.
+- Improved: standardized modal backdrop dimming to 72% so confirmation and privacy surfaces read clearly above the game without washing out the navy palette.
+- Improved: explicitly disabled system force-dark transformation on the premium theme path to protect cyan/purple/gold contrast on devices that apply OEM dark-mode overrides.
+- Preserved: no gameplay movement, level generation, self-tail/full-clearance, reward amount, or progression rule changes.
+- Commit: fb27f3c809c850319256909e1e5b68ca9dabd17a.
 - Build: CircleCI android-build pending at end of this pass.
 
-Next: validate Pass 3 build, then continue first-launch/accessibility and Home/Store/Levels/Achievements visual hierarchy audit.
+Next: validate Pass 4 build, then continue first-launch/accessibility and Home/Store/Levels/Achievements visual hierarchy audit.
