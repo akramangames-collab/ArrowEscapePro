@@ -1,12 +1,12 @@
-name: Build Arrow Escape V17
+name: Build Arrow Escape V18
 on:
   push:
-    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones, v16-retention-upgrade, v17-self-clearance]
+    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones, v16-retention-upgrade, v18-self-clearance, v18-gameplay-upgrade]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: arrow-v17-${{ github.ref }}
+  group: arrow-v18-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:
@@ -24,9 +24,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
-      - name: Generate V17 self-clearance mazes
+      - name: Validate V18 level pack
         run: python3 scripts/generate-hard-levels.py --check
-      - name: Verify V17 self-clearance, solvability and V15 movement
+      - name: Verify V18 self-clearance, solvability and V15 movement
         run: python3 scripts/verify-levels.py
       - name: Verify wallet transactions and persistence
         run: bash scripts/test-wallet.sh
@@ -37,20 +37,20 @@ jobs:
       - name: Package build artifacts
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/ArrowEscape-PuzzleMaze-V17-test.apk
-          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-PuzzleMaze-V17-release-unsigned.apk
-          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-V17-tests.apk
+          cp app/build/outputs/apk/debug/app-debug.apk dist/ArrowEscape-PuzzleMaze-V18-test.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-PuzzleMaze-V18-release-unsigned.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-V18-tests.apk
           sha256sum dist/*.apk > dist/SHA256SUMS.txt
           cp tests/hard-level-metrics.json dist/level-metrics.json
       - uses: actions/upload-artifact@v4
         with:
-          name: ArrowEscape-V17-APKs
+          name: ArrowEscape-V18-APKs
           path: dist/
           if-no-files-found: error
           retention-days: 30
       - uses: actions/upload-artifact@v4
         with:
-          name: ArrowEscape-V17-Play-Bundle
+          name: ArrowEscape-V18-Play-Bundle
           path: app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: error
           retention-days: 30
@@ -62,7 +62,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
-          name: ArrowEscape-V17-APKs
+          name: ArrowEscape-V18-APKs
           path: dist
       - name: Enable emulator acceleration
         run: |
@@ -81,6 +81,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ArrowEscape-V17-device-checks
+          name: ArrowEscape-V18-device-checks
           path: device-results/
           if-no-files-found: error
