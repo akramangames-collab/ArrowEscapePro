@@ -550,7 +550,10 @@ public class ArrowGameView extends View {
         buildMappedRoutePath(path,p,advance,advance+piecePathLength(p));
     }
 
-    private int arrowType(){return Math.floorMod(settings.getInt("arrow_type",0),5);}
+    private int arrowType(){
+        int selected=Math.floorMod(settings.getInt("arrow_type",0),5);
+        return wallet.ownsArrowType(selected)?selected:0;
+    }
     private float arrowStroke(){
         switch(arrowType()){case 1:return .078f;case 2:return .175f;case 3:return .105f;case 4:return .125f;default:return .12f;}
     }
@@ -619,6 +622,7 @@ public class ArrowGameView extends View {
                 c.drawPath(path,paint);
                 float total=piecePathLength(p);
                 android.graphics.PointF head=routePoint(p,advance+total);
+                drawArrowMotionEffect(c,p,advance,total,col);
                 paint.setStyle(Paint.Style.FILL);
                 drawArrowHeadAt(c,head.x,head.y,p.dx,p.dy,col,alpha);
             }else{
@@ -636,6 +640,53 @@ public class ArrowGameView extends View {
             drawSpecialBadge(c,p,now);
         }
         paint.setStyle(Paint.Style.FILL);
+    }
+
+    private void drawArrowMotionEffect(Canvas c,Piece p,float advance,float total,int col){
+        int type=arrowType();
+        if(type==0)return;
+        android.graphics.PointF headGrid=routePoint(p,advance+total);
+        android.graphics.PointF head=shapePoint(headGrid.x,headGrid.y);
+        android.graphics.PointF dir=shapeDirection(headGrid.x,headGrid.y,p.dx,p.dy);
+
+        if(type==1){ // Slim: clean comet trail
+            paint.setStyle(Paint.Style.FILL);
+            for(int i=1;i<=4;i++){
+                float d=total+advance-i*.65f;
+                android.graphics.PointF q=routePoint(p,Math.max(0f,d));
+                android.graphics.PointF sp=shapePoint(q.x,q.y);
+                paint.setColor(Color.argb(105-i*18,Color.red(col),Color.green(col),Color.blue(col)));
+                c.drawCircle(sp.x,sp.y,Math.max(dp(1.2f),cell*.075f),paint);
+            }
+        }else if(type==2){ // Bold: impact pulse
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(Math.max(dp(1.4f),cell*.08f));
+            paint.setColor(Color.argb(72,Color.red(col),Color.green(col),Color.blue(col)));
+            c.drawCircle(head.x,head.y,Math.max(dp(9),cell*.62f),paint);
+            paint.setStyle(Paint.Style.FILL);
+        }else if(type==3){ // Chevron: echo chevrons
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeCap(Paint.Cap.ROUND);
+            paint.setStrokeWidth(Math.max(dp(1.2f),cell*.07f));
+            for(int i=1;i<=2;i++){
+                float back=cell*(.46f+i*.30f);
+                float cx=head.x-dir.x*back,cy=head.y-dir.y*back;
+                float px=-dir.y,py=dir.x,s=Math.max(dp(4f),cell*.24f);
+                paint.setColor(Color.argb(95-i*25,Color.red(col),Color.green(col),Color.blue(col)));
+                Path v=new Path();
+                v.moveTo(cx-dir.x*s*.35f+px*s*.55f,cy-dir.y*s*.35f+py*s*.55f);
+                v.lineTo(cx+dir.x*s*.48f,cy+dir.y*s*.48f);
+                v.lineTo(cx-dir.x*s*.35f-px*s*.55f,cy-dir.y*s*.35f-py*s*.55f);
+                c.drawPath(v,paint);
+            }
+            paint.setStyle(Paint.Style.FILL);
+        }else if(type==4){ // Neon: moving spark pair
+            paint.setStyle(Paint.Style.FILL);
+            float px=-dir.y,py=dir.x;
+            paint.setColor(Color.argb(150,Color.red(col),Color.green(col),Color.blue(col)));
+            c.drawCircle(head.x+px*cell*.28f,head.y+py*cell*.28f,Math.max(dp(1.5f),cell*.09f),paint);
+            c.drawCircle(head.x-px*cell*.28f,head.y-py*cell*.28f,Math.max(dp(1.5f),cell*.09f),paint);
+        }
     }
 
     private void drawArrowHead(Canvas c,Piece p,int col,int alpha) {
@@ -1036,10 +1087,32 @@ public class ArrowGameView extends View {
     private String arrowTypeName(int type){
         switch(Math.floorMod(type,5)){case 1:return "Slim";case 2:return "Bold";case 3:return "Chevron";case 4:return "Neon";default:return "Classic";}
     }
+    public String arrowTypeFeature(int type){
+        switch(Math.floorMod(type,5)){case 1:return "Comet trail";case 2:return "Impact pulse";case 3:return "Echo chevrons";case 4:return "Glow + sparks";default:return "Clean classic";}
+    }
+    public int arrowTypePrice(int type){
+        switch(Math.floorMod(type,5)){case 1:return 200;case 2:return 350;case 3:return 500;case 4:return 800;default:return 0;}
+    }
     public String[] arrowTypeNames(){return new String[]{"Classic","Slim","Bold","Chevron","Neon"};}
+    public String[] arrowTypeOptionLabels(){
+        String[] labels=new String[5];
+        for(int i=0;i<5;i++){
+            boolean owned=wallet.ownsArrowType(i);
+            labels[i]=arrowTypeName(i)+" · "+(owned?"OWNED":arrowTypePrice(i)+" coins")+" · "+arrowTypeFeature(i);
+        }
+        return labels;
+    }
+    public boolean isArrowTypeOwned(int type){return wallet.ownsArrowType(Math.floorMod(type,5));}
     public int currentArrowTypeIndex(){return arrowType();}
     public String currentArrowType(){return arrowTypeName(arrowType());}
-    public void setArrowType(int type){settings.edit().putInt("arrow_type",Math.floorMod(type,5)).apply();invalidate();}
+    public boolean unlockAndSelectArrowType(int type){
+        type=Math.floorMod(type,5);
+        int price=arrowTypePrice(type);
+        if(!wallet.ownsArrowType(type) && !wallet.purchaseArrowType(type,price))return false;
+        settings.edit().putInt("arrow_type",type).apply();
+        invalidate();
+        return true;
+    }
     private boolean isSuperHard(int lv){return lv%5==0;}
     private boolean isBoss(int lv){return lv==25||lv==50||lv==100||lv==150||lv==200;}
     private String difficulty(){if(isBoss(level))return "BOSS MILESTONE";if(isSuperHard(level))return "SUPER HARD ★";if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
