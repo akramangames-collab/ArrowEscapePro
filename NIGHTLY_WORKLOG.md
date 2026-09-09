@@ -38,5 +38,7 @@
 - Improved: native switches/control activation now use the same cyan accent as the game UI.
 - Improved: dialog background upgraded from a flat fill to a subtle navy gradient with a cleaner blue edge while preserving 24dp rounded corners.
 - Gameplay movement, level generation and full-clearance/self-tail rules unchanged.
+- Commit: ab197409beefc644713ae5b9cd177210f72c0c0a.
+- Build: CircleCI android-build pending at end of this pass.
 
 Next: validate Pass 3 build, then continue first-launch/accessibility and Home/Store/Levels/Achievements visual hierarchy audit.
