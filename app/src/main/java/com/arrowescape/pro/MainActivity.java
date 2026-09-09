@@ -499,13 +499,13 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         brand.addView(heading,new LinearLayout.LayoutParams(0,-2,1f));
         body.addView(brand);
 
-        menuBalance=text("COINS  "+wallet.balance(),18,GOLD);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        menuBalance.setGravity(Gravity.CENTER);
-        menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));
-        LinearLayout.LayoutParams balanceLp=new LinearLayout.LayoutParams(-1,dp(48));balanceLp.setMargins(0,dp(14),0,dp(6));menuBalance.setLayoutParams(balanceLp);
-        body.addView(menuBalance);
-
         if (store) {
+            menuBalance=text("COINS  "+wallet.balance(),18,GOLD);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            menuBalance.setGravity(Gravity.CENTER);
+            menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));
+            LinearLayout.LayoutParams balanceLp=new LinearLayout.LayoutParams(-1,dp(48));balanceLp.setMargins(0,dp(14),0,dp(6));menuBalance.setLayoutParams(balanceLp);
+            body.addView(menuBalance);
+
             LinearLayout hero=panel();
             TextView heroTitle=text("MAKE EVERY ESCAPE YOURS",18,TEXT);heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(heroTitle);
             hero.addView(text("Buy visual upgrades with coins you earn by playing. Purchases stay unlocked.",13,MUTED));
@@ -625,7 +625,7 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
             body.addView(text("Version "+BuildConfig.VERSION_NAME+(BuildConfig.DEBUG?" · Test ads":""),12,MUTED));
         }
 
-        body.addView(button(store?"BACK TO PUZZLE":"DONE",()->menu.dismiss(),true));
+        body.addView(button(store?"BACK TO PUZZLE":"⌂  BACK TO HOME",()->{if(store)menu.dismiss();else showHome();},true));
 
         FrameLayout bannerSlot=new FrameLayout(this);
         LinearLayout.LayoutParams slotParams=new LinearLayout.LayoutParams(-1,dp(66));slotParams.topMargin=dp(16);body.addView(bannerSlot,slotParams);
@@ -667,7 +667,7 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();}
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing()));if(banner!=null)banner.resume();}
+    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();}
     @Override protected void onDestroy(){destroyBanner();if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
     @Override public void onBackPressed(){if(reminder!=null&&reminder.isShowing())reminder.dismiss();else if(menu!=null&&menu.isShowing())menu.dismiss();else if(game.handleBack()){}else super.onBackPressed();}
 }

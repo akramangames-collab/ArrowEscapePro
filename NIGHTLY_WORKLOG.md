@@ -1,25 +1,20 @@
-# Arrow Escape Pro — Overnight Upload-Ready Worklog
+# Arrow Escape Overnight Worklog
 
-Date: 2026-09-09 / 2026-09-10
-Branch: `v23-upload-ready-nightly`
+## Pass 1 — UI consistency + navigation + Daily Challenge correctness
+- Base: verified V22 neon build.
+- Found: app theme was still Android Light theme, causing native dialogs/switches to visually clash with the approved dark neon UI.
+- Fixed: switched the app theme to dark Material, dark status/navigation bars, cyan accent, dark launch background.
+- Found: Daily Challenge win screen still advertised the old +100/+125/+150 rewards even though wallet logic awards 200.
+- Fixed: win screen now states +200 coins once per day.
+- Found: Daily Challenge completion returned to Levels despite Daily Challenge now being a separate Home destination.
+- Fixed: challenge exit returns to Home; replay action replays the challenge without issuing a second daily coin reward.
+- Found: Levels on-screen back arrow returned directly to gameplay while hardware back returned Home.
+- Fixed: both now return to Home.
+- Found: Settings still showed the wallet balance despite Store being the dedicated purchase area.
+- Fixed: removed Store-style coin balance clutter from Settings.
+- Found: Settings Done returned behind the menu to gameplay.
+- Fixed: Settings now has an explicit Back to Home action.
+- Found: gameplay could briefly unpause behind the Daily Challenge reminder after Activity resume.
+- Fixed: reminder is included in pause-state logic.
 
-## Approved product direction
-- Preserve snake/path-following arrow movement.
-- Preserve full-clearance/self-tail blocking gameplay.
-- Premium dark navy + neon cyan/purple/gold UI.
-- Dedicated Store for Arrow Garage, Themes and coin/reward actions.
-- Separate Levels screen.
-- Separate Achievements screen with Daily Streak.
-- Daily Challenge gets its own entry point and app-open reminder.
-- Daily Challenge reward: 200 coins.
-- Daily streak reward ladder: 10, 15, 20, 30, 40, 50, 75 coins.
-
-## Baseline verified before overnight loop
-- V22 full neon hub compiled successfully on CircleCI at commit `0d2849c13c25a2eea04c6a8981ac1b9667be19c7`.
-- Direct V22 APK delivery build completed its build/package/upload steps.
-- Installable APK artifact verified as Android package.
-- APK size: about 9.8 MB.
-- APK SHA-256: `6e9bdcda00966a57fa8a1a27941e00398b61e049d935ba5aa1475f42e56266de`.
-
-## Overnight iterations
-This section will be appended during each development/build pass.
+Next: build validation, then visual polish pass on Home/Store/Achievements/Levels.

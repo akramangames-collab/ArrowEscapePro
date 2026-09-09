@@ -888,7 +888,7 @@ public class ArrowGameView extends View {
         label(c,winReward>0?"+"+winReward+" coins":"Reward already claimed",w/2,card.top+dp(38),26,NAVY,true);
         String rewardLine;
         if(weeklyChallenge) rewardLine="Weekly challenge · "+(earnedStars==3?"+350":earnedStars==2?"+300":"+250");
-        else if(dailyChallenge) rewardLine="Daily challenge · "+(earnedStars==3?"+150":earnedStars==2?"+125":"+100");
+        else if(dailyChallenge) rewardLine="Daily challenge · +200 coins · once per day";
         else if(isBoss(level)) rewardLine="Clear +15 · Star bonus · Boss bonus +150";
         else if(isSuperHard(level)) rewardLine="Clear +15 · Star bonus · Milestone +75";
         else rewardLine="Clear +15 · 2★ +5 · 3★ +10";
@@ -898,9 +898,9 @@ public class ArrowGameView extends View {
         primaryHit.set(dp(26),top+dp(347),w-dp(26),top+dp(399));
         secondaryHit.set(dp(26),top+dp(411),w-dp(26),top+dp(461));
         tertiaryHit.set(dp(26),top+dp(466),w-dp(26),top+dp(504));
-        action(c,primaryHit,challengeActive()?"Back to levels":(level<200?"Next level":"View all levels"),BLUE,Color.WHITE);
+        action(c,primaryHit,challengeActive()?"Back to Home":(level<200?"Next level":"View all levels"),BLUE,Color.WHITE);
         action(c,secondaryHit,"Watch ad · +75 coins",Color.rgb(255,202,69),Color.rgb(27,31,43));
-        label(c,weeklyChallenge?"Replay from Weekly Challenge menu":dailyChallenge?"Replay from Daily Challenge menu":"Level select",w/2,tertiaryHit.centerY()+dp(5),13,Color.WHITE,false);
+        label(c,challengeActive()?"Replay challenge":"Level select",w/2,tertiaryHit.centerY()+dp(5),13,Color.WHITE,false);
     }
 
     private void drawFail(Canvas c) {
@@ -1010,7 +1010,7 @@ public class ArrowGameView extends View {
                 if(challengeActive())leaveChallenge();
                 else host.onContinueAfterWin(()->{if(level<MAX_LEVEL)startLevel(level+1);else showLevelSelect();});
             } else if(secondaryHit.contains(x,y))host.requestRewardedCoins();
-            else if(tertiaryHit.contains(x,y)){if(challengeActive())leaveChallenge();else showLevelSelect();}
+            else if(tertiaryHit.contains(x,y)){if(challengeActive())restartCurrentLevel();else showLevelSelect();}
             return true;
         }
         if(failed){
@@ -1072,11 +1072,11 @@ public class ArrowGameView extends View {
         long week=(System.currentTimeMillis()/Wallet.DAY_MS)/7L;
         return prefs.getLong("weekly_challenge_star_week",-1L)==week?prefs.getInt("weekly_challenge_best_stars",0):0;
     }
-    private void leaveChallenge(){int back=normalLevelBeforeChallenge;dailyChallenge=false;weeklyChallenge=false;challengeDay=-1L;challengeWeek=-1L;startLevel(back);showLevelSelect();}
+    private void leaveChallenge(){int back=normalLevelBeforeChallenge;dailyChallenge=false;weeklyChallenge=false;challengeDay=-1L;challengeWeek=-1L;startLevel(back);host.openHome();}
 
     private boolean handleLevelsTouch(float x,float y) {
         float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
-        if(x<dp(70)&&y<top+dp(65)){screen=Screen.PLAY;invalidate();return true;}
+        if(x<dp(70)&&y<top+dp(65)){screen=Screen.PLAY;host.openHome();invalidate();return true;}
         float gap=dp(10),left=dp(20),bw=(w-left*2-gap*3)/4f,bh=dp(62),y0=top+dp(78);
         if(x>=left&&y>=y0&&y<y0+5*(bh+gap)) {
             int col=(int)((x-left)/(bw+gap)),row=(int)((y-y0)/(bh+gap));
@@ -1701,7 +1701,7 @@ public class ArrowGameView extends View {
     public boolean handleBack(){
         if(screen==Screen.LEVELS){screen=Screen.PLAY;host.openHome();invalidate();return true;}
         if(tutorial){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();return true;}
-        if(challengeActive()){leaveChallenge();screen=Screen.PLAY;host.openHome();invalidate();return true;}
+        if(challengeActive()){leaveChallenge();invalidate();return true;}
         host.openHome();return true;
     }
     public void saveProgress(){
