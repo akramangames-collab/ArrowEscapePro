@@ -248,7 +248,7 @@ public class ArrowGameView extends View {
             ? "ELITE WEEKLY  ·  puzzle " + level
             : dailyChallenge
             ? "SUPER HARD DAILY  ·  puzzle " + level
-            : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + currentShapeName().toUpperCase(Locale.US) + " · " + difficulty();
+            : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + difficulty();
         if (!challengeActive() && combo >= 2) sub += " · STREAK x" + combo;
         label(c, sub, w/2, top + dp(49), 11, difficultyColor, challengeActive() || isSuperHard(level) || combo >= 3);
         drawFlowMeter(c,w/2,top+dp(65));
@@ -335,7 +335,7 @@ public class ArrowGameView extends View {
             for(int i=0;i<8;i++){double a=i*Math.PI/4;c.drawLine(cx,cy,cx+(float)Math.cos(a)*r,cy+(float)Math.sin(a)*r,paint);}
         }
         paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(44,Color.red(accent),Color.green(accent),Color.blue(accent)));
-        label(c,"BOSS SHAPE · "+currentShapeName().toUpperCase(Locale.US),w/2,h*.20f,11,accent,true);
+        label(c,"BOSS WORLD · "+(level==25?"DIAMOND":level==50?"CROWN":level==100?"INFINITY":level==150?"ROCKET":"GRANDMASTER"),w/2,h*.20f,11,accent,true);
     }
 
     private static final String[] SPECIAL_SHAPES={
@@ -445,42 +445,19 @@ public class ArrowGameView extends View {
     }
 
     private android.graphics.PointF shapePointInside(float gx,float gy){
-        float u=clamp01(gx/Math.max(1f,gridW)),v=clamp01(gy/Math.max(1f,gridH));
-        float xn=maskX(u,v),yn=.05f+.90f*v;
-        return new android.graphics.PointF(boardLeft+xn*boardW,boardTop+yn*boardH);
+        return new android.graphics.PointF(boardLeft+gx*cell,boardTop+gy*cell);
     }
 
     private android.graphics.PointF shapePoint(float gx,float gy){
-        float bx=Math.max(0f,Math.min(gridW,gx)),by=Math.max(0f,Math.min(gridH,gy));
-        android.graphics.PointF base=shapePointInside(bx,by);
-        if(gx==bx&&gy==by)return base;
-        if(gx!=bx){
-            float inward=bx<=0f?.35f:-.35f;
-            android.graphics.PointF inner=shapePointInside(Math.max(0f,Math.min(gridW,bx+inward)),by);
-            float scale=Math.max(.001f,Math.abs(inward));
-            return new android.graphics.PointF(base.x+(base.x-inner.x)/scale*Math.abs(gx-bx),base.y+(base.y-inner.y)/scale*Math.abs(gx-bx));
-        }
-        float inward=by<=0f?.35f:-.35f;
-        android.graphics.PointF inner=shapePointInside(bx,Math.max(0f,Math.min(gridH,by+inward)));
-        float scale=Math.max(.001f,Math.abs(inward));
-        return new android.graphics.PointF(base.x+(base.x-inner.x)/scale*Math.abs(gy-by),base.y+(base.y-inner.y)/scale*Math.abs(gy-by));
+        return new android.graphics.PointF(boardLeft+gx*cell,boardTop+gy*cell);
     }
 
     private android.graphics.PointF shapeDirection(float gx,float gy,float dx,float dy){
-        android.graphics.PointF a=shapePoint(gx,gy),b=shapePoint(gx+dx*.35f,gy+dy*.35f);
-        float vx=b.x-a.x,vy=b.y-a.y,len=(float)Math.sqrt(vx*vx+vy*vy);
-        if(len<.001f)return new android.graphics.PointF(dx,dy);
-        return new android.graphics.PointF(vx/len,vy/len);
+        return new android.graphics.PointF(dx,dy);
     }
 
     private void drawShapeOutline(Canvas c){
-        ensureShapeMask();
-        Path screen=new Path(normalizedShapePath);
-        Matrix m=new Matrix();m.setScale(boardW/1000f,boardH/1200f);m.postTranslate(boardLeft,boardTop);screen.transform(m);
-        int accent=selectedArrowColor();
-        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(11,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(screen,paint);
-        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.4f));paint.setColor(Color.argb(52,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(screen,paint);
-        paint.setStyle(Paint.Style.FILL);
+        // Shapes removed for release 1.0.0. Keep the normal puzzle grid only.
     }
 
     private void drawPathPreview(Canvas c) {
@@ -503,12 +480,11 @@ public class ArrowGameView extends View {
     }
 
     private void drawDottedGrid(Canvas c) {
-        drawShapeOutline(c);
         paint.setColor(themeDotColor());
         for (int y=0; y<=gridH; y++) {
+            float py=boardTop+y*cell;
             for (int x=0; x<=gridW; x++) {
-                android.graphics.PointF p=shapePointInside(x,y);
-                c.drawCircle(p.x,p.y,Math.max(0.8f,cell*0.045f),paint);
+                c.drawCircle(boardLeft+x*cell,py,Math.max(0.8f,cell*0.045f),paint);
             }
         }
     }
@@ -634,9 +610,7 @@ public class ArrowGameView extends View {
         );
     }
 
-    private void buildShapedMovingSnakePath(Path path,Piece p,float advance) {
-        buildMappedRoutePath(path,p,advance,advance+piecePathLength(p));
-    }
+
 
     private int arrowType(){
         int selected=Math.floorMod(settings.getInt("arrow_type",0),5);
@@ -705,7 +679,7 @@ public class ArrowGameView extends View {
             Path path=new Path();
             if(p.moving){
                 float advance=p.moveT*p.moveSteps;
-                buildShapedMovingSnakePath(path,p,advance);
+                buildMovingSnakePath(path,p,advance);
                 if(arrowType()==4){paint.setStrokeWidth(stroke*2.5f);paint.setColor(Color.argb(45,Color.red(col),Color.green(col),Color.blue(col)));c.drawPath(path,paint);paint.setStrokeWidth(stroke);paint.setColor(col);}
                 c.drawPath(path,paint);
                 float total=piecePathLength(p);
@@ -960,7 +934,6 @@ public class ArrowGameView extends View {
             if(milestone){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(boss?2.7f:2));paint.setColor(open?(boss?BOSS_GOLD:SUPER_HARD):Color.rgb(210,190,170));c.drawRoundRect(r,dp(16),dp(16),paint);paint.setStyle(Paint.Style.FILL);}
             int stars=open?bestStars(lv):0;
             paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(17));paint.setColor(open?(boss?BOSS_GOLD:milestone?SUPER_HARD:TEXT):Color.rgb(171,180,194));c.drawText(open?String.valueOf(lv):"•",r.centerX(),r.top+dp(25),paint);paint.setFakeBoldText(false);
-            if(open)label(c,shapeNameForLevel(lv),r.centerX(),r.top+dp(43),8,Color.rgb(105,119,142),true);
             if(open&&stars>0)label(c,starString(stars),r.centerX(),r.bottom-dp(7),8,Color.rgb(225,161,20),true);
             if(milestone)label(c,boss?"BOSS":"★",r.right-dp(boss?22:13),r.top+dp(15),boss?7:10,open?(boss?BOSS_GOLD:SUPER_HARD):Color.rgb(190,180,170),true);
         }
@@ -990,7 +963,7 @@ public class ArrowGameView extends View {
         if(paused)return true;
         float x=e.getX(),y=e.getY();
         if(e.getAction()==MotionEvent.ACTION_DOWN){
-            pressPiece=(screen==Screen.PLAY&&!tutorial&&!finished&&!failed)?findShapedPieceAt(x,y):null;
+            pressPiece=(screen==Screen.PLAY&&!tutorial&&!finished&&!failed)?findPieceAt(x,y):null;
             longPressPreview=false;
             if(pressPiece!=null){
                 final Piece candidate=pressPiece;
@@ -1037,7 +1010,7 @@ public class ArrowGameView extends View {
         if(walletHit.contains(x,y)||rewardHit.contains(x,y)){host.openWallet();return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
         if(eraseHit.contains(x,y)){useEraser();return true;}
-        Piece piece=findShapedPieceAt(x,y);if(piece!=null)tapPiece(piece);return true;
+        Piece piece=findPieceAt(x,y);if(piece!=null)tapPiece(piece);return true;
     }
 
     private void startLevel(int lv) {
@@ -1106,21 +1079,7 @@ public class ArrowGameView extends View {
 
     private Piece findPieceAt(float x,float y){Piece best=null;float bestD=Math.max(dp(16),cell*.42f);for(Piece p:pieces){if(p.removed||p.moving)continue;for(int i=0;i<p.pts.size()-1;i++){Point a=p.pts.get(i),b=p.pts.get(i+1);float ax=boardLeft+a.x*cell,ay=boardTop+a.y*cell,bx=boardLeft+b.x*cell,by=boardTop+b.y*cell;float d=pointSegDist(x,y,ax,ay,bx,by);if(d<bestD){bestD=d;best=p;}}}return best;}
 
-    private Piece findShapedPieceAt(float x,float y){
-        Piece best=null;float bestD=Math.max(dp(16),cell*.46f);
-        for(Piece p:pieces){
-            if(p.removed||p.moving)continue;
-            float total=piecePathLength(p);
-            int steps=Math.max(2,(int)Math.ceil(total*2f));
-            android.graphics.PointF prev=null;
-            for(int i=0;i<=steps;i++){
-                android.graphics.PointF q=routePoint(p,total*i/(float)steps),sp=shapePoint(q.x,q.y);
-                if(prev!=null){float d=pointSegDist(x,y,prev.x,prev.y,sp.x,sp.y);if(d<bestD){bestD=d;best=p;}}
-                prev=sp;
-            }
-        }
-        return best;
-    }
+
 
     private float pointSegDist(float px,float py,float ax,float ay,float bx,float by){float vx=bx-ax,vy=by-ay,wx=px-ax,wy=py-ay;float c1=vx*wx+vy*wy;if(c1<=0)return dist(px,py,ax,ay);float c2=vx*vx+vy*vy;if(c2<=c1)return dist(px,py,bx,by);float t=c1/c2;return dist(px,py,ax+t*vx,ay+t*vy);}
     private float dist(float x1,float y1,float x2,float y2){float dx=x1-x2,dy=y1-y2;return (float)Math.sqrt(dx*dx+dy*dy);}
