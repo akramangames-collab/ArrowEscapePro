@@ -7,12 +7,12 @@ public final class Wallet {
     public static final long DAY_MS = 86400000L;
     public static final class State {
         public int coins = STARTER, streak;
-        public long dailyDay = -1, challengeDay = -1;
+        public long dailyDay = -1, challengeDay = -1, weeklyChallengeWeek = -1;
         public String levelToken = "", adToken = "", treasureClaims = "";
         public boolean initialized;
         public State copy() {
             State s = new State();
-            s.coins = coins; s.streak = streak; s.dailyDay = dailyDay; s.challengeDay = challengeDay;
+            s.coins = coins; s.streak = streak; s.dailyDay = dailyDay; s.challengeDay = challengeDay; s.weeklyChallengeWeek = weeklyChallengeWeek;
             s.levelToken = levelToken; s.adToken = adToken; s.treasureClaims = treasureClaims; s.initialized = initialized;
             return s;
         }
@@ -37,6 +37,7 @@ public final class Wallet {
     public synchronized int streak() { state = storage.load().copy(); return state.streak; }
     public synchronized boolean canClaimDaily(long now) { state = storage.load().copy(); return now >= 0 && now / DAY_MS > state.dailyDay; }
     public synchronized boolean canRewardDailyChallenge(long day) { state = storage.load().copy(); return day >= 0 && day > state.challengeDay; }
+    public synchronized boolean canRewardWeeklyChallenge(long week) { state = storage.load().copy(); return week >= 0 && week > state.weeklyChallengeWeek; }
     public synchronized boolean spend(int price) {
         state = storage.load().copy();
         if (price <= 0 || state.coins < price) return false;
@@ -71,6 +72,16 @@ public final class Wallet {
         State next = state.copy(); next.coins = add(next.coins, amount); next.challengeDay = day;
         return commit(next) ? amount : 0;
     }
+    public synchronized int rewardWeeklyChallenge(long week, int stars) {
+        state = storage.load().copy();
+        if (week < 0 || week <= state.weeklyChallengeWeek || stars < 1 || stars > 3) return 0;
+        int amount = 200 + stars * 50;
+        State next = state.copy();
+        next.coins = add(next.coins, amount);
+        next.weeklyChallengeWeek = week;
+        return commit(next) ? amount : 0;
+    }
+
     public synchronized int rewardTreasure(int level) {
         state = storage.load().copy();
         if (level < 1 || level > 200 || level % 5 != 0) return 0;
