@@ -201,9 +201,20 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
             body.addView(button(challengeLabel,()->{ menu.dismiss(); game.startDailyChallenge(); },true));
             body.addView(text(challengeRewardAvailable ? "One deterministic SUPER HARD puzzle each UTC day. Everyone gets the same challenge." : "Today's coin reward is claimed. Replay it to improve your stars.",12,MUTED));
 
+            long challengeWeek = challengeDay / 7L;
+            boolean weeklyRewardAvailable = wallet.canRewardWeeklyChallenge(challengeWeek);
+            int weeklyStars = game.bestWeeklyStarsThisWeek();
+            String weeklyLabel = weeklyRewardAvailable ? "Weekly Challenge  ·  up to +350" : "Replay Weekly Challenge  ·  "+(weeklyStars>0?weeklyStars+"★":"reward claimed");
+            body.addView(button(weeklyLabel,()->{ menu.dismiss(); game.startWeeklyChallenge(); },true));
+            body.addView(text(weeklyRewardAvailable ? "One elite milestone puzzle stays fixed for the UTC week. Clear it for 250–350 coins." : "This week's reward is claimed. Replay to improve your weekly stars.",12,MUTED));
+
+            body.addView(text("PROGRESSION HALL",12,MUTED));
+            body.addView(text(game.progressSummary(),13,NAVY));
+            body.addView(button("Achievements & chapter trophies",this::showProgressHall,false));
+
             watchButton = button("Watch ad  ·  +75 coins",() -> { if (rewardReady()) requestRewardedCoins(); else loadRewarded(); },false);
             body.addView(watchButton); rewardStatus = text("",13,MUTED); body.addView(rewardStatus); updateRewardStatus(); loadRewarded();
-            body.addView(text("1–3 stars on every level · 3★ means no mistakes and no assists\nClear: +15 · 3★ bonus: +10\nSUPER HARD milestone: +75 bonus · Boss milestone: +150 bonus\nDaily Challenge: up to +150 · Two free hints, then 25 coins.",14,MUTED));
+            body.addView(text("1–3 stars on every level · 3★ means no mistakes and no assists\nClear: +15 · 3★ bonus: +10\nSUPER HARD milestone: +75 bonus · Boss milestone: +150 bonus\nDaily Challenge: up to +150 · Weekly Challenge: up to +350\nChapter trophies: Bronze / Silver / Gold · Two free hints, then 25 coins.",14,MUTED));
             if (game.canBuyHeart()) body.addView(button("Add one heart  ·  40 coins",() -> { if (game.buyHeart()) { updateBalance(); toast("Heart restored"); } else toast("Not enough coins"); },false));
             if (game.needsRevive()) body.addView(button("Continue  ·  60 coins",() -> { if (game.buyContinue()) { menu.dismiss(); toast("Back in the maze"); } else toast("Not enough coins"); },false));
         } else {
@@ -254,6 +265,20 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         menu.show();
         if(menu.getWindow()!=null) menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
+    private void showProgressHall() {
+        TextView content=text(game.progressDetails(),14,NAVY);
+        content.setPadding(dp(22),dp(12),dp(22),dp(18));
+        content.setLineSpacing(0,1.18f);
+        ScrollView scroll=new ScrollView(this);scroll.addView(content);
+        AlertDialog hall=new AlertDialog.Builder(this)
+            .setTitle("Progression Hall")
+            .setView(scroll)
+            .setPositiveButton("Back",null)
+            .create();
+        hall.show();
+        if(hall.getWindow()!=null)hall.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
+    }
+
     private void destroyBanner() { if(banner!=null){banner.destroy();banner=null;} }
     private void showPrivacyPolicy() {
         StringBuilder policy = new StringBuilder();
