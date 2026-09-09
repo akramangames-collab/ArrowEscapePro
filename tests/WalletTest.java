@@ -18,6 +18,8 @@ public class WalletTest {
         eq(100,w.claimDaily(11*Wallet.DAY_MS));eq(2,w.streak());
         yes(w.canRewardDailyChallenge(13));eq(150,w.rewardDailyChallenge(13,3));eq(0,new Wallet(s).rewardDailyChallenge(13,3));
         eq(125,w.rewardDailyChallenge(14,2));
+        yes(w.canRewardWeeklyChallenge(7));eq(350,w.rewardWeeklyChallenge(7,3));eq(0,new Wallet(s).rewardWeeklyChallenge(7,3));
+        eq(300,w.rewardWeeklyChallenge(8,2));eq(0,w.rewardWeeklyChallenge(8,2));
         eq(25,w.rewardTreasure(10));eq(0,new Wallet(s).rewardTreasure(10));
         eq(50,w.rewardTreasure(25));eq(0,w.rewardTreasure(25));
         eq(0,w.rewardTreasure(11));
