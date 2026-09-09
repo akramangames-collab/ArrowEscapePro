@@ -1,0 +1,52 @@
+name: V22 Direct APK Delivery
+
+on:
+  push:
+    branches: [v22-full-neon-hub]
+    paths:
+      - .github/workflows/v22-delivery.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Verify levels and wallet
+        run: |
+          python3 scripts/generate-hard-levels.py --check
+          python3 scripts/verify-levels.py
+          bash scripts/test-wallet.sh
+      - name: Build installable V22 test APK
+        run: gradle :app:assembleDebug --stacktrace
+      - name: Verify and package APK
+        run: |
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -f "$APK"
+          BYTES=$(stat -c%s "$APK")
+          echo "APK size: $BYTES bytes"
+          test "$BYTES" -gt 2000000
+          mkdir -p dist
+          cp "$APK" dist/INSTALL-THIS-ArrowEscape-v22-test.apk
+          sha256sum dist/INSTALL-THIS-ArrowEscape-v22-test.apk > dist/SHA256SUMS.txt
+          ls -lh dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArrowEscape-V22-Installable
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
