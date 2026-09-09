@@ -315,9 +315,13 @@ public class ArrowGameView extends View {
         if(shapeMaskLevel==level&&!shapeMaskIntervals.isEmpty())return;
         shapeMaskLevel=level;shapeMaskIntervals.clear();normalizedShapePath.reset();
         String token=shapeNameForLevel(level);
-        if(alphanumericShape(token)) buildGlyphShape(token,normalizedShapePath);
-        else buildSpecialShape(token,normalizedShapePath);
-        normalizedShapePath.setFillType(Path.FillType.EVEN_ODD);
+        if(alphanumericShape(token)) {
+            buildGlyphShape(token,normalizedShapePath);
+            normalizedShapePath.setFillType(Path.FillType.EVEN_ODD);
+        } else {
+            buildSpecialShape(token,normalizedShapePath);
+            normalizedShapePath.setFillType("Moon".equals(token)?Path.FillType.EVEN_ODD:Path.FillType.WINDING);
+        }
 
         Region region=new Region();
         region.setPath(normalizedShapePath,new Region(0,0,1000,1200));
@@ -452,7 +456,7 @@ public class ArrowGameView extends View {
             android.graphics.PointF next=shapePoint(tip.x+p.dx*i,tip.y+p.dy*i);
             if(i%2==1)c.drawLine(prev.x,prev.y,next.x,next.y,paint);
             prev=next;
-            if((p.dx<0&&tip.x-p.dx*i<0)||(p.dx>0&&tip.x+p.dx*i>gridW+3)||(p.dy<0&&tip.y+p.dy*i<-3)||(p.dy>0&&tip.y+p.dy*i>gridH+3))break;
+            if((p.dx<0&&tip.x+p.dx*i<-3)||(p.dx>0&&tip.x+p.dx*i>gridW+3)||(p.dy<0&&tip.y+p.dy*i<-3)||(p.dy>0&&tip.y+p.dy*i>gridH+3))break;
         }
         paint.setStyle(Paint.Style.FILL);
     }
@@ -1028,6 +1032,13 @@ public class ArrowGameView extends View {
     public String cycleBoardTheme(){int next=Math.floorMod(settings.getInt("board_theme",0)+1,4);settings.edit().putInt("board_theme",next).apply();invalidate();return boardThemeName(next);}
     public String currentArrowStyle(){return arrowStyleName(settings.getInt("arrow_style",0));}
     public String currentBoardTheme(){return boardThemeName(settings.getInt("board_theme",0));}
+    private String arrowTypeName(int type){
+        switch(Math.floorMod(type,5)){case 1:return "Slim";case 2:return "Bold";case 3:return "Chevron";case 4:return "Neon";default:return "Classic";}
+    }
+    public String[] arrowTypeNames(){return new String[]{"Classic","Slim","Bold","Chevron","Neon"};}
+    public int currentArrowTypeIndex(){return arrowType();}
+    public String currentArrowType(){return arrowTypeName(arrowType());}
+    public void setArrowType(int type){settings.edit().putInt("arrow_type",Math.floorMod(type,5)).apply();invalidate();}
     private boolean isSuperHard(int lv){return lv%5==0;}
     private boolean isBoss(int lv){return lv==25||lv==50||lv==100||lv==150||lv==200;}
     private String difficulty(){if(isBoss(level))return "BOSS MILESTONE";if(isSuperHard(level))return "SUPER HARD ★";if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
