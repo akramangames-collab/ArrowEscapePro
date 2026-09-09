@@ -48,6 +48,15 @@ jobs:
           command: bash scripts/test-wallet.sh
 
       - run:
+          name: Verify premium UI/UX contract
+          command: python3 scripts/verify-ui-ux.py
+
+      - run:
+          name: Android lint
+          command: |
+            "$HOME/gradle/gradle-9.6.0/bin/gradle" :app:lintDebug --stacktrace --no-daemon
+
+      - run:
           name: Build APKs and Play Store bundle
           command: |
             "$HOME/gradle/gradle-9.6.0/bin/gradle" \
