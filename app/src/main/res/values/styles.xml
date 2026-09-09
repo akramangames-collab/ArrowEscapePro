@@ -2,6 +2,11 @@
     <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:colorAccent">#17C7FF</item>
+        <item name="android:colorControlActivated">#17C7FF</item>
+        <item name="android:colorControlHighlight">#338B5CFF</item>
+        <item name="android:textColorPrimary">#F1F7FF</item>
+        <item name="android:textColorSecondary">#9CB3D5</item>
+        <item name="android:alertDialogTheme">@style/PremiumAlertDialog</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:statusBarColor">#050B1E</item>
@@ -9,5 +14,17 @@
         <item name="android:windowBackground">#050B1E</item>
         <item name="android:windowNoTitle">true</item>
     </style>
+
+    <style name="PremiumAlertDialog" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#17C7FF</item>
+        <item name="android:colorControlActivated">#17C7FF</item>
+        <item name="android:textColorPrimary">#F1F7FF</item>
+        <item name="android:textColorSecondary">#9CB3D5</item>
+        <item name="android:windowBackground">@drawable/dialog_background</item>
+        <item name="android:windowMinWidthMajor">88%</item>
+        <item name="android:windowMinWidthMinor">88%</item>
+    </style>
+
     <color name="icon_background">#031B39</color>
 </resources>

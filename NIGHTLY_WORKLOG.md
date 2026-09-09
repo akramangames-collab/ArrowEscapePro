@@ -28,5 +28,15 @@
 - Failure isolated: wallet tests used synthetic epoch-day timestamps for claims but asserted streak() using the real device clock. The new expiry-aware streak() correctly returned 0 for those ancient synthetic days, so the test contract—not gameplay—was stale.
 - Fixed validation: added currentStreak(now) test assertions using the same synthetic clock, plus explicit tests that a one-day grace keeps the streak active and a missed full day resets current streak to 0 / next reward to Day 1.
 - Gameplay logic unchanged.
+- Corrected build: CircleCI android-build SUCCESS on commit 773568d48aaca6d3f8c319a1c801d444b0aec952.
 
-Next: validate corrected Pass 2 build, then continue premium visual polish and first-launch/accessibility checks.
+## Pass 3 — Android 12+ theme regression + native component polish
+- Audited resource qualifiers after the corrected Pass 2 build.
+- Critical UI finding: values-v31/styles.xml still overrode AppTheme with Theme.Material.Light.NoActionBar, white background, light status bar and blue accent. On Android 12+ this could undo the approved dark-neon theme despite the base theme fix from Pass 1.
+- Fixed: Android 12+ now uses the same dark Material base, navy system bars/background, cyan accent, light system icons and matching dark splash screen.
+- Improved: added a premium AlertDialog theme so confirmation dialogs, privacy dialogs and other native surfaces inherit dark navy backgrounds, cyan controls, light typography and consistent width.
+- Improved: native switches/control activation now use the same cyan accent as the game UI.
+- Improved: dialog background upgraded from a flat fill to a subtle navy gradient with a cleaner blue edge while preserving 24dp rounded corners.
+- Gameplay movement, level generation and full-clearance/self-tail rules unchanged.
+
+Next: validate Pass 3 build, then continue first-launch/accessibility and Home/Store/Levels/Achievements visual hierarchy audit.
