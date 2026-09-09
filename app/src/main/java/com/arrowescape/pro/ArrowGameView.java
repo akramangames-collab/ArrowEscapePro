@@ -380,45 +380,32 @@ public class ArrowGameView extends View {
     ) {
         float tx = boardLeft + gx * cell;
         float ty = boardTop + gy * cell;
+        drawClearArrowHead(c, tx, ty, dx, dy, col, alpha);
+    }
 
-        float size =
-      Math.max(dp(5.5f), cell * 0.28f);
-
+    /**
+     * Draws a recognisable arrow-head rather than a plain triangle.
+     * The short neck overlaps the route line so the head reads as part of
+     * the arrow even on dense boards and while the snake is moving.
+     */
+    private void drawClearArrowHead(Canvas c, float tx, float ty, int dx, int dy, int col, int alpha) {
+        float s = Math.max(dp(6.2f), cell * 0.34f);
         float px = -dy;
         float py = dx;
 
-        float bx = tx - dx * size * 1.25f;
-        float by = ty - dy * size * 1.25f;
+        Path a = new Path();
+        a.moveTo(tx + dx*s*0.78f, ty + dy*s*0.78f);                         // sharp tip
+        a.lineTo(tx - dx*s*0.50f + px*s*0.72f, ty - dy*s*0.50f + py*s*0.72f); // upper wing
+        a.lineTo(tx - dx*s*0.28f + px*s*0.25f, ty - dy*s*0.28f + py*s*0.25f); // upper neck
+        a.lineTo(tx - dx*s*0.92f + px*s*0.25f, ty - dy*s*0.92f + py*s*0.25f); // neck back
+        a.lineTo(tx - dx*s*0.92f - px*s*0.25f, ty - dy*s*0.92f - py*s*0.25f);
+        a.lineTo(tx - dx*s*0.28f - px*s*0.25f, ty - dy*s*0.28f - py*s*0.25f); // lower neck
+        a.lineTo(tx - dx*s*0.50f - px*s*0.72f, ty - dy*s*0.50f - py*s*0.72f); // lower wing
+        a.close();
 
-        Path arrow = new Path();
-
-        arrow.moveTo(
-      tx + dx * size * 0.35f,
-      ty + dy * size * 0.35f
-        );
-
-        arrow.lineTo(
-      bx + px * size * 0.62f,
-      by + py * size * 0.62f
-        );
-
-        arrow.lineTo(
-      bx - px * size * 0.62f,
-      by - py * size * 0.62f
-        );
-
-        arrow.close();
-
-        paint.setColor(
-      Color.argb(
-              alpha,
-              Color.red(col),
-              Color.green(col),
-              Color.blue(col)
-      )
-        );
-
-        c.drawPath(arrow, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.argb(alpha, Color.red(col), Color.green(col), Color.blue(col)));
+        c.drawPath(a, paint);
     }
 
     private void drawPieces(Canvas c, long now) {
@@ -538,17 +525,7 @@ public class ArrowGameView extends View {
         Point tip = p.pts.get(p.pts.size()-1);
         float tx = boardLeft + tip.x*cell + sx + (p.dy!=0?shake:0);
         float ty = boardTop + tip.y*cell + sy + (p.dx!=0?shake:0);
-        float s = Math.max(dp(5.5f), cell*0.28f);
-        float px = -p.dy, py = p.dx;
-        float bx = tx - p.dx*s*1.25f;
-        float by = ty - p.dy*s*1.25f;
-        Path a = new Path();
-        a.moveTo(tx + p.dx*s*0.35f, ty + p.dy*s*0.35f);
-        a.lineTo(bx + px*s*0.62f, by + py*s*0.62f);
-        a.lineTo(bx - px*s*0.62f, by - py*s*0.62f);
-        a.close();
-        paint.setColor(Color.argb(alpha,Color.red(col),Color.green(col),Color.blue(col)));
-        c.drawPath(a,paint);
+        drawClearArrowHead(c, tx, ty, p.dx, p.dy, col, alpha);
     }
 
     private void drawMilestoneIntro(Canvas c) {
