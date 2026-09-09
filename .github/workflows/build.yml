@@ -1,12 +1,12 @@
-name: Build Arrow Escape V20
+name: Build Arrow Escape V23
 on:
   push:
-    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones, v16-retention-upgrade, v17-self-clearance, v18-gameplay-upgrade, v19-progression-upgrade, v20-shaped-worlds]
+    branches: [main, v16-puzzle-maze, v16-play-store, v16-super-hard-milestones, v16-retention-upgrade, v17-self-clearance, v18-gameplay-upgrade, v19-progression-upgrade, v20-shaped-worlds, v23-upload-ready-nightly]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: arrow-v19-${{ github.ref }}
+  group: arrow-v23-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:
@@ -24,12 +24,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
-      - name: Validate V20 level pack
+      - name: Validate level pack
         run: python3 scripts/generate-hard-levels.py --check
-      - name: Verify V20 self-clearance, solvability and V15 movement
+      - name: Verify self-clearance, solvability and V15 movement
         run: python3 scripts/verify-levels.py
       - name: Verify wallet transactions and persistence
         run: bash scripts/test-wallet.sh
+      - name: Verify premium UI/UX contract
+        run: python3 scripts/verify-ui-ux.py
+      - name: Android lint
+        run: gradle :app:lintDebug --stacktrace
       - name: Build APKs, Play Store bundle and device tests
         run: gradle :app:assembleDebug :app:assembleRelease :app:bundleRelease :app:assembleDebugAndroidTest --stacktrace
       - name: Verify variant ad IDs and package metadata
@@ -37,22 +41,26 @@ jobs:
       - name: Package build artifacts
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/ArrowEscape-PuzzleMaze-V20-test.apk
-          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-PuzzleMaze-V20-release-unsigned.apk
-          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-V20-tests.apk
-          sha256sum dist/*.apk > dist/SHA256SUMS.txt
+          cp app/build/outputs/apk/debug/app-debug.apk dist/INSTALL-THIS-ArrowEscape-1.0.0-test.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-1.0.0-release-unsigned.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-1.0.0-tests.apk
+          cp app/build/outputs/bundle/release/app-release.aab dist/PLAY-STORE-ArrowEscape-1.0.0-unsigned.aab
+          sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
           cp tests/hard-level-metrics.json dist/level-metrics.json
       - uses: actions/upload-artifact@v4
         with:
-          name: ArrowEscape-V20-APKs
+          name: ArrowEscape-V23-APKs
           path: dist/
           if-no-files-found: error
           retention-days: 30
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: ArrowEscape-V20-Play-Bundle
-          path: app/build/outputs/bundle/release/app-release.aab
-          if-no-files-found: error
+          name: ArrowEscape-V23-lint
+          path: |
+            app/build/reports/lint-results-debug.html
+            app/build/reports/lint-results-debug.txt
+          if-no-files-found: ignore
           retention-days: 30
   device-test:
     needs: build
@@ -62,7 +70,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
-          name: ArrowEscape-V20-APKs
+          name: ArrowEscape-V23-APKs
           path: dist
       - name: Enable emulator acceleration
         run: |
@@ -81,6 +89,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ArrowEscape-V20-device-checks
+          name: ArrowEscape-V23-device-checks
           path: device-results/
           if-no-files-found: error
