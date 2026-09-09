@@ -230,19 +230,42 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
             body.addView(text("Current puzzle shape · "+game.currentShapeName(),13,MUTED));
             final Button[] arrowTypeButton=new Button[1];
             arrowTypeButton[0]=button("Arrow type · "+game.currentArrowType(),()->{
-                String[] types=game.arrowTypeNames();
+                String[] options=game.arrowTypeOptionLabels();
                 new AlertDialog.Builder(this)
-                    .setTitle("Choose arrow type")
-                    .setSingleChoiceItems(types,game.currentArrowTypeIndex(),(dialog,which)->{
-                        game.setArrowType(which);
-                        arrowTypeButton[0].setText("Arrow type · "+game.currentArrowType());
-                        toast("Arrow type: "+game.currentArrowType());
+                    .setTitle("Arrow Garage")
+                    .setSingleChoiceItems(options,game.currentArrowTypeIndex(),(dialog,which)->{
+                        if(game.isArrowTypeOwned(which)){
+                            game.unlockAndSelectArrowType(which);
+                            arrowTypeButton[0].setText("Arrow type · "+game.currentArrowType());
+                            toast(game.currentArrowType()+" selected · "+game.arrowTypeFeature(which));
+                            dialog.dismiss();
+                            return;
+                        }
+                        int price=game.arrowTypePrice(which);
+                        String name=game.arrowTypeNames()[which];
+                        String feature=game.arrowTypeFeature(which);
                         dialog.dismiss();
+                        new AlertDialog.Builder(this)
+                            .setTitle("Unlock "+name+"?")
+                            .setMessage(feature+"\n\nPrice: "+price+" coins\nYour balance: "+wallet.balance()+" coins")
+                            .setNegativeButton("Not now",null)
+                            .setPositiveButton("Unlock",(buy,w)->{
+                                if(game.unlockAndSelectArrowType(which)){
+                                    updateBalance();
+                                    arrowTypeButton[0].setText("Arrow type · "+game.currentArrowType());
+                                    toast(name+" unlocked and selected");
+                                }else{
+                                    int need=Math.max(0,price-wallet.balance());
+                                    toast(need>0?"Need "+need+" more coins":"Could not save purchase");
+                                }
+                            })
+                            .show();
                     })
                     .setNegativeButton("Cancel",null)
                     .show();
             },false);
             body.addView(arrowTypeButton[0]);
+            body.addView(text("Classic is free. Slim 200 · Bold 350 · Chevron 500 · Neon 800 coins. Purchased types stay unlocked.",12,MUTED));
 
             final Button[] arrowStyleButton=new Button[1];
             arrowStyleButton[0]=button("Arrow color · "+game.currentArrowStyle(),()->{
