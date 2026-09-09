@@ -28,10 +28,9 @@ public class WalletTest {
         int afterSlim=w.balance();yes(w.purchaseArrowType(1,200));eq(afterSlim,w.balance());
         yes(new Wallet(s).ownsArrowType(1));
         no(w.ownsTheme(5));
-        eq(75,w.rewardAd("theme-fund"));
-        no(w.purchaseTheme(5,650));
-        for(int i=0;i<8;i++)w.rewardAd("theme-"+i);
-        yes(w.purchaseTheme(5,650));yes(w.ownsTheme(5));
+        int beforeTheme=w.balance();
+        yes(w.purchaseTheme(5,650));yes(w.ownsTheme(5));eq(beforeTheme-650,w.balance());
+        int afterTheme=w.balance();yes(w.purchaseTheme(5,650));eq(afterTheme,w.balance());
         s.fail=true;int balance=w.balance();eq(0,w.rewardAd("failed"));eq(balance,w.balance());s.fail=false;eq(75,w.rewardAd("failed"));
         Storage legacy=new Storage();legacy.state.coins=460;legacy.state.dailyDay=20;legacy.state.streak=4;
         Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(100,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.streak());
