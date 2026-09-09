@@ -28,12 +28,12 @@ jobs:
       - run:
           name: Install Gradle 9.6
           command: |
-            if [ ! -x "$HOME/gradle/gradle-9.6.0.0/bin/gradle" ]; then
+            if [ ! -x "$HOME/gradle/gradle-9.6.0/bin/gradle" ]; then
               mkdir -p "$HOME/gradle"
-              curl -fsSL https://services.gradle.org/distributions/gradle-9.6.0.0-bin.zip -o /tmp/gradle-9.6.0.0-bin.zip
-              unzip -q /tmp/gradle-9.6.0.0-bin.zip -d "$HOME/gradle"
+              curl -fsSL https://services.gradle.org/distributions/gradle-9.6.0-bin.zip -o /tmp/gradle-9.6.0-bin.zip
+              unzip -q /tmp/gradle-9.6.0-bin.zip -d "$HOME/gradle"
             fi
-            "$HOME/gradle/gradle-9.6.0.0/bin/gradle" --version
+            "$HOME/gradle/gradle-9.6.0/bin/gradle" --version
 
       - run:
           name: Validate level pack
@@ -50,7 +50,7 @@ jobs:
       - run:
           name: Build APKs and Play Store bundle
           command: |
-            "$HOME/gradle/gradle-9.6.0.0/bin/gradle" \
+            "$HOME/gradle/gradle-9.6.0/bin/gradle" \
               :app:assembleDebug \
               :app:assembleRelease \
               :app:bundleRelease \
