@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: arrow-v18-${{ github.ref }}
+  group: arrow-v19-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:
