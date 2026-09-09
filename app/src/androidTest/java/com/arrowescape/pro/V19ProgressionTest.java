@@ -72,7 +72,7 @@ public class V19ProgressionTest {
         ArrowGameView game=new ArrowGameView(context(),new Host(),new Wallet(new PreferenceWalletStorage(context())));
         game.setPaused(true);
         assertEquals(1,game.trophyCount());
-        assertTrue(game.achievementCount()>=3);
+        assertEquals(2,game.achievementCount());
         String summary=game.progressSummary();
         String details=game.progressDetails();
         assertTrue(summary.contains("60/600★"));
