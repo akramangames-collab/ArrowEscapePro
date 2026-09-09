@@ -216,6 +216,20 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
                 toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")));
                 toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();game.invalidate();});body.addView(toggle);
             }
+            final Button[] arrowStyleButton=new Button[1];
+            arrowStyleButton[0]=button("Arrow style · "+game.currentArrowStyle(),()->{
+                String name=game.cycleArrowStyle();
+                arrowStyleButton[0].setText("Arrow style · "+name);
+                toast("Arrow style: "+name);
+            },false);
+            body.addView(arrowStyleButton[0]);
+            final Button[] boardThemeButton=new Button[1];
+            boardThemeButton[0]=button("Board theme · "+game.currentBoardTheme(),()->{
+                String name=game.cycleBoardTheme();
+                boardThemeButton[0].setText("Board theme · "+name);
+                toast("Board theme: "+name);
+            },false);
+            body.addView(boardThemeButton[0]);
             body.addView(button("How to play",()->{menu.dismiss();game.showTutorialAgain();},false));
             body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
             body.addView(button("Restart this level",()->{menu.dismiss();new AlertDialog.Builder(this).setTitle("Restart level?").setMessage("Your coin balance is kept. This puzzle starts again.").setNegativeButton("Keep playing",null).setPositiveButton("Restart",(d,w)->game.restartCurrentLevel()).show();},false));
