@@ -42,7 +42,14 @@ public final class Wallet {
     }
 
     public synchronized int balance() { state = storage.load().copy(); return state.coins; }
-    public synchronized int streak() { state = storage.load().copy(); return state.streak; }
+    public synchronized int streak() { return currentStreak(System.currentTimeMillis()); }
+    public synchronized int currentStreak(long now) {
+        state = storage.load().copy();
+        if (now < 0 || state.dailyDay < 0) return 0;
+        long day = now / DAY_MS;
+        if (day > state.dailyDay + 1L) return 0;
+        return Math.max(0, state.streak);
+    }
 
     public static int dailyRewardForStreak(int streakDay) {
         if (streakDay <= 0) return DAILY_STREAK_REWARDS[0];
