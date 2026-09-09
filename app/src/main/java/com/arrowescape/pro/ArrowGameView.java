@@ -91,6 +91,8 @@ public class ArrowGameView extends View {
     private long lastFrame = 0L;
     private long touchRippleUntil = 0L;
     private float rippleX, rippleY;
+    private Piece pressPiece, previewPiece;
+    private boolean longPressPreview;
     private String toast = "";
     private long toastUntil = 0L;
 
@@ -159,6 +161,7 @@ public class ArrowGameView extends View {
             drawLevels(c);
         }
         if (toastUntil > now) drawToast(c, toast);
+        if (previewPiece != null && previewPiece.removed) previewPiece = null;
         if (touchRippleUntil > now) {
             float t = 1f - (touchRippleUntil - now) / 360f;
             paint.setStyle(Paint.Style.STROKE);
@@ -252,7 +255,7 @@ public class ArrowGameView extends View {
         float availW=w-dp(30),availH=Math.max(dp(80),areaBottom-areaTop);
         cell=Math.min(availW/(gridW+2f),availH/(gridH+2f));
         boardW=gridW*cell;boardH=gridH*cell;boardLeft=(w-boardW)/2;boardTop=areaTop+(availH-boardH)/2;
-        c.save();c.clipRect(dp(8),areaTop,w-dp(8),areaBottom);drawDottedGrid(c);drawPieces(c,now);c.restore();
+        c.save();c.clipRect(dp(8),areaTop,w-dp(8),areaBottom);drawDottedGrid(c);drawPieces(c,now);drawPathPreview(c);c.restore();
         pill(c,hintHit,PALE);pill(c,eraseHit,PALE);pill(c,rewardHit,Color.rgb(255,247,224));
         drawBulb(c,hintHit.centerX(),controlY-dp(8),dp(12));
         label(c,hints>0?"Hint · "+hints+" free":"Hint · 25 coins",hintHit.centerX(),controlY+dp(18),11,NAVY,true);
@@ -262,6 +265,26 @@ public class ArrowGameView extends View {
         label(c,"Get coins",rewardHit.centerX(),controlY+dp(18),11,NAVY,true);
         label(c,"ARROW ESCAPE  /  PUZZLE MAZE",w/2,h-insetBottom-dp(10),9,Color.rgb(115,130,153),false);
         if(tutorial)drawTutorial(c);else if(finished)drawWin(c);else if(failed)drawFail(c);else if(milestoneIntroUntil>now)drawMilestoneIntro(c);
+    }
+
+    private void drawPathPreview(Canvas c) {
+        Piece p=previewPiece;
+        if(p==null||p.removed||p.moving||p.pts.isEmpty())return;
+        Point tip=p.pts.get(p.pts.size()-1);
+        float x1=boardLeft+tip.x*cell,y1=boardTop+tip.y*cell;
+        float steps=gridW+gridH+10;
+        float x2=x1+p.dx*cell*steps,y2=y1+p.dy*cell*steps;
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(dp(1.5f),cell*.09f));
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setColor(Color.argb(125,47,149,235));
+        // Dotted route so it reads as a preview, not an actual arrow body.
+        int dots=28;
+        for(int i=1;i<=dots;i+=2){
+            float a=(i-1)/(float)dots,b=i/(float)dots;
+            c.drawLine(x1+(x2-x1)*a,y1+(y2-y1)*a,x1+(x2-x1)*b,y1+(y2-y1)*b,paint);
+        }
+        paint.setStyle(Paint.Style.FILL);
     }
 
     private void drawDottedGrid(Canvas c) {
@@ -753,9 +776,31 @@ public class ArrowGameView extends View {
 
     @Override public boolean onTouchEvent(MotionEvent e) {
         if(paused)return true;
+        float x=e.getX(),y=e.getY();
+        if(e.getAction()==MotionEvent.ACTION_DOWN){
+            pressPiece=(screen==Screen.PLAY&&!tutorial&&!finished&&!failed)?findPieceAt(x,y):null;
+            longPressPreview=false;
+            if(pressPiece!=null){
+                final Piece candidate=pressPiece;
+                postDelayed(()->{
+                    if(pressPiece==candidate&&!candidate.removed&&!candidate.moving&&!paused&&screen==Screen.PLAY&&!tutorial&&!finished&&!failed){
+                        previewPiece=candidate;longPressPreview=true;
+                        showToast("Path preview · release to keep playing");
+                        invalidate();
+                    }
+                },420L);
+            }
+            return true;
+        }
+        if(e.getAction()==MotionEvent.ACTION_CANCEL){
+            pressPiece=null;longPressPreview=false;return true;
+        }
         if(e.getAction()!=MotionEvent.ACTION_UP)return true;
         performClick();
-        float x=e.getX(),y=e.getY();rippleX=x;rippleY=y;touchRippleUntil=SystemClock.elapsedRealtime()+360;invalidate();
+        rippleX=x;rippleY=y;touchRippleUntil=SystemClock.elapsedRealtime()+360;
+        Piece releasedPress=pressPiece;pressPiece=null;
+        if(longPressPreview){longPressPreview=false;previewPiece=releasedPress;invalidate();return true;}
+        previewPiece=null;invalidate();
         if(screen==Screen.LEVELS)return handleLevelsTouch(x,y);
         if(milestoneIntroUntil>SystemClock.elapsedRealtime()){milestoneIntroUntil=0L;invalidate();return true;}
         if(tutorial){if(primaryHit.contains(x,y)){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();}return true;}
