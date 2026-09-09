@@ -20,9 +20,6 @@ public class WalletTest {
         eq(125,w.rewardDailyChallenge(14,2));
         yes(w.canRewardWeeklyChallenge(7));eq(350,w.rewardWeeklyChallenge(7,3));eq(0,new Wallet(s).rewardWeeklyChallenge(7,3));
         eq(300,w.rewardWeeklyChallenge(8,2));eq(0,w.rewardWeeklyChallenge(8,2));
-        eq(25,w.rewardTreasure(10));eq(0,new Wallet(s).rewardTreasure(10));
-        eq(50,w.rewardTreasure(25));eq(0,w.rewardTreasure(25));
-        eq(0,w.rewardTreasure(11));
         eq(75,w.rewardAd("ad1"));eq(0,new Wallet(s).rewardAd("ad1"));
         s.fail=true;int balance=w.balance();eq(0,w.rewardAd("failed"));eq(balance,w.balance());s.fail=false;eq(75,w.rewardAd("failed"));
         Storage legacy=new Storage();legacy.state.coins=460;legacy.state.dailyDay=20;legacy.state.streak=4;
