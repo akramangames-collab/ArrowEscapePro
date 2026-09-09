@@ -39,6 +39,7 @@ public class ArrowGameView extends View {
     }
 
     private static final int MAX_LEVEL = 200;
+    private static final String LEVEL_PACK_VERSION = "v17-chains-1";
     private static final int NAVY = Color.rgb(8, 29, 73);
     private static final int BLUE = Color.rgb(47, 149, 235);
     private static final int PALE = Color.rgb(242, 246, 252);
@@ -747,6 +748,7 @@ public class ArrowGameView extends View {
     private float dist(float x1,float y1,float x2,float y2){float dx=x1-x2,dy=y1-y2;return (float)Math.sqrt(dx*dx+dy*dy);}
 
     private void tapPiece(Piece p) {
+        if(p.removed||p.moving||failed||finished)return;
         boolean selfBlocked = !hasSelfClearance(p);
         if(isClear(p)) {
             if(settings.getBoolean("haptics",true))performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
@@ -985,9 +987,10 @@ public class ArrowGameView extends View {
       new HashSet<>();
 
         for (Piece p : pieces) {
+  // Reserve a moving arrow's route until its tail has fully exited. Otherwise
+  // rapid taps can release a dependent arrow into a body still on the board.
   if (p == target
-          || p.removed
-          || p.moving) {
+          || p.removed) {
       continue;
   }
 
@@ -1091,7 +1094,7 @@ public class ArrowGameView extends View {
         try {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
-            state.put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
+            state.put("packVersion",LEVEL_PACK_VERSION).put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
                  .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars)
                  .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("normalLevel",normalLevelBeforeChallenge)
                  .put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
@@ -1103,6 +1106,9 @@ public class ArrowGameView extends View {
         try {
             org.json.JSONObject state=new org.json.JSONObject(checkpoint);int savedLevel=state.getInt("level");
             if(savedLevel<1||savedLevel>MAX_LEVEL)return;
+            // Piece IDs changed with regenerated levels. Preserve wallet, stars
+            // and unlocked levels, but restart an incompatible in-level board.
+            if(!LEVEL_PACK_VERSION.equals(state.optString("packVersion","")))return;
             boolean savedDaily=state.optBoolean("dailyChallenge",false);
             if(savedDaily){dailyChallenge=true;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);}
             else startLevel(savedLevel);

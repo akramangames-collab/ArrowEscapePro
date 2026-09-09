@@ -41,7 +41,7 @@ public class GameSmokeTest {
                 Wallet wallet=new Wallet(new PreferenceWalletStorage(context));
                 ArrowGameView game=new ArrowGameView(context,new Host(),wallet);
                 game.setPaused(true);render(context,game,"01-tutorial");set(game,"tutorial",false);render(context,game,"02-level-1");
-                ArrayList<?> pieces=(ArrayList<?>)get(game,"pieces");assertTrue("V17 level 1 should remain dense after removing impossible self-blocked geometry",pieces.size()>=35);
+                ArrayList<?> pieces=(ArrayList<?>)get(game,"pieces");assertEquals("V17 starts with a compact dependency puzzle",24,pieces.size());
                 int levelOneCount=pieces.size();
                 Object bent=null,safe=null;
                 for(Object p:pieces){

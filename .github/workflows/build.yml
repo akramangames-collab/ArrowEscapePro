@@ -25,7 +25,7 @@ jobs:
         with:
           gradle-version: '9.6.0'
       - name: Generate V17 self-clearance mazes
-        run: python3 scripts/generate-hard-levels.py
+        run: python3 scripts/generate-hard-levels.py --check
       - name: Verify V17 self-clearance, solvability and V15 movement
         run: python3 scripts/verify-levels.py
       - name: Verify wallet transactions and persistence
@@ -41,6 +41,7 @@ jobs:
           cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-PuzzleMaze-V17-release-unsigned.apk
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-V17-tests.apk
           sha256sum dist/*.apk > dist/SHA256SUMS.txt
+          cp tests/hard-level-metrics.json dist/level-metrics.json
       - uses: actions/upload-artifact@v4
         with:
           name: ArrowEscape-V17-APKs
