@@ -108,7 +108,7 @@ public class ArrowGameView extends View {
         long hintUntil = 0L;
         // V18 special mechanics. Requirements are derived only from existing
         // physical blockers, so they never make a solvable board impossible.
-        int specialType = 0; // 1 key, 2 lock, 3 frozen, 4 switch, 5 gate
+        int specialType = 0; // 1 key, 2 lock, 3 frozen, 4 switch, 5 gate, 6 link-source, 7 linked
         int prereqA = -1, prereqB = -1, specialTarget = -1;
         boolean treasure = false;
     }
@@ -193,6 +193,7 @@ public class ArrowGameView extends View {
                         showToast(treasureCoins>0 ? "Treasure arrow · +"+treasureCoins+" coins" : "Treasure arrow collected");
                     } else if (p.specialType == 1 && p.specialTarget >= 0) showToast("Key collected · locked arrow opened");
                     else if (p.specialType == 4 && p.specialTarget >= 0) showToast("Switch activated · gate opened");
+                    else if (p.specialType == 6 && p.specialTarget >= 0) showToast("Link released · partner arrow is ready");
                 } else any = true;
             }
             if (p.flashUntil > now || p.hintUntil > now) any = true;
@@ -562,6 +563,7 @@ public class ArrowGameView extends View {
         else if (p.specialType==3) drawFreezeBadge(c,x,y,r,!specialUnlocked(p));
         else if (p.specialType==4) drawSwitchBadge(c,x,y,r);
         else if (p.specialType==5) drawGateBadge(c,x,y,r,!specialUnlocked(p));
+        else if (p.specialType==6 || p.specialType==7) drawLinkBadge(c,x,y,r,p.specialType==7&&!specialUnlocked(p));
         else if (p.treasure) drawCoin(c,x,y,r*.82f);
     }
 
@@ -607,17 +609,28 @@ public class ArrowGameView extends View {
         paint.setStyle(Paint.Style.FILL);
     }
 
+    private void drawLinkBadge(Canvas c,float x,float y,float r,boolean waiting){
+        badgeCircle(c,x,y,r,waiting?Color.rgb(63,128,191):Color.rgb(39,169,158));
+        paint.setColor(Color.WHITE);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(Math.max(dp(1.2f),r*.17f));paint.setStrokeCap(Paint.Cap.ROUND);
+        RectF left=new RectF(x-r*.62f,y-r*.22f,x-r*.02f,y+r*.22f);
+        RectF right=new RectF(x+r*.02f,y-r*.22f,x+r*.62f,y+r*.22f);
+        c.drawArc(left,35,290,false,paint);c.drawArc(right,215,290,false,paint);
+        c.drawLine(x-r*.12f,y,x+r*.12f,y,paint);paint.setStyle(Paint.Style.FILL);
+    }
+
     private void drawMilestoneIntro(Canvas c) {
-        if(!dailyChallenge&&(level==41||level==81||level==121)){
+        if(!dailyChallenge&&(level==41||level==81||level==121||level==161)){
             RectF r=modal(c,300);
-            int accent=level==41?Color.rgb(219,157,25):level==81?Color.rgb(60,173,220):Color.rgb(132,88,207);
-            String title=level==41?"KEYS & LOCKS":level==81?"FROZEN ARROWS":"SWITCHES & GATES";
+            int accent=level==41?Color.rgb(219,157,25):level==81?Color.rgb(60,173,220):level==121?Color.rgb(132,88,207):Color.rgb(39,169,158);
+            String title=level==41?"KEYS & LOCKS":level==81?"FROZEN ARROWS":level==121?"SWITCHES & GATES":"LINKED ARROWS";
             String line1=level==41?"Clear the gold key arrow before its locked arrow can escape."
                 :level==81?"Frozen arrows thaw only after both marked blockers are gone."
-                :"Clear the purple switch arrow to open its red gate.";
+                :level==121?"Clear the purple switch arrow to open its red gate."
+                :"Linked partners must be released in their chain order.";
             String line2=level==41?"The key was already part of the puzzle's blocking chain."
                 :level==81?"Hints understand the ice rule, so they stay safe."
-                :"Gate logic follows the same full-clearance solver.";
+                :level==121?"Gate logic follows the same full-clearance solver."
+                :"The chain is built from a real blocker relationship, never a fake dead end.";
             label(c,"NEW MECHANIC",r.centerX(),r.top+dp(39),12,accent,true);
             label(c,title,r.centerX(),r.top+dp(79),27,accent,true);
             label(c,line1,r.centerX(),r.top+dp(128),13,NAVY,true);
@@ -782,7 +795,7 @@ public class ArrowGameView extends View {
         mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;combo=0;bestCombo=0;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         generateLevel(level);
         configureSpecialMechanics();
-        boolean mechanicIntro=!dailyChallenge&&(level==41||level==81||level==121);
+        boolean mechanicIntro=!dailyChallenge&&(level==41||level==81||level==121||level==161);
         milestoneIntroUntil=(dailyChallenge||isSuperHard(level)||mechanicIntro)?SystemClock.elapsedRealtime()+(mechanicIntro?5000L:1600L):0L;
         saveProgress();invalidate();
     }
@@ -1043,7 +1056,7 @@ public class ArrowGameView extends View {
     }
 
     private boolean specialUnlocked(Piece p) {
-        if (p.specialType == 2 || p.specialType == 5) {
+        if (p.specialType == 2 || p.specialType == 5 || p.specialType == 7) {
             Piece a = pieceById(p.prereqA);
             return a == null || a.removed;
         }
@@ -1059,6 +1072,7 @@ public class ArrowGameView extends View {
         if (p.specialType == 2) return "Locked · clear the key arrow first";
         if (p.specialType == 3) return "Frozen · clear both blocking arrows";
         if (p.specialType == 5) return "Gate closed · activate the switch";
+        if (p.specialType == 7) return "Linked · clear the partner arrow first";
         return null;
     }
 
@@ -1096,7 +1110,7 @@ public class ArrowGameView extends View {
     }
 
     private boolean specialFree(Piece p) {
-        return p != null && p.specialType == 0;
+        return p != null && p.specialType == 0 && !p.treasure;
     }
 
     private void configureSpecialMechanics() {
@@ -1159,6 +1173,21 @@ public class ArrowGameView extends View {
                     break;
                 }
                 if(target.specialType==5)break;
+            }
+        }
+
+        // Chapter 7+: Linked pair. The source is an existing physical blocker,
+        // so the link adds readable chain-order strategy without changing solvability.
+        if (level >= 161) {
+            for (Piece target : targets) {
+                if (!specialFree(target)) continue;
+                ArrayList<Piece> blockers=physicalBlockers(target);
+                for (Piece source:blockers) if (specialFree(source)) {
+                    source.specialType=6;source.specialTarget=target.id;
+                    target.specialType=7;target.prereqA=source.id;
+                    break;
+                }
+                if(target.specialType==7)break;
             }
         }
     }
