@@ -236,7 +236,7 @@ public class ArrowGameView extends View {
             ? "ELITE WEEKLY  ·  puzzle " + level
             : dailyChallenge
             ? "SUPER HARD DAILY  ·  puzzle " + level
-            : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + difficulty();
+            : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + currentShapeName().toUpperCase(Locale.US) + " · " + difficulty();
         if (!challengeActive() && combo >= 2) sub += " · STREAK x" + combo;
         label(c, sub, w/2, top + dp(49), 11, difficultyColor, challengeActive() || isSuperHard(level) || combo >= 3);
         drawGear(c, w-dp(31), top+dp(30));
@@ -289,32 +289,126 @@ public class ArrowGameView extends View {
         label(c,"BOSS WORLD · "+(level==25?"DIAMOND":level==50?"CROWN":level==100?"INFINITY":level==150?"ROCKET":"GRANDMASTER"),w/2,h*.20f,11,accent,true);
     }
 
+    private int shapeIndexForLevel(int lv) { return Math.floorMod(lv-1,12); }
+    public String shapeNameForLevel(int lv) {
+        switch(shapeIndexForLevel(lv)){
+            case 0:return "Heart"; case 1:return "Star"; case 2:return "Diamond"; case 3:return "Crown";
+            case 4:return "Butterfly"; case 5:return "Rocket"; case 6:return "Shield"; case 7:return "Leaf";
+            case 8:return "Gem"; case 9:return "Drop"; case 10:return "Bell"; default:return "Kite";
+        }
+    }
+    public String currentShapeName(){ return shapeNameForLevel(level); }
+
+    private float clamp01(float v){ return Math.max(0f,Math.min(1f,v)); }
+    private float shapeWidth(float v,int shape){
+        v=clamp01(v);
+        switch(shape){
+            case 0: return .50f+.48f*(float)Math.sqrt(Math.max(0f,1f-v)); // heart
+            case 1: return .60f+.36f*(.5f+.5f*(float)Math.cos(v*Math.PI*4)); // star
+            case 2: return .50f+.48f*(1f-Math.abs(2f*v-1f)); // diamond
+            case 3: return .78f+.18f*(1f-v); // crown
+            case 4: return .54f+.42f*(float)Math.pow(Math.abs(2f*v-1f),.72); // butterfly
+            case 5: // rocket
+                if(v<.24f)return .48f+1.85f*v;
+                if(v<.78f)return .92f;
+                return .92f-.72f*(v-.78f);
+            case 6: return .96f-.44f*(float)Math.pow(v,1.65); // shield
+            case 7: return .50f+.46f*(float)Math.pow(Math.sin(Math.PI*v),.62); // leaf
+            case 8: return .56f+.40f*(1f-Math.abs(2f*v-1f)); // gem
+            case 9: return .48f+.47f*(float)Math.pow(Math.sin(Math.PI*Math.min(1f,v*.93f)),.62); // drop
+            case 10:return .52f+.43f*(float)Math.pow(v,.72); // bell
+            default:return .52f+.43f*(1f-Math.abs(2f*v-1f)); // kite
+        }
+    }
+    private float shapeCenter(float v,int shape){
+        if(shape==7)return .055f*(float)Math.sin((v-.5f)*Math.PI); // leaf lean
+        if(shape==11)return .045f*(v-.5f); // kite tilt
+        return 0f;
+    }
+    private float shapeVerticalWarp(float u,float v,int shape){
+        // Boundary warps make Heart/Crown/Star visibly distinct while the same
+        // transform is applied to every arrow, blocker and touch target.
+        if(shape==0) return .075f*(1f-v)*(float)Math.exp(-Math.pow((u-.5f)/.17f,2)); // heart notch
+        if(shape==3) {
+            float peaks=(float)(.5+.5*Math.cos(u*Math.PI*6));
+            return .075f*(1f-v)*(1f-peaks);
+        }
+        if(shape==1) {
+            float peaks=(float)(.5+.5*Math.cos(u*Math.PI*4));
+            return .045f*(1f-v)*(1f-peaks);
+        }
+        return 0f;
+    }
+    private android.graphics.PointF shapePointInside(float gx,float gy){
+        float u=clamp01(gx/Math.max(1f,gridW)),v=clamp01(gy/Math.max(1f,gridH));
+        int shape=shapeIndexForLevel(level);
+        float width=shapeWidth(v,shape);
+        float xn=.5f+shapeCenter(v,shape)+(u-.5f)*width;
+        float yn=v+shapeVerticalWarp(u,v,shape);
+        yn=Math.max(0f,Math.min(1f,yn));
+        return new android.graphics.PointF(boardLeft+xn*boardW,boardTop+yn*boardH);
+    }
+    private android.graphics.PointF shapePoint(float gx,float gy){
+        float bx=Math.max(0f,Math.min(gridW,gx)),by=Math.max(0f,Math.min(gridH,gy));
+        android.graphics.PointF base=shapePointInside(bx,by);
+        if(gx==bx&&gy==by)return base;
+        if(gx!=bx){
+            float inward=bx<=0f?.35f:-.35f;
+            android.graphics.PointF inner=shapePointInside(Math.max(0f,Math.min(gridW,bx+inward)),by);
+            float scale=Math.max(.001f,Math.abs(inward));
+            return new android.graphics.PointF(base.x+(base.x-inner.x)/scale*Math.abs(gx-bx),base.y+(base.y-inner.y)/scale*Math.abs(gx-bx));
+        }
+        float inward=by<=0f?.35f:-.35f;
+        android.graphics.PointF inner=shapePointInside(bx,Math.max(0f,Math.min(gridH,by+inward)));
+        float scale=Math.max(.001f,Math.abs(inward));
+        return new android.graphics.PointF(base.x+(base.x-inner.x)/scale*Math.abs(gy-by),base.y+(base.y-inner.y)/scale*Math.abs(gy-by));
+    }
+    private android.graphics.PointF shapeDirection(float gx,float gy,float dx,float dy){
+        android.graphics.PointF a=shapePoint(gx,gy),b=shapePoint(gx+dx*.35f,gy+dy*.35f);
+        float vx=b.x-a.x,vy=b.y-a.y,len=(float)Math.sqrt(vx*vx+vy*vy);
+        if(len<.001f)return new android.graphics.PointF(dx,dy);
+        return new android.graphics.PointF(vx/len,vy/len);
+    }
+    private void drawShapeOutline(Canvas c){
+        Path outline=new Path();
+        boolean first=true;
+        int samples=48;
+        for(int i=0;i<=samples;i++){android.graphics.PointF p=shapePointInside(gridW*i/(float)samples,0);if(first){outline.moveTo(p.x,p.y);first=false;}else outline.lineTo(p.x,p.y);}
+        for(int i=1;i<=samples;i++){android.graphics.PointF p=shapePointInside(gridW,gridH*i/(float)samples);outline.lineTo(p.x,p.y);}
+        for(int i=1;i<=samples;i++){android.graphics.PointF p=shapePointInside(gridW*(1f-i/(float)samples),gridH);outline.lineTo(p.x,p.y);}
+        for(int i=1;i<=samples;i++){android.graphics.PointF p=shapePointInside(0,gridH*(1f-i/(float)samples));outline.lineTo(p.x,p.y);}
+        outline.close();
+        int accent=selectedArrowColor();
+        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(14,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(outline,paint);
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.4f));paint.setColor(Color.argb(55,Color.red(accent),Color.green(accent),Color.blue(accent)));c.drawPath(outline,paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
     private void drawPathPreview(Canvas c) {
         Piece p=previewPiece;
         if(p==null||p.removed||p.moving||p.pts.isEmpty())return;
         Point tip=p.pts.get(p.pts.size()-1);
-        float x1=boardLeft+tip.x*cell,y1=boardTop+tip.y*cell;
-        float steps=gridW+gridH+10;
-        float x2=x1+p.dx*cell*steps,y2=y1+p.dy*cell*steps;
+        int steps=gridW+gridH+10;
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(Math.max(dp(1.5f),cell*.09f));
         paint.setStrokeCap(Paint.Cap.ROUND);
         paint.setColor(Color.argb(125,47,149,235));
-        // Dotted route so it reads as a preview, not an actual arrow body.
-        int dots=28;
-        for(int i=1;i<=dots;i+=2){
-            float a=(i-1)/(float)dots,b=i/(float)dots;
-            c.drawLine(x1+(x2-x1)*a,y1+(y2-y1)*a,x1+(x2-x1)*b,y1+(y2-y1)*b,paint);
+        android.graphics.PointF prev=shapePoint(tip.x,tip.y);
+        for(int i=1;i<=steps;i++){
+            android.graphics.PointF next=shapePoint(tip.x+p.dx*i,tip.y+p.dy*i);
+            if(i%2==1)c.drawLine(prev.x,prev.y,next.x,next.y,paint);
+            prev=next;
+            if((p.dx<0&&tip.x-p.dx*i<0)||(p.dx>0&&tip.x+p.dx*i>gridW+3)||(p.dy<0&&tip.y+p.dy*i<-3)||(p.dy>0&&tip.y+p.dy*i>gridH+3))break;
         }
         paint.setStyle(Paint.Style.FILL);
     }
 
     private void drawDottedGrid(Canvas c) {
+        drawShapeOutline(c);
         paint.setColor(DOT);
         for (int y=0; y<=gridH; y++) {
-            float py = boardTop + y*cell;
             for (int x=0; x<=gridW; x++) {
-                c.drawCircle(boardLeft+x*cell, py, Math.max(0.8f, cell*0.045f), paint);
+                android.graphics.PointF p=shapePointInside(x,y);
+                c.drawCircle(p.x,p.y,Math.max(0.8f,cell*0.045f),paint);
             }
         }
     }
@@ -383,232 +477,128 @@ public class ArrowGameView extends View {
         );
     }
 
-    private void buildMovingSnakePath(
-  Path path,
-  Piece p,
-  float advance
-    ) {
-        float total = piecePathLength(p);
-
-        android.graphics.PointF start =
-      routePoint(p, advance);
-
-        path.moveTo(
-      boardLeft + start.x * cell,
-      boardTop + start.y * cell
-        );
-
-        float walked = 0f;
-
-        for (int i = 0; i < p.pts.size() - 1; i++) {
-  Point a = p.pts.get(i);
-  Point b = p.pts.get(i + 1);
-
-  float seg =
-          Math.abs(b.x - a.x)
-          + Math.abs(b.y - a.y);
-
-  walked += seg;
-
-  if (walked > advance) {
-      path.lineTo(
-              boardLeft + b.x * cell,
-              boardTop + b.y * cell
-      );
-  }
+    private void buildMappedRoutePath(Path path,Piece p,float from,float to){
+        int steps=Math.max(2,(int)Math.ceil(Math.max(.1f,to-from)*2f));
+        for(int i=0;i<=steps;i++){
+            float d=from+(to-from)*i/(float)steps;
+            android.graphics.PointF q=routePoint(p,d);
+            android.graphics.PointF s=shapePoint(q.x,q.y);
+            if(i==0)path.moveTo(s.x,s.y);else path.lineTo(s.x,s.y);
         }
-
-        android.graphics.PointF head =
-      routePoint(
-              p,
-              advance + total
-      );
-
-        path.lineTo(
-      boardLeft + head.x * cell,
-      boardTop + head.y * cell
-        );
     }
 
-    private void drawArrowHeadAt(
-  Canvas c,
-  float gx,
-  float gy,
-  int dx,
-  int dy,
-  int col,
-  int alpha
-    ) {
-        float tx = boardLeft + gx * cell;
-        float ty = boardTop + gy * cell;
-        drawClearArrowHead(c, tx, ty, dx, dy, col, alpha);
+    private void buildMovingSnakePath(Path path,Piece p,float advance) {
+        buildMappedRoutePath(path,p,advance,advance+piecePathLength(p));
+    }
+
+    private int arrowType(){return Math.floorMod(settings.getInt("arrow_type",0),5);}
+    private float arrowStroke(){
+        switch(arrowType()){case 1:return .078f;case 2:return .175f;case 3:return .105f;case 4:return .125f;default:return .12f;}
+    }
+    private float arrowHeadScale(){
+        switch(arrowType()){case 1:return .27f;case 2:return .42f;case 3:return .35f;case 4:return .38f;default:return .34f;}
+    }
+
+    private void drawArrowHeadAt(Canvas c,float gx,float gy,int dx,int dy,int col,int alpha) {
+        android.graphics.PointF p=shapePoint(gx,gy),dir=shapeDirection(gx,gy,dx,dy);
+        drawClearArrowHead(c,p.x,p.y,dir.x,dir.y,col,alpha);
     }
 
     /**
-     * Draws a recognisable arrow-head rather than a plain triangle.
-     * The short neck overlaps the route line so the head reads as part of
-     * the arrow even on dense boards and while the snake is moving.
+     * V20 has real arrow TYPES, not just different colours.
+     * Classic, Slim, Bold, Chevron and Neon all share the same gameplay geometry.
      */
-    private void drawClearArrowHead(Canvas c, float tx, float ty, int dx, int dy, int col, int alpha) {
-        float s = Math.max(dp(6.2f), cell * 0.34f);
-        float px = -dy;
-        float py = dx;
+    private void drawClearArrowHead(Canvas c,float tx,float ty,float dx,float dy,int col,int alpha) {
+        float len=(float)Math.sqrt(dx*dx+dy*dy);if(len<.001f){dx=1;dy=0;}else{dx/=len;dy/=len;}
+        float s=Math.max(dp(5.8f),cell*arrowHeadScale());
+        float px=-dy,py=dx;
+        int type=arrowType();
 
-        Path a = new Path();
-        a.moveTo(tx + dx*s*0.78f, ty + dy*s*0.78f);                         // sharp tip
-        a.lineTo(tx - dx*s*0.50f + px*s*0.72f, ty - dy*s*0.50f + py*s*0.72f); // upper wing
-        a.lineTo(tx - dx*s*0.28f + px*s*0.25f, ty - dy*s*0.28f + py*s*0.25f); // upper neck
-        a.lineTo(tx - dx*s*0.92f + px*s*0.25f, ty - dy*s*0.92f + py*s*0.25f); // neck back
-        a.lineTo(tx - dx*s*0.92f - px*s*0.25f, ty - dy*s*0.92f - py*s*0.25f);
-        a.lineTo(tx - dx*s*0.28f - px*s*0.25f, ty - dy*s*0.28f - py*s*0.25f); // lower neck
-        a.lineTo(tx - dx*s*0.50f - px*s*0.72f, ty - dy*s*0.50f - py*s*0.72f); // lower wing
+        if(type==3){ // Chevron
+            paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeJoin(Paint.Join.ROUND);
+            paint.setStrokeWidth(Math.max(dp(1.8f),s*.20f));paint.setColor(Color.argb(alpha,Color.red(col),Color.green(col),Color.blue(col)));
+            Path v=new Path();v.moveTo(tx-dx*s*.52f+px*s*.68f,ty-dy*s*.52f+py*s*.68f);v.lineTo(tx+dx*s*.78f,ty+dy*s*.78f);v.lineTo(tx-dx*s*.52f-px*s*.68f,ty-dy*s*.52f-py*s*.68f);c.drawPath(v,paint);
+            paint.setStyle(Paint.Style.FILL);return;
+        }
+
+        Path a=new Path();
+        float wing=type==1?.52f:type==2?.82f:.72f;
+        float neck=type==1?.18f:type==2?.31f:.25f;
+        float back=type==1?.76f:type==2?1.02f:.92f;
+        a.moveTo(tx+dx*s*.82f,ty+dy*s*.82f);
+        a.lineTo(tx-dx*s*.50f+px*s*wing,ty-dy*s*.50f+py*s*wing);
+        a.lineTo(tx-dx*s*.28f+px*s*neck,ty-dy*s*.28f+py*s*neck);
+        a.lineTo(tx-dx*s*back+px*s*neck,ty-dy*s*back+py*s*neck);
+        a.lineTo(tx-dx*s*back-px*s*neck,ty-dy*s*back-py*s*neck);
+        a.lineTo(tx-dx*s*.28f-px*s*neck,ty-dy*s*.28f-py*s*neck);
+        a.lineTo(tx-dx*s*.50f-px*s*wing,ty-dy*s*.50f-py*s*wing);
         a.close();
 
-        paint.setStyle(Paint.Style.FILL);
-        paint.setColor(Color.argb(alpha, Color.red(col), Color.green(col), Color.blue(col)));
-        c.drawPath(a, paint);
-    }
-
-    private void drawPieces(Canvas c, long now) {
-        float stroke =
-      Math.max(dp(2.2f), cell * 0.12f);
-
-        for (Piece p : pieces) {
-  if (p.removed) continue;
-
-  float shake = 0f;
-
-  if (p.flashUntil > now) {
-      shake =
-              (float)Math.sin(now * 0.085)
-              * dp(3.5f);
-  }
-
-  int col =
-          p.flashUntil > now
-          ? Color.rgb(228, 65, 71)
-          : (
-              p.hintUntil > now
-              ? Color.rgb(236, 167, 28)
-              : (settings.getBoolean("contrast",false)?Color.BLACK:selectedArrowColor())
-          );
-
-  int alpha = 255;
-
-  paint.setColor(col);
-  paint.setStyle(Paint.Style.STROKE);
-  paint.setStrokeWidth(stroke);
-  paint.setStrokeCap(Paint.Cap.SQUARE);
-  paint.setStrokeJoin(Paint.Join.ROUND);
-
-  Path path = new Path();
-
-  if (p.moving) {
-
-      float advance =
-              p.moveT
-              * p.moveSteps;
-
-      buildMovingSnakePath(
-              path,
-              p,
-              advance
-      );
-
-      c.drawPath(path, paint);
-
-      float total =
-              piecePathLength(p);
-
-      android.graphics.PointF head =
-              routePoint(
-                      p,
-                      advance + total
-              );
-
-      paint.setStyle(Paint.Style.FILL);
-
-      drawArrowHeadAt(
-              c,
-              head.x,
-              head.y,
-              p.dx,
-              p.dy,
-              col,
-              alpha
-      );
-
-  } else {
-
-      for (int i = 0;
-           i < p.pts.size();
-           i++) {
-
-          Point q = p.pts.get(i);
-
-          float px =
-                  boardLeft
-                  + q.x * cell
-                  + (p.dy != 0 ? shake : 0);
-
-          float py =
-                  boardTop
-                  + q.y * cell
-                  + (p.dx != 0 ? shake : 0);
-
-          if (i == 0) {
-              path.moveTo(px, py);
-          } else {
-              path.lineTo(px, py);
-          }
-      }
-
-      c.drawPath(path, paint);
-
-      paint.setStyle(Paint.Style.FILL);
-
-      drawArrowHead(
-              c,
-              p,
-              0f,
-              0f,
-              shake,
-              col,
-              alpha
-      );
-  }
-
-  drawSpecialBadge(c, p, now);
+        if(type==4){ // Neon glow
+            paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(Math.min(85,alpha),Color.red(col),Color.green(col),Color.blue(col)));
+            c.save();c.scale(1.32f,1.32f,tx,ty);c.drawPath(a,paint);c.restore();
         }
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(Color.argb(alpha,Color.red(col),Color.green(col),Color.blue(col)));
+        c.drawPath(a,paint);
+    }
 
+    private void drawPieces(Canvas c,long now) {
+        float stroke=Math.max(dp(2.0f),cell*arrowStroke());
+        for(Piece p:pieces){
+            if(p.removed)continue;
+            float shake=p.flashUntil>now?(float)Math.sin(now*.085)*dp(3.5f):0f;
+            int col=p.flashUntil>now?Color.rgb(228,65,71):(p.hintUntil>now?Color.rgb(236,167,28):(settings.getBoolean("contrast",false)?Color.BLACK:selectedArrowColor()));
+            int alpha=255;
+            paint.setColor(col);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(stroke);
+            paint.setStrokeCap(arrowType()==1?Paint.Cap.ROUND:Paint.Cap.SQUARE);paint.setStrokeJoin(Paint.Join.ROUND);
+            Path path=new Path();
+            if(p.moving){
+                float advance=p.moveT*p.moveSteps;
+                buildMovingSnakePath(path,p,advance);
+                if(arrowType()==4){paint.setStrokeWidth(stroke*2.5f);paint.setColor(Color.argb(45,Color.red(col),Color.green(col),Color.blue(col)));c.drawPath(path,paint);paint.setStrokeWidth(stroke);paint.setColor(col);}
+                c.drawPath(path,paint);
+                float total=piecePathLength(p);
+                android.graphics.PointF head=routePoint(p,advance+total);
+                paint.setStyle(Paint.Style.FILL);
+                drawArrowHeadAt(c,head.x,head.y,p.dx,p.dy,col,alpha);
+            }else{
+                buildMappedRoutePath(path,p,0f,piecePathLength(p));
+                Point tip=p.pts.get(p.pts.size()-1);
+                android.graphics.PointF dir=shapeDirection(tip.x,tip.y,p.dx,p.dy);
+                float sx=-dir.y*shake,sy=dir.x*shake;
+                c.save();c.translate(sx,sy);
+                if(arrowType()==4){paint.setStrokeWidth(stroke*2.5f);paint.setColor(Color.argb(45,Color.red(col),Color.green(col),Color.blue(col)));c.drawPath(path,paint);paint.setStrokeWidth(stroke);paint.setColor(col);}
+                c.drawPath(path,paint);
+                paint.setStyle(Paint.Style.FILL);
+                drawArrowHead(c,p,col,alpha);
+                c.restore();
+            }
+            drawSpecialBadge(c,p,now);
+        }
         paint.setStyle(Paint.Style.FILL);
     }
 
-    private void drawArrowHead(Canvas c, Piece p, float sx, float sy, float shake, int col, int alpha) {
-        Point tip = p.pts.get(p.pts.size()-1);
-        float tx = boardLeft + tip.x*cell + sx + (p.dy!=0?shake:0);
-        float ty = boardTop + tip.y*cell + sy + (p.dx!=0?shake:0);
-        drawClearArrowHead(c, tx, ty, p.dx, p.dy, col, alpha);
+    private void drawArrowHead(Canvas c,Piece p,int col,int alpha) {
+        Point tip=p.pts.get(p.pts.size()-1);
+        android.graphics.PointF pt=shapePoint(tip.x,tip.y),dir=shapeDirection(tip.x,tip.y,p.dx,p.dy);
+        drawClearArrowHead(c,pt.x,pt.y,dir.x,dir.y,col,alpha);
     }
 
-    private void drawSpecialBadge(Canvas c, Piece p, long now) {
-        if (p.specialType==0 || p.removed) return;
+    private void drawSpecialBadge(Canvas c,Piece p,long now) {
+        if(p.specialType==0||p.removed)return;
         android.graphics.PointF pos;
-        if (p.moving) {
-            float total=piecePathLength(p);
-            pos=routePoint(p,p.moveT*p.moveSteps+total);
-        } else {
-            Point tip=p.pts.get(p.pts.size()-1);
-            pos=new android.graphics.PointF(tip.x,tip.y);
-        }
-        float x=boardLeft+pos.x*cell-p.dy*dp(10), y=boardTop+pos.y*cell+p.dx*dp(10);
+        if(p.moving){float total=piecePathLength(p);pos=routePoint(p,p.moveT*p.moveSteps+total);}
+        else{Point tip=p.pts.get(p.pts.size()-1);pos=new android.graphics.PointF(tip.x,tip.y);}
+        android.graphics.PointF sp=shapePoint(pos.x,pos.y),dir=shapeDirection(pos.x,pos.y,p.dx,p.dy);
+        float x=sp.x-dir.y*dp(10),y=sp.y+dir.x*dp(10);
         float r=Math.max(dp(6.5f),cell*.34f);
-        if (p.specialType==1) drawKeyBadge(c,x,y,r);
-        else if (p.specialType==2) drawLockBadge(c,x,y,r,!specialUnlocked(p));
-        else if (p.specialType==3) drawFreezeBadge(c,x,y,r,!specialUnlocked(p));
-        else if (p.specialType==4) drawSwitchBadge(c,x,y,r);
-        else if (p.specialType==5) drawGateBadge(c,x,y,r,!specialUnlocked(p));
-        else if (p.specialType==6 || p.specialType==7) drawLinkBadge(c,x,y,r,p.specialType==7&&!specialUnlocked(p));
+        if(p.specialType==1)drawKeyBadge(c,x,y,r);
+        else if(p.specialType==2)drawLockBadge(c,x,y,r,!specialUnlocked(p));
+        else if(p.specialType==3)drawFreezeBadge(c,x,y,r,!specialUnlocked(p));
+        else if(p.specialType==4)drawSwitchBadge(c,x,y,r);
+        else if(p.specialType==5)drawGateBadge(c,x,y,r,!specialUnlocked(p));
+        else if(p.specialType==6||p.specialType==7)drawLinkBadge(c,x,y,r,p.specialType==7&&!specialUnlocked(p));
     }
 
     private void badgeCircle(Canvas c,float x,float y,float r,int bg){
@@ -915,7 +905,21 @@ public class ArrowGameView extends View {
         return true;
     }
 
-    private Piece findPieceAt(float x,float y){Piece best=null;float bestD=Math.max(dp(16),cell*.42f);for(Piece p:pieces){if(p.removed||p.moving)continue;for(int i=0;i<p.pts.size()-1;i++){Point a=p.pts.get(i),b=p.pts.get(i+1);float ax=boardLeft+a.x*cell,ay=boardTop+a.y*cell,bx=boardLeft+b.x*cell,by=boardTop+b.y*cell;float d=pointSegDist(x,y,ax,ay,bx,by);if(d<bestD){bestD=d;best=p;}}}return best;}
+    private Piece findPieceAt(float x,float y){
+        Piece best=null;float bestD=Math.max(dp(16),cell*.46f);
+        for(Piece p:pieces){
+            if(p.removed||p.moving)continue;
+            float total=piecePathLength(p);
+            int steps=Math.max(2,(int)Math.ceil(total*2f));
+            android.graphics.PointF prev=null;
+            for(int i=0;i<=steps;i++){
+                android.graphics.PointF q=routePoint(p,total*i/(float)steps),sp=shapePoint(q.x,q.y);
+                if(prev!=null){float d=pointSegDist(x,y,prev.x,prev.y,sp.x,sp.y);if(d<bestD){bestD=d;best=p;}}
+                prev=sp;
+            }
+        }
+        return best;
+    }
 
     private float pointSegDist(float px,float py,float ax,float ay,float bx,float by){float vx=bx-ax,vy=by-ay,wx=px-ax,wy=py-ay;float c1=vx*wx+vy*wy;if(c1<=0)return dist(px,py,ax,ay);float c2=vx*vx+vy*vy;if(c2<=c1)return dist(px,py,bx,by);float t=c1/c2;return dist(px,py,ax+t*vx,ay+t*vy);}
     private float dist(float x1,float y1,float x2,float y2){float dx=x1-x2,dy=y1-y2;return (float)Math.sqrt(dx*dx+dy*dy);}
