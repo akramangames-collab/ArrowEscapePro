@@ -112,7 +112,6 @@ public class ArrowGameView extends View {
         // physical blockers, so they never make a solvable board impossible.
         int specialType = 0; // 1 key, 2 lock, 3 frozen, 4 switch, 5 gate, 6 link-source, 7 linked
         int prereqA = -1, prereqB = -1, specialTarget = -1;
-        boolean treasure = false;
     }
 
     public ArrowGameView(Context context, Host host, Wallet wallet) {
@@ -191,10 +190,7 @@ public class ArrowGameView extends View {
                     p.moveT = 1f;
                     p.moving = false;
                     p.removed = true;
-                    if (p.treasure && !challengeActive()) {
-                        int treasureCoins=wallet.rewardTreasure(level);
-                        showToast(treasureCoins>0 ? "Treasure arrow · +"+treasureCoins+" coins" : "Treasure arrow collected");
-                    } else if (p.specialType == 1 && p.specialTarget >= 0) showToast("Key collected · locked arrow opened");
+                    if (p.specialType == 1 && p.specialTarget >= 0) showToast("Key collected · locked arrow opened");
                     else if (p.specialType == 4 && p.specialTarget >= 0) showToast("Switch activated · gate opened");
                     else if (p.specialType == 6 && p.specialTarget >= 0) showToast("Link released · partner arrow is ready");
                 } else any = true;
@@ -494,7 +490,7 @@ public class ArrowGameView extends View {
           : (
               p.hintUntil > now
               ? Color.rgb(236, 167, 28)
-              : (settings.getBoolean("contrast",false)?Color.BLACK:(p.treasure?Color.rgb(205,141,18):selectedArrowColor()))
+              : (settings.getBoolean("contrast",false)?Color.BLACK:selectedArrowColor())
           );
 
   int alpha = 255;
@@ -596,7 +592,7 @@ public class ArrowGameView extends View {
     }
 
     private void drawSpecialBadge(Canvas c, Piece p, long now) {
-        if ((p.specialType==0 && !p.treasure) || p.removed) return;
+        if (p.specialType==0 || p.removed) return;
         android.graphics.PointF pos;
         if (p.moving) {
             float total=piecePathLength(p);
@@ -613,7 +609,6 @@ public class ArrowGameView extends View {
         else if (p.specialType==4) drawSwitchBadge(c,x,y,r);
         else if (p.specialType==5) drawGateBadge(c,x,y,r,!specialUnlocked(p));
         else if (p.specialType==6 || p.specialType==7) drawLinkBadge(c,x,y,r,p.specialType==7&&!specialUnlocked(p));
-        else if (p.treasure) drawCoin(c,x,y,r*.82f);
     }
 
     private void badgeCircle(Canvas c,float x,float y,float r,int bg){
@@ -1243,20 +1238,15 @@ public class ArrowGameView extends View {
     }
 
     private boolean specialFree(Piece p) {
-        return p != null && p.specialType == 0 && !p.treasure;
+        return p != null && p.specialType == 0;
     }
 
     private void configureSpecialMechanics() {
         for (Piece p : pieces) {
-            p.specialType=0; p.prereqA=-1; p.prereqB=-1; p.specialTarget=-1; p.treasure=false;
+            p.specialType=0; p.prereqA=-1; p.prereqB=-1; p.specialTarget=-1;
         }
 
         ArrayList<Piece> targets = new ArrayList<>(pieces);
-        if (!challengeActive() && isSuperHard(level) && !targets.isEmpty()) {
-            targets.sort((a,b)->Integer.compare(a.id,b.id));
-            Piece treasurePiece=targets.get(Math.floorMod(level*31,targets.size()));
-            treasurePiece.treasure=true;
-        }
         if (level < 41 || pieces.size() < 8) return;
 
 
