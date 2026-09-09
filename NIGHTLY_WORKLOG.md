@@ -59,6 +59,15 @@
 - Fixed: BUILD-SIZES.txt wording now clearly distinguishes the installable test APK from the unsigned Play Store bundle.
 - Preserved: no gameplay, rewards, level generation, movement, self-tail/full-clearance, or UI behavior changed in this pass.
 - Commit: 8b17ec1ad5756164098377416d6074c856ed5344.
-- Build: CircleCI android-build pending at end of this pass.
+- Build: CircleCI android-build SUCCESS.
 
-Next: validate Pass 5 build, then continue first-launch/accessibility and Home/Store/Levels/Achievements visual hierarchy audit.
+## Pass 6 — permanent UI/UX regression gates + Android lint
+- Re-verified Pass 5 CI before changing validation: CircleCI android-build SUCCESS.
+- Quality-system finding: CI validated gameplay, wallet logic and packaged builds, but it did not run Android lint and had no explicit guard for premium UI contract regressions.
+- Added scripts/verify-ui-ux.py as a focused regression gate for the approved dark navy/cyan theme on both base and Android 12+ resources, separate Home destinations, Daily Challenge 200-coin copy, exact 10/15/20/30/40/50/75 streak ladder, premium native dialogs/motion, and reusable >=48dp action touch targets.
+- Added Android :app:lintDebug to CI before packaging so resource, manifest and Android-quality regressions fail before an APK is presented for morning review.
+- Preserved: no gameplay movement, level generation, rewards or full-clearance/self-tail behavior changed.
+- Code commits: 4aebfdd857ef4f018b501a8aa1a905f59ed411a0 and 17696f6e4c0c17c7132c037f9d57db7353bdbb30.
+- Build: CircleCI android-build pending at end of this pass; new UI contract guard and lint are part of this run.
+
+Next: inspect Pass 6 lint/build result. If lint exposes accessibility/resource defects, fix those first; otherwise continue Home/Store/Levels/Achievements hierarchy audit without touching gameplay rules.
