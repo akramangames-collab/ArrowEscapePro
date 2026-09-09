@@ -39,6 +39,7 @@ public class ArrowGameView extends View {
         void requestRewardedCoins();
         void openWallet();
         void openSettings();
+        default void openHome() {}
         void onContinueAfterWin(Runnable proceed);
     }
 
@@ -1020,7 +1021,7 @@ public class ArrowGameView extends View {
             return true;
         }
         float top=insetTop+dp(8);
-        if(x<dp(65)&&y<top+dp(60)){showLevelSelect();return true;}
+        if(x<dp(65)&&y<top+dp(60)){host.openHome();return true;}
         if(x>getWidth()-dp(65)&&y<top+dp(60)){host.openSettings();return true;}
         if(walletHit.contains(x,y)||rewardHit.contains(x,y)){host.openWallet();return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
@@ -1689,7 +1690,19 @@ public class ArrowGameView extends View {
     public void restartCurrentLevel(){if(challengeActive())setupLevel(level,false);else startLevel(level);}
     public void showTutorialAgain(){screen=Screen.PLAY;tutorial=true;invalidate();}
     private void showLevelSelect(){screen=Screen.LEVELS;levelPage=(level-1)/20;saveProgress();invalidate();}
-    public boolean handleBack(){if(screen==Screen.LEVELS){screen=Screen.PLAY;invalidate();return true;}if(tutorial){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();return true;}if(challengeActive()){leaveChallenge();return true;}host.openSettings();return true;}
+    public void openLevels(){showLevelSelect();}
+    public void openPlay(){screen=Screen.PLAY;invalidate();}
+    public int dailyPuzzleNumber(){return dailyLevelForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
+    public int totalStarCount(){return totalStars();}
+    public int completedLevelCount(){return completedLevels();}
+    public int perfectLevelCount(){return perfectLevels();}
+    public boolean allBossesComplete(){return allBossesCleared();}
+    public boolean handleBack(){
+        if(screen==Screen.LEVELS){screen=Screen.PLAY;host.openHome();invalidate();return true;}
+        if(tutorial){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();return true;}
+        if(challengeActive()){leaveChallenge();screen=Screen.PLAY;host.openHome();invalidate();return true;}
+        host.openHome();return true;
+    }
     public void saveProgress(){
         if(runId==null)return;
         try {

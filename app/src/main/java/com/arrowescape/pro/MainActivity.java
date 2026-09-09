@@ -12,6 +12,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -34,6 +35,8 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     private AlertDialog menu;
     private TextView menuBalance, rewardStatus;
     private Button watchButton;
+    private AlertDialog reminder;
+    private int storeTab = 0, achievementTab = 0;
     private boolean adsStarted, loadingReward, loadingInterstitial, showingAd, pausedForAd;
     private long rewardedLoadedAt, interstitialLoadedAt;
     private int completedSinceAd;
@@ -58,6 +61,11 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         getWindow().getDecorView().setSystemUiVisibility(0);
         game = new ArrowGameView(this, this, wallet);
         setContentView(game);
+        game.postDelayed(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            showHome();
+            maybeShowDailyChallengeReminder();
+        }, 450L);
         consent = UserMessagingPlatform.getConsentInformation(this);
         if (BuildConfig.DEBUG) { startAdsIfAllowed(); return; }
         ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();
@@ -162,8 +170,9 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
             toast(coins > 0 ? "+75 coins added" : "Could not save reward. Please check device storage.");
         });
     }
-    @Override public void openWallet() { showMenu(true); }
+    @Override public void openWallet() { showPremiumStore(); }
     @Override public void openSettings() { showMenu(false); }
+    @Override public void openHome() { showHome(); }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 
@@ -225,7 +234,249 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
 
     private void refreshStore() {
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
-        showMenu(true);
+        showPremiumStore();
+    }
+
+
+    private Button tileButton(String label, int accent, Runnable action) {
+        Button b=new Button(this);
+        b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        b.setTextColor(TEXT);b.setGravity(Gravity.CENTER);
+        b.setBackground(background(PANEL,18,accent));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(112),1f);lp.setMargins(dp(5),dp(6),dp(5),dp(6));b.setLayoutParams(lp);
+        b.setOnClickListener(v->action.run());return b;
+    }
+
+    private Button tabButton(String label, boolean selected, Runnable action) {
+        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(12);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        b.setTextColor(selected?INK:TEXT);b.setBackground(background(selected?CYAN:PANEL_2,14,selected?0:0xFF244E87));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(42),1f);lp.setMargins(dp(3),0,dp(3),0);b.setLayoutParams(lp);
+        b.setOnClickListener(v->action.run());return b;
+    }
+
+    private void presentFullScreen(LinearLayout body) {
+        if(isDestroyed()||showingAd)return;
+        if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();}
+        destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;
+        game.setPaused(true);
+        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);
+        menu=new AlertDialog.Builder(this).setView(scroll).create();
+        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd)game.setPaused(false);game.invalidate();});
+        menu.show();
+        if(menu.getWindow()!=null){
+            menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
+            menu.getWindow().setStatusBarColor(INK);menu.getWindow().setNavigationBarColor(INK);
+            menu.getWindow().setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT,android.view.WindowManager.LayoutParams.MATCH_PARENT);
+        }
+    }
+
+    private LinearLayout premiumBody() {
+        LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(18),dp(18),dp(18),dp(24));body.setBackgroundColor(INK);return body;
+    }
+
+    private void addPremiumHeader(LinearLayout body,String title,String subtitle) {
+        LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
+        ImageView icon=new ImageView(this);icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
+        row.addView(icon,new LinearLayout.LayoutParams(dp(52),dp(52)));
+        LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
+        TextView t=text(title,23,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);copy.addView(text(subtitle,12,MUTED));
+        row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));body.addView(row);
+    }
+
+    private void showHome() {
+        LinearLayout body=premiumBody();
+        addPremiumHeader(body,"ARROW ESCAPE PRO","THINK  ·  PLAN  ·  SLIDE  ·  ESCAPE");
+
+        menuBalance=text("COINS  "+wallet.balance(),16,GOLD);menuBalance.setGravity(Gravity.CENTER);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));
+        LinearLayout.LayoutParams blp=new LinearLayout.LayoutParams(-1,dp(46));blp.setMargins(0,dp(12),0,dp(6));menuBalance.setLayoutParams(blp);body.addView(menuBalance);
+
+        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        if(wallet.canRewardDailyChallenge(day)){
+            body.addView(button("🏆  DAILY CHALLENGE IS LIVE  ·  WIN 200 COINS",()->showDailyChallengePanel(),false));
+        }
+
+        LinearLayout hero=panel();
+        TextView levelTitle=text("Continue Level "+game.currentLevelNumber(),20,TEXT);levelTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(levelTitle);
+        hero.addView(text(game.currentShapeName()+" world  ·  "+game.progressSummary(),12,MUTED));
+        hero.addView(button("▶  PLAY",()->{if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);
+
+        LinearLayout row1=new LinearLayout(this);row1.setOrientation(LinearLayout.HORIZONTAL);
+        row1.addView(tileButton("▥\nLEVELS\n200 PUZZLES",CYAN,()->{if(menu!=null)menu.dismiss();game.openLevels();}));
+        row1.addView(tileButton("▣\nDAILY CHALLENGE\n200 COINS",PURPLE,()->showDailyChallengePanel()));body.addView(row1);
+
+        LinearLayout row2=new LinearLayout(this);row2.setOrientation(LinearLayout.HORIZONTAL);
+        row2.addView(tileButton("🏆\nACHIEVEMENTS\nTRACK PROGRESS",GOLD,()->showAchievements()));
+        row2.addView(tileButton("🛒\nSTORE\nARROWS & THEMES",PURPLE,()->showPremiumStore()));body.addView(row2);
+
+        body.addView(button("⚙  Settings",()->{if(menu!=null)menu.dismiss();showMenu(false);},false));
+        presentFullScreen(body);
+    }
+
+    private void showPremiumStore() {
+        LinearLayout body=premiumBody();
+        addPremiumHeader(body,"STORE","Arrows, themes and rewards in one premium space");
+        menuBalance=text("COINS  "+wallet.balance(),17,GOLD);menuBalance.setGravity(Gravity.CENTER);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));body.addView(menuBalance);
+
+        LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.addView(tabButton("Arrow Garage",storeTab==0,()->{storeTab=0;showPremiumStore();}));
+        tabs.addView(tabButton("Themes",storeTab==1,()->{storeTab=1;showPremiumStore();}));
+        tabs.addView(tabButton("Coins",storeTab==2,()->{storeTab=2;showPremiumStore();}));
+        LinearLayout.LayoutParams tlp=new LinearLayout.LayoutParams(-1,dp(42));tlp.setMargins(0,dp(12),0,dp(8));tabs.setLayoutParams(tlp);body.addView(tabs);
+
+        if(storeTab==0){
+            body.addView(section("ARROW GARAGE"));
+            body.addView(text("Collect visual arrow types. Purchases are permanent and never affect puzzle difficulty.",12,MUTED));
+            String[] names=game.arrowTypeNames();
+            for(int i=0;i<names.length;i++){
+                final int which=i;boolean owned=game.isArrowTypeOwned(which),selected=game.currentArrowTypeIndex()==which;int price=game.arrowTypePrice(which);
+                String status=selected?"EQUIPPED":owned?"OWNED":"LOCKED · "+price+" COINS";
+                String action=selected?"EQUIPPED":owned?"EQUIP":price+" COINS";
+                String glyph=which==4?"✦":which==3?"»":which==2?"➤":which==1?"→":"➜";
+                addProduct(body,glyph,names[which],game.arrowTypeFeature(which),status,action,()->{
+                    if(game.isArrowTypeOwned(which)){game.unlockAndSelectArrowType(which);toast(names[which]+" equipped");refreshStore();return;}
+                    new AlertDialog.Builder(this).setTitle("Unlock "+names[which]+"?")
+                        .setMessage(game.arrowTypeFeature(which)+"\n\nPrice: "+price+" coins\nBalance: "+wallet.balance()+" coins")
+                        .setNegativeButton("Not now",null).setPositiveButton("Unlock",(d,w)->{
+                            if(game.unlockAndSelectArrowType(which)){toast(names[which]+" unlocked");refreshStore();}
+                            else toast("Need "+Math.max(0,price-wallet.balance())+" more coins");
+                        }).show();
+                },selected);
+            }
+            body.addView(button("Arrow color  ·  "+game.currentArrowStyle()+"  ·  FREE",()->{toast("Arrow color: "+game.cycleArrowStyle());refreshStore();},false));
+        }else if(storeTab==1){
+            body.addView(section("BOARD THEMES"));
+            body.addView(text("Change the atmosphere of every puzzle without changing gameplay.",12,MUTED));
+            String[] names=game.boardThemeNames();
+            for(int i=0;i<names.length;i++){
+                final int which=i;boolean owned=game.isBoardThemeOwned(which),selected=game.currentBoardThemeIndex()==which;int price=game.boardThemePrice(which);
+                String status=selected?"ACTIVE":owned?"OWNED":"LOCKED · "+price+" COINS";
+                String action=selected?"ACTIVE":owned?"APPLY":price+" COINS";
+                String glyph=which==5?"◆":which==4?"✧":which==3?"●":which==2?"☼":which==1?"❄":"▦";
+                addProduct(body,glyph,names[which],game.boardThemeFeature(which),status,action,()->{
+                    if(game.isBoardThemeOwned(which)){game.unlockAndSelectBoardTheme(which);toast(names[which]+" theme applied");refreshStore();return;}
+                    new AlertDialog.Builder(this).setTitle("Unlock "+names[which]+" theme?")
+                        .setMessage(game.boardThemeFeature(which)+"\n\nPrice: "+price+" coins\nBalance: "+wallet.balance()+" coins")
+                        .setNegativeButton("Not now",null).setPositiveButton("Unlock",(d,w)->{
+                            if(game.unlockAndSelectBoardTheme(which)){toast(names[which]+" unlocked");refreshStore();}
+                            else toast("Need "+Math.max(0,price-wallet.balance())+" more coins");
+                        }).show();
+                },selected);
+            }
+        }else{
+            body.addView(section("COINS & REWARDS"));
+            LinearLayout reward=panel();
+            TextView big=text("Earn coins without paying",18,TEXT);big.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(big);
+            reward.addView(text("Play levels, build your daily streak, beat the Daily Challenge, or watch a rewarded ad.",12,MUTED));
+            body.addView(reward);
+            watchButton=button("▶  WATCH AD  ·  +75 COINS",()->{if(rewardReady())requestRewardedCoins();else loadRewarded();},true);
+            body.addView(watchButton);rewardStatus=text("",12,MUTED);body.addView(rewardStatus);updateRewardStatus();loadRewarded();
+            body.addView(button("🏆  DAILY CHALLENGE  ·  +200 COINS",()->showDailyChallengePanel(),false));
+            body.addView(button("🔥  DAILY STREAK REWARDS",()->{achievementTab=1;showAchievements();},false));
+        }
+        body.addView(button("⌂  Back to Home",this::showHome,true));
+        presentFullScreen(body);
+    }
+
+    private void addAchievementCard(LinearLayout body,String icon,String name,String goal,String progress,boolean done) {
+        LinearLayout card=panel();LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
+        TextView badge=text(icon,24,done?GREEN:PURPLE);badge.setGravity(Gravity.CENTER);badge.setBackground(background(0xFF0A1733,14,done?GREEN:0xFF2C4E83));
+        row.addView(badge,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
+        TextView title=text(name,15,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(title);copy.addView(text(goal,12,MUTED));
+        copy.addView(text(progress,11,done?GREEN:CYAN));row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));card.addView(row);body.addView(card);
+    }
+
+    private void showAchievements() {
+        LinearLayout body=premiumBody();addPremiumHeader(body,"ACHIEVEMENTS","Track progress, trophies and your daily streak");
+        menuBalance=text(game.progressSummary(),13,CYAN);menuBalance.setGravity(Gravity.CENTER);body.addView(menuBalance);
+
+        LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.addView(tabButton("All Achievements",achievementTab==0,()->{achievementTab=0;showAchievements();}));
+        tabs.addView(tabButton("Daily Streak",achievementTab==1,()->{achievementTab=1;showAchievements();}));
+        LinearLayout.LayoutParams tlp=new LinearLayout.LayoutParams(-1,dp(42));tlp.setMargins(0,dp(12),0,dp(8));tabs.setLayoutParams(tlp);body.addView(tabs);
+
+        if(achievementTab==0){
+            int complete=game.completedLevelCount(),perfect=game.perfectLevelCount(),stars=game.totalStarCount();
+            addAchievementCard(body,"★","First Escape","Complete your first level",Math.min(complete,1)+" / 1",complete>=1);
+            addAchievementCard(body,"◎","Perfect Run","Earn a 3★ clear",Math.min(perfect,1)+" / 1",perfect>=1);
+            addAchievementCard(body,"♛","Puzzle Master","Complete 50 levels",Math.min(complete,50)+" / 50",complete>=50);
+            addAchievementCard(body,"✦","Star Collector","Earn 300 stars",Math.min(stars,300)+" / 300",stars>=300);
+            addAchievementCard(body,"◆","Perfectionist","Get 3★ on 50 levels",Math.min(perfect,50)+" / 50",perfect>=50);
+            addAchievementCard(body,"🏆","Boss Hunter","Clear all five boss milestones",game.allBossesComplete()?"5 / 5":"Keep climbing",game.allBossesComplete());
+            int streak=wallet.streak();
+            addAchievementCard(body,"🔥","Streak Starter","Reach a 3-day daily streak",Math.min(streak,3)+" / 3",streak>=3);
+            addAchievementCard(body,"🔥","Week Warrior","Reach a 7-day daily streak",Math.min(streak,7)+" / 7",streak>=7);
+            addAchievementCard(body,"♨","Streak Legend","Reach a 30-day daily streak",Math.min(streak,30)+" / 30",streak>=30);
+        }else{
+            long now=System.currentTimeMillis();int streak=wallet.streak();int next=wallet.nextDailyStreak(now);int reward=wallet.nextDailyReward(now);
+            LinearLayout hero=panel();
+            TextView h=text("🔥  CURRENT STREAK  ·  "+streak+" DAYS",20,TEXT);h.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(h);
+            hero.addView(text(wallet.canClaimDaily(now)?"Today's reward is ready: "+reward+" coins":"Today's streak reward is already claimed.",13,MUTED));body.addView(hero);
+
+            HorizontalScrollView horizontal=new HorizontalScrollView(this);horizontal.setHorizontalScrollBarEnabled(false);
+            LinearLayout ladder=new LinearLayout(this);ladder.setOrientation(LinearLayout.HORIZONTAL);int[] rewards={10,15,20,30,40,50,75};
+            for(int i=0;i<7;i++){
+                LinearLayout dayCard=new LinearLayout(this);dayCard.setOrientation(LinearLayout.VERTICAL);dayCard.setGravity(Gravity.CENTER);
+                dayCard.setPadding(dp(10),dp(10),dp(10),dp(10));
+                dayCard.setBackground(background((next==i+1&&wallet.canClaimDaily(now))?0xFF17385B:PANEL,15,(next==i+1&&wallet.canClaimDaily(now))?CYAN:0xFF244E87));
+                TextView d=text("DAY "+(i+1),11,MUTED);d.setGravity(Gravity.CENTER);dayCard.addView(d);
+                TextView c=text("● "+rewards[i],16,GOLD);c.setTypeface(Typeface.DEFAULT,Typeface.BOLD);c.setGravity(Gravity.CENTER);dayCard.addView(c);
+                LinearLayout.LayoutParams dlp=new LinearLayout.LayoutParams(dp(86),dp(76));dlp.setMargins(dp(4),0,dp(4),0);ladder.addView(dayCard,dlp);
+            }
+            horizontal.addView(ladder);body.addView(horizontal);
+            Button claim=button(wallet.canClaimDaily(now)?"CLAIM TODAY  ·  +"+reward+" COINS":"TODAY CLAIMED",()->{
+                int earned=wallet.claimDaily(System.currentTimeMillis());
+                toast(earned>0?"+"+earned+" coins · streak "+wallet.streak()+" days":"Today's reward is already claimed");
+                game.invalidate();achievementTab=1;showAchievements();
+            },true);claim.setEnabled(wallet.canClaimDaily(now));body.addView(claim);
+            body.addView(text("Rewards grow with your streak: 10 → 15 → 20 → 30 → 40 → 50 → 75 coins. After day 7, each continuing day earns 75 coins.",12,MUTED));
+        }
+        body.addView(button("⌂  Back to Home",this::showHome,true));presentFullScreen(body);
+    }
+
+    private String challengeResetText() {
+        long now=System.currentTimeMillis();long next=((now/Wallet.DAY_MS)+1L)*Wallet.DAY_MS;long seconds=Math.max(0,(next-now)/1000L);
+        long h=seconds/3600L,m=(seconds%3600L)/60L,s=seconds%60L;
+        return String.format(java.util.Locale.US,"%02d:%02d:%02d",h,m,s);
+    }
+
+    private void showDailyChallengePanel() {
+        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","One new SUPER HARD puzzle every UTC day");
+        long day=System.currentTimeMillis()/Wallet.DAY_MS;boolean rewardReady=wallet.canRewardDailyChallenge(day);
+        LinearLayout hero=panel();
+        TextView crown=text("♛  DAILY CHALLENGE",24,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
+        TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
+        hero.addView(text("Puzzle "+game.dailyPuzzleNumber()+"  ·  Same challenge for the whole day",13,MUTED));
+        body.addView(hero);
+        LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
+        amount.setGravity(Gravity.CENTER);amount.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(amount);
+        reward.addView(text("Resets in "+challengeResetText(),12,MUTED));body.addView(reward);
+        body.addView(button("▶  PLAY DAILY CHALLENGE",()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();},true));
+        body.addView(text("The Daily Challenge always uses the full-clearance rule, including self-tail blocking. One coin reward per day.",12,MUTED));
+        body.addView(button("⌂  Back to Home",this::showHome,false));presentFullScreen(body);
+    }
+
+    private void maybeShowDailyChallengeReminder() {
+        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        if(!wallet.canRewardDailyChallenge(day))return;
+        if(settings.getLong("daily_challenge_prompt_day",-1L)==day)return;
+        settings.edit().putLong("daily_challenge_prompt_day",day).apply();
+        if(reminder!=null&&reminder.isShowing())reminder.dismiss();
+
+        LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(22),dp(20),dp(22),dp(20));body.setBackgroundColor(INK);
+        TextView icon=text("♛",42,GOLD);icon.setGravity(Gravity.CENTER);body.addView(icon);
+        TextView title=text("Your Daily Challenge is ready!",22,TEXT);title.setGravity(Gravity.CENTER);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);body.addView(title);
+        TextView copy=text("Complete today's SUPER HARD puzzle to earn 200 coins.",14,MUTED);copy.setGravity(Gravity.CENTER);body.addView(copy);
+        LinearLayout streak=panel();TextView st=text("🔥  Current streak: "+wallet.streak()+" days",16,TEXT);st.setTypeface(Typeface.DEFAULT,Typeface.BOLD);streak.addView(st);
+        streak.addView(text("Today's streak reward: "+wallet.nextDailyReward(System.currentTimeMillis())+" coins",12,GOLD));body.addView(streak);
+        body.addView(button("▶  PLAY NOW",()->{if(reminder!=null)reminder.dismiss();showDailyChallengePanel();},true));
+        body.addView(button("Later",()->{if(reminder!=null)reminder.dismiss();},false));
+
+        reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);reminder.show();
+        if(reminder.getWindow()!=null){reminder.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);reminder.getWindow().setStatusBarColor(INK);}
     }
 
     private void showMenu(boolean store) {
@@ -417,6 +668,6 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();}
     @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing()));if(banner!=null)banner.resume();}
-    @Override protected void onDestroy(){destroyBanner();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
-    @Override public void onBackPressed(){if(menu!=null&&menu.isShowing())menu.dismiss();else if(game.handleBack()){}else super.onBackPressed();}
+    @Override protected void onDestroy(){destroyBanner();if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
+    @Override public void onBackPressed(){if(reminder!=null&&reminder.isShowing())reminder.dismiss();else if(menu!=null&&menu.isShowing())menu.dismiss();else if(game.handleBack()){}else super.onBackPressed();}
 }
