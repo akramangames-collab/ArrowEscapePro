@@ -6,13 +6,13 @@ public final class Wallet {
     public static final int HEART_COST = 40, CONTINUE_COST = 60;
     public static final long DAY_MS = 86400000L;
     public static final class State {
-        public int coins = STARTER, streak;
+        public int coins = STARTER, streak, arrowTypeMask = 1;
         public long dailyDay = -1, challengeDay = -1, weeklyChallengeWeek = -1;
         public String levelToken = "", adToken = "";
         public boolean initialized;
         public State copy() {
             State s = new State();
-            s.coins = coins; s.streak = streak; s.dailyDay = dailyDay; s.challengeDay = challengeDay; s.weeklyChallengeWeek = weeklyChallengeWeek;
+            s.coins = coins; s.streak = streak; s.arrowTypeMask = arrowTypeMask; s.dailyDay = dailyDay; s.challengeDay = challengeDay; s.weeklyChallengeWeek = weeklyChallengeWeek;
             s.levelToken = levelToken; s.adToken = adToken; s.initialized = initialized;
             return s;
         }
@@ -35,6 +35,27 @@ public final class Wallet {
     }
     public synchronized int balance() { state = storage.load().copy(); return state.coins; }
     public synchronized int streak() { state = storage.load().copy(); return state.streak; }
+    public synchronized boolean ownsArrowType(int type) {
+        state = storage.load().copy();
+        if (type < 0 || type > 4) return false;
+        int mask = state.arrowTypeMask | 1;
+        return (mask & (1 << type)) != 0;
+    }
+    public synchronized int arrowTypeMask() {
+        state = storage.load().copy();
+        return state.arrowTypeMask | 1;
+    }
+    public synchronized boolean purchaseArrowType(int type, int price) {
+        state = storage.load().copy();
+        if (type <= 0 || type > 4 || price <= 0) return type == 0;
+        int bit = 1 << type;
+        if (((state.arrowTypeMask | 1) & bit) != 0) return true;
+        if (state.coins < price) return false;
+        State next = state.copy();
+        next.coins -= price;
+        next.arrowTypeMask = (state.arrowTypeMask | 1) | bit;
+        return commit(next);
+    }
     public synchronized boolean canClaimDaily(long now) { state = storage.load().copy(); return now >= 0 && now / DAY_MS > state.dailyDay; }
     public synchronized boolean canRewardDailyChallenge(long day) { state = storage.load().copy(); return day >= 0 && day > state.challengeDay; }
     public synchronized boolean canRewardWeeklyChallenge(long week) { state = storage.load().copy(); return week >= 0 && week > state.weeklyChallengeWeek; }
