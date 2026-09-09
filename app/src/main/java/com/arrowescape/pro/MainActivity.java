@@ -38,19 +38,27 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     private long rewardedLoadedAt, interstitialLoadedAt;
     private int completedSinceAd;
     private long lastInterstitialAt = SystemClock.elapsedRealtime();
-    private final int NAVY = 0xFF081D49, BLUE = 0xFF217FE7, MUTED = 0xFF64748B;
+
+    private final int INK = 0xFF050B1E;
+    private final int PANEL = 0xFF0D1E40;
+    private final int PANEL_2 = 0xFF102A59;
+    private final int CYAN = 0xFF17C7FF;
+    private final int PURPLE = 0xFF8B5CFF;
+    private final int TEXT = 0xFFF1F7FF;
+    private final int MUTED = 0xFF9CB3D5;
+    private final int GOLD = 0xFFFFC83D;
+    private final int GREEN = 0xFF32D49B;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
         wallet = new Wallet(new PreferenceWalletStorage(this));
-        getWindow().setStatusBarColor(Color.WHITE);
-        getWindow().setNavigationBarColor(Color.WHITE);
-        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        getWindow().setStatusBarColor(INK);
+        getWindow().setNavigationBarColor(INK);
+        getWindow().getDecorView().setSystemUiVisibility(0);
         game = new ArrowGameView(this, this, wallet);
         setContentView(game);
         consent = UserMessagingPlatform.getConsentInformation(this);
-        // Demo ad units do not depend on the publisher's production UMP setup.
         if (BuildConfig.DEBUG) { startAdsIfAllowed(); return; }
         ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();
         consent.requestConsentInfoUpdate(this, parameters,
@@ -97,8 +105,8 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         return rewarded != null && !showingAd;
     }
     private void updateRewardStatus() {
-        if (rewardStatus != null) rewardStatus.setText(rewardReady() ? "Watch a short ad to earn 75 coins." : loadingReward ? "Loading an ad… You can keep playing." : "No ad available right now. Tap to try again.");
-        if (watchButton != null) watchButton.setText(rewardReady() ? "Watch ad  ·  +75 coins" : loadingReward ? "Loading ad…" : "Try loading an ad");
+        if (rewardStatus != null) rewardStatus.setText(rewardReady() ? "Reward ready · watch a short ad for 75 coins" : loadingReward ? "Loading reward ad…" : "Reward ad unavailable · tap to retry");
+        if (watchButton != null) watchButton.setText(rewardReady() ? "WATCH AD  ·  +75 COINS" : loadingReward ? "LOADING AD…" : "TRY REWARD AD");
         if (watchButton != null) watchButton.setEnabled(!loadingReward && !showingAd);
     }
     @Override public void onLevelCompleted() { completedSinceAd++; }
@@ -158,213 +166,257 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     @Override public void openSettings() { showMenu(false); }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
+
+    private GradientDrawable background(int color, int radius, int strokeColor) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(color);
+        bg.setCornerRadius(dp(radius));
+        if (strokeColor != 0) bg.setStroke(dp(1), strokeColor);
+        return bg;
+    }
     private TextView text(String value, int size, int color) {
-        TextView v = new TextView(this); v.setText(value); v.setTextColor(color); v.setTextSize(size); v.setPadding(0,dp(6),0,dp(6)); return v;
+        TextView v = new TextView(this);
+        v.setText(value); v.setTextColor(color); v.setTextSize(size);
+        v.setPadding(0,dp(6),0,dp(6));
+        return v;
+    }
+    private TextView section(String value) {
+        TextView v=text(value,12,CYAN);
+        v.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        v.setLetterSpacing(.10f);
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);
+        lp.setMargins(0,dp(18),0,dp(6));v.setLayoutParams(lp);
+        return v;
     }
     private Button button(String label, Runnable action, boolean primary) {
-        Button b = new Button(this); b.setText(label); b.setAllCaps(false); b.setTextSize(15); b.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        b.setTextColor(primary ? Color.WHITE : NAVY);
-        GradientDrawable bg = new GradientDrawable(); bg.setColor(primary ? BLUE : 0xFFEFF5FD); bg.setCornerRadius(dp(16)); b.setBackground(bg);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(50)); lp.setMargins(0,dp(6),0,dp(4)); b.setLayoutParams(lp);
+        Button b = new Button(this);
+        b.setText(label); b.setAllCaps(false); b.setTextSize(14);
+        b.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        b.setTextColor(primary ? INK : TEXT);
+        b.setBackground(background(primary ? CYAN : PANEL_2,16,primary ? 0 : 0xFF244E87));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(50));
+        lp.setMargins(0,dp(6),0,dp(4)); b.setLayoutParams(lp);
         b.setOnClickListener(v -> action.run()); return b;
     }
-    private void updateBalance() { if (menuBalance != null) menuBalance.setText(wallet.balance() + " coins"); }
-    private void showMenu(boolean rewards) {
+    private LinearLayout panel() {
+        LinearLayout p=new LinearLayout(this);p.setOrientation(LinearLayout.VERTICAL);
+        p.setPadding(dp(16),dp(14),dp(16),dp(14));
+        p.setBackground(background(PANEL,18,0xFF1E467C));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(6),0,dp(7));p.setLayoutParams(lp);
+        return p;
+    }
+    private void addProduct(LinearLayout body,String iconText,String name,String feature,String status,String actionLabel,Runnable action,boolean selected) {
+        LinearLayout card=panel();
+        LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
+        TextView icon=text(iconText,26,selected?CYAN:PURPLE);
+        icon.setGravity(Gravity.CENTER);icon.setBackground(background(0xFF0A1733,14,selected?CYAN:0xFF2C4E83));
+        row.addView(icon,new LinearLayout.LayoutParams(dp(52),dp(52)));
+        LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(8),0);
+        TextView title=text(name,16,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(title);
+        copy.addView(text(feature,12,MUTED));
+        TextView state=text(status,11,selected?GREEN:GOLD);state.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(state);
+        row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
+        card.addView(row);
+        Button buy=button(actionLabel,action,selected);
+        LinearLayout.LayoutParams blp=(LinearLayout.LayoutParams)buy.getLayoutParams();blp.height=dp(44);blp.topMargin=dp(10);buy.setLayoutParams(blp);
+        card.addView(buy);body.addView(card);
+    }
+    private void updateBalance() { if (menuBalance != null) menuBalance.setText("COINS  " + wallet.balance()); }
+
+    private void refreshStore() {
+        if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
+        showMenu(true);
+    }
+
+    private void showMenu(boolean store) {
         if (isDestroyed() || showingAd) return;
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
         destroyBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
         game.setPaused(true);
-        LinearLayout body = new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(dp(22),dp(16),dp(22),dp(20));
+
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(20),dp(18),dp(20),dp(22));
+        body.setBackgroundColor(INK);
+
         LinearLayout brand = new LinearLayout(this); brand.setGravity(Gravity.CENTER_VERTICAL);
         ImageView icon = new ImageView(this); icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
-        brand.addView(icon,new LinearLayout.LayoutParams(dp(52),dp(52)));
-        TextView title = text("Arrow Escape\nPuzzle Maze",20,NAVY); title.setTypeface(Typeface.DEFAULT,Typeface.BOLD); title.setPadding(dp(12),0,0,0); brand.addView(title); body.addView(brand);
-        menuBalance = text(wallet.balance()+" coins",30,NAVY); menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD); body.addView(menuBalance);
-        if (rewards) {
-            body.addView(text("YOUR REWARDS",12,MUTED));
-            final Button[] daily = new Button[1];
-            final TextView streak = text("Daily streak: "+wallet.streak()+"  ·  Resets at 00:00 UTC",12,MUTED);
-            daily[0] = button(wallet.canClaimDaily(System.currentTimeMillis()) ? "Claim daily reward  ·  +100" : "Daily reward claimed", () -> {
-                int earned = wallet.claimDaily(System.currentTimeMillis());
-                toast(earned > 0 ? "+100 coins · Come back tomorrow" : "Daily reward already claimed or could not be saved");
-                updateBalance(); game.invalidate();
-                boolean available = wallet.canClaimDaily(System.currentTimeMillis());
-                daily[0].setText(available ? "Claim daily reward  ·  +100" : "Daily reward claimed"); daily[0].setEnabled(available);
-                streak.setText("Daily streak: "+wallet.streak()+"  ·  Resets at 00:00 UTC");
+        brand.addView(icon,new LinearLayout.LayoutParams(dp(54),dp(54)));
+        LinearLayout heading=new LinearLayout(this);heading.setOrientation(LinearLayout.VERTICAL);heading.setPadding(dp(12),0,0,0);
+        TextView title=text(store?"STORE":"SETTINGS",24,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);heading.addView(title);
+        heading.addView(text(store?"Upgrade your style. Keep gameplay fair.":"Game preferences & support",12,MUTED));
+        brand.addView(heading,new LinearLayout.LayoutParams(0,-2,1f));
+        body.addView(brand);
+
+        menuBalance=text("COINS  "+wallet.balance(),18,GOLD);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        menuBalance.setGravity(Gravity.CENTER);
+        menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));
+        LinearLayout.LayoutParams balanceLp=new LinearLayout.LayoutParams(-1,dp(48));balanceLp.setMargins(0,dp(14),0,dp(6));menuBalance.setLayoutParams(balanceLp);
+        body.addView(menuBalance);
+
+        if (store) {
+            LinearLayout hero=panel();
+            TextView heroTitle=text("MAKE EVERY ESCAPE YOURS",18,TEXT);heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(heroTitle);
+            hero.addView(text("Buy visual upgrades with coins you earn by playing. Purchases stay unlocked.",13,MUTED));
+            body.addView(hero);
+
+            body.addView(section("ARROW GARAGE"));
+            String[] arrowNames=game.arrowTypeNames();
+            for(int i=0;i<arrowNames.length;i++){
+                final int which=i;
+                boolean owned=game.isArrowTypeOwned(which);
+                boolean selected=game.currentArrowTypeIndex()==which;
+                int price=game.arrowTypePrice(which);
+                String status=selected?"EQUIPPED":owned?"OWNED":"LOCKED · "+price+" COINS";
+                String actionLabel=selected?"EQUIPPED":owned?"EQUIP":price+" COINS";
+                String glyph=which==4?"✦":which==3?"»":which==2?"➤":which==1?"→":"➜";
+                addProduct(body,glyph,arrowNames[which],game.arrowTypeFeature(which),status,actionLabel,()->{
+                    if(game.isArrowTypeOwned(which)){
+                        game.unlockAndSelectArrowType(which);toast(arrowNames[which]+" equipped");refreshStore();return;
+                    }
+                    new AlertDialog.Builder(this)
+                        .setTitle("Unlock "+arrowNames[which]+"?")
+                        .setMessage(game.arrowTypeFeature(which)+"\n\nPrice: "+price+" coins\nBalance: "+wallet.balance()+" coins")
+                        .setNegativeButton("Not now",null)
+                        .setPositiveButton("Unlock",(d,w)->{
+                            if(game.unlockAndSelectArrowType(which)){toast(arrowNames[which]+" unlocked");refreshStore();}
+                            else toast("Need "+Math.max(0,price-wallet.balance())+" more coins");
+                        }).show();
+                },selected);
+            }
+
+            body.addView(button("Arrow color  ·  "+game.currentArrowStyle()+"  ·  FREE",()->{
+                toast("Arrow color: "+game.cycleArrowStyle());refreshStore();
+            },false));
+
+            body.addView(section("BOARD THEMES"));
+            String[] themeNames=game.boardThemeNames();
+            for(int i=0;i<themeNames.length;i++){
+                final int which=i;
+                boolean owned=game.isBoardThemeOwned(which);
+                boolean selected=game.currentBoardThemeIndex()==which;
+                int price=game.boardThemePrice(which);
+                String status=selected?"ACTIVE":owned?"OWNED":"LOCKED · "+price+" COINS";
+                String actionLabel=selected?"ACTIVE":owned?"APPLY":price+" COINS";
+                String glyph=which==5?"◆":which==4?"✧":which==3?"●":which==2?"☼":which==1?"❄":"▦";
+                addProduct(body,glyph,themeNames[which],game.boardThemeFeature(which),status,actionLabel,()->{
+                    if(game.isBoardThemeOwned(which)){
+                        game.unlockAndSelectBoardTheme(which);toast(themeNames[which]+" theme applied");refreshStore();return;
+                    }
+                    new AlertDialog.Builder(this)
+                        .setTitle("Unlock "+themeNames[which]+" theme?")
+                        .setMessage(game.boardThemeFeature(which)+"\n\nPrice: "+price+" coins\nBalance: "+wallet.balance()+" coins")
+                        .setNegativeButton("Not now",null)
+                        .setPositiveButton("Unlock",(d,w)->{
+                            if(game.unlockAndSelectBoardTheme(which)){toast(themeNames[which]+" unlocked");refreshStore();}
+                            else toast("Need "+Math.max(0,price-wallet.balance())+" more coins");
+                        }).show();
+                },selected);
+            }
+
+            body.addView(section("COINS & REWARDS"));
+            final Button[] daily=new Button[1];
+            daily[0]=button(wallet.canClaimDaily(System.currentTimeMillis())?"CLAIM DAILY  ·  +100 COINS":"DAILY REWARD CLAIMED",()->{
+                int earned=wallet.claimDaily(System.currentTimeMillis());
+                toast(earned>0?"+100 coins · daily reward claimed":"Daily reward already claimed");
+                updateBalance();game.invalidate();daily[0].setEnabled(wallet.canClaimDaily(System.currentTimeMillis()));
+                daily[0].setText(wallet.canClaimDaily(System.currentTimeMillis())?"CLAIM DAILY  ·  +100 COINS":"DAILY REWARD CLAIMED");
             },true);
-            daily[0].setEnabled(wallet.canClaimDaily(System.currentTimeMillis())); body.addView(daily[0]); body.addView(streak);
+            daily[0].setEnabled(wallet.canClaimDaily(System.currentTimeMillis()));body.addView(daily[0]);
+            body.addView(text("Daily streak: "+wallet.streak()+" · resets at 00:00 UTC",12,MUTED));
 
-            long challengeDay = System.currentTimeMillis() / Wallet.DAY_MS;
-            boolean challengeRewardAvailable = wallet.canRewardDailyChallenge(challengeDay);
-            int challengeStars = game.bestDailyStarsToday();
-            String challengeLabel = challengeRewardAvailable ? "Daily Challenge  ·  up to +150" : "Replay Daily Challenge  ·  "+(challengeStars>0?challengeStars+"★":"reward claimed");
-            body.addView(button(challengeLabel,()->{ menu.dismiss(); game.startDailyChallenge(); },true));
-            body.addView(text(challengeRewardAvailable ? "One deterministic SUPER HARD puzzle each UTC day. Everyone gets the same challenge." : "Today's coin reward is claimed. Replay it to improve your stars.",12,MUTED));
+            watchButton=button("WATCH AD  ·  +75 COINS",()->{if(rewardReady())requestRewardedCoins();else loadRewarded();},false);
+            body.addView(watchButton);rewardStatus=text("",12,MUTED);body.addView(rewardStatus);updateRewardStatus();loadRewarded();
 
-            long challengeWeek = challengeDay / 7L;
-            boolean weeklyRewardAvailable = wallet.canRewardWeeklyChallenge(challengeWeek);
-            int weeklyStars = game.bestWeeklyStarsThisWeek();
-            String weeklyLabel = weeklyRewardAvailable ? "Weekly Challenge  ·  up to +350" : "Replay Weekly Challenge  ·  "+(weeklyStars>0?weeklyStars+"★":"reward claimed");
-            body.addView(button(weeklyLabel,()->{ menu.dismiss(); game.startWeeklyChallenge(); },true));
-            body.addView(text(weeklyRewardAvailable ? "One elite milestone puzzle stays fixed for the UTC week. Clear it for 250–350 coins." : "This week's reward is claimed. Replay to improve your weekly stars.",12,MUTED));
+            body.addView(section("CHALLENGES"));
+            long day=System.currentTimeMillis()/Wallet.DAY_MS;
+            body.addView(button(wallet.canRewardDailyChallenge(day)?"DAILY CHALLENGE  ·  UP TO +150":"REPLAY DAILY CHALLENGE",()->{menu.dismiss();game.startDailyChallenge();},false));
+            long week=day/7L;
+            body.addView(button(wallet.canRewardWeeklyChallenge(week)?"WEEKLY CHALLENGE  ·  UP TO +350":"REPLAY WEEKLY CHALLENGE",()->{menu.dismiss();game.startWeeklyChallenge();},false));
+            if(game.canBuyHeart())body.addView(button("RESTORE HEART  ·  40 COINS",()->{if(game.buyHeart()){updateBalance();toast("Heart restored");}else toast("Not enough coins");},false));
+            if(game.needsRevive())body.addView(button("CONTINUE RUN  ·  60 COINS",()->{if(game.buyContinue()){menu.dismiss();toast("Back in the maze");}else toast("Not enough coins");},false));
 
-            body.addView(text("PROGRESSION HALL",12,MUTED));
-            body.addView(text(game.progressSummary(),13,NAVY));
+            body.addView(section("PROGRESSION"));
+            LinearLayout progress=panel();progress.addView(text(game.progressSummary(),13,TEXT));body.addView(progress);
             body.addView(button("Achievements & chapter trophies",this::showProgressHall,false));
-
-            watchButton = button("Watch ad  ·  +75 coins",() -> { if (rewardReady()) requestRewardedCoins(); else loadRewarded(); },false);
-            body.addView(watchButton); rewardStatus = text("",13,MUTED); body.addView(rewardStatus); updateRewardStatus(); loadRewarded();
-            body.addView(text("1–3 stars on every level · 3★ means no mistakes and no assists\nClear: +15 · 3★ bonus: +10\nSUPER HARD milestone: +75 bonus · Boss milestone: +150 bonus\nDaily Challenge: up to +150 · Weekly Challenge: up to +350\nChapter trophies: Bronze / Silver / Gold · Two free hints, then 25 coins.",14,MUTED));
-            if (game.canBuyHeart()) body.addView(button("Add one heart  ·  40 coins",() -> { if (game.buyHeart()) { updateBalance(); toast("Heart restored"); } else toast("Not enough coins"); },false));
-            if (game.needsRevive()) body.addView(button("Continue  ·  60 coins",() -> { if (game.buyContinue()) { menu.dismiss(); toast("Back in the maze"); } else toast("Not enough coins"); },false));
         } else {
-            body.addView(text("MAKE IT YOURS",12,MUTED));
+            body.addView(section("GAMEPLAY"));
             String[] labels={"Sound effects","Vibration","High contrast arrows"};
             String[] keys={"sound","haptics","contrast"};
-            for(int i=0;i<keys.length;i++) {
+            for(int i=0;i<keys.length;i++){
                 String key=keys[i],label=labels[i];
-                android.widget.Switch toggle=new android.widget.Switch(this); toggle.setText(label); toggle.setTextSize(16); toggle.setTextColor(NAVY); toggle.setMinHeight(dp(50));
+                android.widget.Switch toggle=new android.widget.Switch(this);
+                toggle.setText(label);toggle.setTextSize(16);toggle.setTextColor(TEXT);toggle.setMinHeight(dp(54));
                 toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")));
-                toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();game.invalidate();});body.addView(toggle);
+                toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();game.invalidate();});
+                body.addView(toggle);
             }
-            final Button[] arrowTypeButton=new Button[1];
-            arrowTypeButton[0]=button("Arrow type · "+game.currentArrowType(),()->{
-                String[] options=game.arrowTypeOptionLabels();
-                new AlertDialog.Builder(this)
-                    .setTitle("Arrow Garage")
-                    .setSingleChoiceItems(options,game.currentArrowTypeIndex(),(dialog,which)->{
-                        if(game.isArrowTypeOwned(which)){
-                            game.unlockAndSelectArrowType(which);
-                            arrowTypeButton[0].setText("Arrow type · "+game.currentArrowType());
-                            toast(game.currentArrowType()+" selected · "+game.arrowTypeFeature(which));
-                            dialog.dismiss();
-                            return;
-                        }
-                        int price=game.arrowTypePrice(which);
-                        String name=game.arrowTypeNames()[which];
-                        String feature=game.arrowTypeFeature(which);
-                        dialog.dismiss();
-                        new AlertDialog.Builder(this)
-                            .setTitle("Unlock "+name+"?")
-                            .setMessage(feature+"\n\nPrice: "+price+" coins\nYour balance: "+wallet.balance()+" coins")
-                            .setNegativeButton("Not now",null)
-                            .setPositiveButton("Unlock",(buy,w)->{
-                                if(game.unlockAndSelectArrowType(which)){
-                                    updateBalance();
-                                    arrowTypeButton[0].setText("Arrow type · "+game.currentArrowType());
-                                    toast(name+" unlocked and selected");
-                                }else{
-                                    int need=Math.max(0,price-wallet.balance());
-                                    toast(need>0?"Need "+need+" more coins":"Could not save purchase");
-                                }
-                            })
-                            .show();
-                    })
-                    .setNegativeButton("Cancel",null)
-                    .show();
-            },false);
-            body.addView(arrowTypeButton[0]);
-            body.addView(text("Classic is free. Slim 200 · Bold 350 · Chevron 500 · Neon 800 coins. Purchased types stay unlocked.",12,MUTED));
+            LinearLayout note=panel();
+            note.addView(text("Visual purchases moved to Store",15,CYAN));
+            note.addView(text("Arrow types, arrow colors and board themes now live in the Store — Settings is only for preferences.",12,MUTED));
+            body.addView(note);
 
-            final Button[] arrowStyleButton=new Button[1];
-            arrowStyleButton[0]=button("Arrow color · "+game.currentArrowStyle(),()->{
-                String name=game.cycleArrowStyle();
-                arrowStyleButton[0].setText("Arrow color · "+name);
-                toast("Arrow color: "+name);
-            },false);
-            body.addView(arrowStyleButton[0]);
-            final Button[] boardThemeButton=new Button[1];
-            boardThemeButton[0]=button("Board theme · "+game.currentBoardTheme(),()->{
-                String[] options=game.boardThemeOptionLabels();
-                new AlertDialog.Builder(this)
-                    .setTitle("Theme Shop")
-                    .setSingleChoiceItems(options,game.currentBoardThemeIndex(),(dialog,which)->{
-                        if(game.isBoardThemeOwned(which)){
-                            game.unlockAndSelectBoardTheme(which);
-                            boardThemeButton[0].setText("Board theme · "+game.currentBoardTheme());
-                            toast(game.currentBoardTheme()+" selected · "+game.boardThemeFeature(which));
-                            dialog.dismiss();
-                            return;
-                        }
-                        int price=game.boardThemePrice(which);
-                        String name=game.boardThemeNames()[which];
-                        String feature=game.boardThemeFeature(which);
-                        dialog.dismiss();
-                        new AlertDialog.Builder(this)
-                            .setTitle("Unlock "+name+" theme?")
-                            .setMessage(feature+"\n\nPrice: "+price+" coins\nYour balance: "+wallet.balance()+" coins")
-                            .setNegativeButton("Not now",null)
-                            .setPositiveButton("Unlock",(buy,w)->{
-                                if(game.unlockAndSelectBoardTheme(which)){
-                                    updateBalance();
-                                    boardThemeButton[0].setText("Board theme · "+game.currentBoardTheme());
-                                    toast(name+" theme unlocked");
-                                }else{
-                                    int need=Math.max(0,price-wallet.balance());
-                                    toast(need>0?"Need "+need+" more coins":"Could not save purchase");
-                                }
-                            })
-                            .show();
-                    })
-                    .setNegativeButton("Cancel",null)
-                    .show();
-            },false);
-            body.addView(boardThemeButton[0]);
-            body.addView(text("Clean is free. Ice 250 · Sunset 300 · Mint 350 · Midnight 500 · Lava 650 coins.",12,MUTED));
+            body.addView(section("GAME"));
             body.addView(button("How to play",()->{menu.dismiss();game.showTutorialAgain();},false));
+            body.addView(button("Restart this level",()->{
+                new AlertDialog.Builder(this).setTitle("Restart level?").setMessage("Your coins stay safe. This puzzle starts again.")
+                    .setNegativeButton("Keep playing",null).setPositiveButton("Restart",(d,w)->{menu.dismiss();game.restartCurrentLevel();}).show();
+            },false));
+
+            body.addView(section("PRIVACY & SUPPORT"));
             body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
-            body.addView(button("Restart this level",()->{menu.dismiss();new AlertDialog.Builder(this).setTitle("Restart level?").setMessage("Your coin balance is kept. This puzzle starts again.").setNegativeButton("Keep playing",null).setPositiveButton("Restart",(d,w)->game.restartCurrentLevel()).show();},false));
-            if(consent.getPrivacyOptionsRequirementStatus()==ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
+            if(consent!=null && consent.getPrivacyOptionsRequirementStatus()==ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
                 body.addView(button("Privacy choices",()-> UserMessagingPlatform.showPrivacyOptionsForm(this,error->{
                     if(error!=null)toast("Privacy choices are unavailable right now.");
                     if(!consent.canRequestAds()){interstitial=null;rewarded=null;destroyBanner();}else startAdsIfAllowed();
                 }),false));
             }
-            body.addView(text("Version "+BuildConfig.VERSION_NAME+(BuildConfig.DEBUG ? " · Test ads" : ""),12,MUTED));
+            body.addView(text("Version "+BuildConfig.VERSION_NAME+(BuildConfig.DEBUG?" · Test ads":""),12,MUTED));
         }
-        body.addView(button("Back to puzzle",()->menu.dismiss(),true));
-        // Banner is attached only inside the menu; never on the puzzle board.
-        FrameLayout bannerSlot = new FrameLayout(this); LinearLayout.LayoutParams slotParams=new LinearLayout.LayoutParams(-1,dp(66)); slotParams.topMargin=dp(16); body.addView(bannerSlot,slotParams);
-        if(canRequestAds()) {
-            banner = new AdView(this); banner.setAdSize(AdSize.BANNER); banner.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+
+        body.addView(button(store?"BACK TO PUZZLE":"DONE",()->menu.dismiss(),true));
+
+        FrameLayout bannerSlot=new FrameLayout(this);
+        LinearLayout.LayoutParams slotParams=new LinearLayout.LayoutParams(-1,dp(66));slotParams.topMargin=dp(16);body.addView(bannerSlot,slotParams);
+        if(canRequestAds()){
+            banner=new AdView(this);banner.setAdSize(AdSize.BANNER);banner.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
             FrameLayout.LayoutParams bannerParams=new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER);bannerSlot.addView(banner,bannerParams);banner.loadAd(new AdRequest.Builder().build());
         } else bannerSlot.setVisibility(View.GONE);
-        ScrollView scroll = new ScrollView(this); scroll.setFillViewport(false); scroll.addView(body);
-        menu = new AlertDialog.Builder(this).setView(scroll).create();
+
+        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(INK);scroll.addView(body);
+        menu=new AlertDialog.Builder(this).setView(scroll).create();
         menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd)game.setPaused(false);game.invalidate();});
         menu.show();
-        if(menu.getWindow()!=null) menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
+        if(menu.getWindow()!=null){
+            menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
+            menu.getWindow().setStatusBarColor(INK);
+            menu.getWindow().setNavigationBarColor(INK);
+        }
     }
+
     private void showProgressHall() {
-        TextView content=text(game.progressDetails(),14,NAVY);
-        content.setPadding(dp(22),dp(12),dp(22),dp(18));
-        content.setLineSpacing(0,1.18f);
-        ScrollView scroll=new ScrollView(this);scroll.addView(content);
-        AlertDialog hall=new AlertDialog.Builder(this)
-            .setTitle("Progression Hall")
-            .setView(scroll)
-            .setPositiveButton("Back",null)
-            .create();
-        hall.show();
-        if(hall.getWindow()!=null)hall.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
+        TextView content=text(game.progressDetails(),14,TEXT);
+        content.setPadding(dp(22),dp(12),dp(22),dp(18));content.setLineSpacing(0,1.18f);content.setBackgroundColor(INK);
+        ScrollView scroll=new ScrollView(this);scroll.setBackgroundColor(INK);scroll.addView(content);
+        AlertDialog hall=new AlertDialog.Builder(this).setTitle("Progression Hall").setView(scroll).setPositiveButton("Back",null).create();
+        hall.show();if(hall.getWindow()!=null)hall.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
 
     private void destroyBanner() { if(banner!=null){banner.destroy();banner=null;} }
     private void showPrivacyPolicy() {
-        StringBuilder policy = new StringBuilder();
-        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(getAssets().open("privacy-policy.txt"), java.nio.charset.StandardCharsets.UTF_8))) {
-            String line; while ((line = reader.readLine()) != null) policy.append(line).append('\n');
-        } catch (java.io.IOException error) { toast("Privacy policy could not be opened."); return; }
-        TextView content = text(policy.toString(),14,NAVY);
-        content.setPadding(dp(22),dp(12),dp(22),dp(16));
-        android.text.util.Linkify.addLinks(content,android.text.util.Linkify.WEB_URLS);
-        content.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
-        ScrollView scroll = new ScrollView(this); scroll.addView(content);
-        new AlertDialog.Builder(this).setTitle("Privacy policy").setView(scroll).setPositiveButton("Back",null).show();
+        StringBuilder policy=new StringBuilder();
+        try(java.io.BufferedReader reader=new java.io.BufferedReader(new java.io.InputStreamReader(getAssets().open("privacy-policy.txt"),java.nio.charset.StandardCharsets.UTF_8))){
+            String line;while((line=reader.readLine())!=null)policy.append(line).append('\n');
+        }catch(java.io.IOException error){toast("Privacy policy could not be opened.");return;}
+        TextView content=text(policy.toString(),14,TEXT);content.setPadding(dp(22),dp(12),dp(22),dp(16));content.setBackgroundColor(INK);
+        android.text.util.Linkify.addLinks(content,android.text.util.Linkify.WEB_URLS);content.setMovementMethod(android.text.method.LinkMovementMethod.getInstance());
+        ScrollView scroll=new ScrollView(this);scroll.setBackgroundColor(INK);scroll.addView(content);
+        AlertDialog dialog=new AlertDialog.Builder(this).setTitle("Privacy policy").setView(scroll).setPositiveButton("Back",null).create();
+        dialog.show();if(dialog.getWindow()!=null)dialog.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
-    private void toast(String message) { if(!isDestroyed()) Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
-    @Override protected void onPause(){ super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause(); }
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd || (menu!=null&&menu.isShowing()));if(banner!=null)banner.resume();}
+    private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
+    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();}
+    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing()));if(banner!=null)banner.resume();}
     @Override protected void onDestroy(){destroyBanner();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
     @Override public void onBackPressed(){if(menu!=null&&menu.isShowing())menu.dismiss();else if(game.handleBack()){}else super.onBackPressed();}
 }
