@@ -17,10 +17,19 @@ public class WalletTest {
         eq(25,w.rewardLevel("run1",1,3));eq(0,w.rewardLevel("run1",1,3));
         eq(90,w.rewardLevel("run5",5,1));eq(100,w.rewardLevel("run10",10,3));
         eq(175,w.rewardLevel("boss25",25,3));eq(465,w.balance());
-        eq(100,w.claimDaily(10*Wallet.DAY_MS));eq(0,new Wallet(s).claimDaily(10*Wallet.DAY_MS));
-        eq(100,w.claimDaily(11*Wallet.DAY_MS));eq(2,w.streak());
-        yes(w.canRewardDailyChallenge(13));eq(150,w.rewardDailyChallenge(13,3));eq(0,new Wallet(s).rewardDailyChallenge(13,3));
-        eq(125,w.rewardDailyChallenge(14,2));
+
+        eq(10,w.nextDailyReward(10*Wallet.DAY_MS));
+        eq(10,w.claimDaily(10*Wallet.DAY_MS));eq(0,new Wallet(s).claimDaily(10*Wallet.DAY_MS));eq(1,w.streak());
+        eq(15,w.nextDailyReward(11*Wallet.DAY_MS));eq(15,w.claimDaily(11*Wallet.DAY_MS));eq(2,w.streak());
+        eq(20,w.claimDaily(12*Wallet.DAY_MS));eq(3,w.streak());
+        eq(30,w.claimDaily(13*Wallet.DAY_MS));eq(4,w.streak());
+        eq(40,w.claimDaily(14*Wallet.DAY_MS));eq(5,w.streak());
+        eq(50,w.claimDaily(15*Wallet.DAY_MS));eq(6,w.streak());
+        eq(75,w.claimDaily(16*Wallet.DAY_MS));eq(7,w.streak());
+        eq(75,w.claimDaily(17*Wallet.DAY_MS));eq(8,w.streak());
+
+        yes(w.canRewardDailyChallenge(18));eq(200,w.rewardDailyChallenge(18,3));eq(0,new Wallet(s).rewardDailyChallenge(18,2));
+        eq(200,w.rewardDailyChallenge(19,1));
         yes(w.canRewardWeeklyChallenge(7));eq(350,w.rewardWeeklyChallenge(7,3));eq(0,new Wallet(s).rewardWeeklyChallenge(7,3));
         eq(300,w.rewardWeeklyChallenge(8,2));eq(0,w.rewardWeeklyChallenge(8,2));
         eq(75,w.rewardAd("ad1"));eq(0,new Wallet(s).rewardAd("ad1"));
@@ -32,8 +41,9 @@ public class WalletTest {
         yes(w.purchaseTheme(5,650));yes(w.ownsTheme(5));eq(beforeTheme-650,w.balance());
         int afterTheme=w.balance();yes(w.purchaseTheme(5,650));eq(afterTheme,w.balance());
         s.fail=true;int balance=w.balance();eq(0,w.rewardAd("failed"));eq(balance,w.balance());s.fail=false;eq(75,w.rewardAd("failed"));
+
         Storage legacy=new Storage();legacy.state.coins=460;legacy.state.dailyDay=20;legacy.state.streak=4;
-        Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(100,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.streak());
+        Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(40,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.streak());
         System.out.println("Wallet: "+assertions+" assertions passed.");
     }
 }
