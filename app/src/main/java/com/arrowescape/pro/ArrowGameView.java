@@ -106,6 +106,10 @@ public class ArrowGameView extends View {
         int moveSteps = 0;
         long flashUntil = 0L;
         long hintUntil = 0L;
+        // V18 special mechanics. Requirements are derived only from existing
+        // physical blockers, so they never make a solvable board impossible.
+        int specialType = 0; // 1 key, 2 lock, 3 frozen, 4 switch, 5 gate
+        int prereqA = -1, prereqB = -1, specialTarget = -1;
     }
 
     public ArrowGameView(Context context, Host host, Wallet wallet) {
@@ -183,6 +187,8 @@ public class ArrowGameView extends View {
                     p.moveT = 1f;
                     p.moving = false;
                     p.removed = true;
+                    if (p.specialType == 1 && p.specialTarget >= 0) showToast("Key collected · locked arrow opened");
+                    else if (p.specialType == 4 && p.specialTarget >= 0) showToast("Switch activated · gate opened");
                 } else any = true;
             }
             if (p.flashUntil > now || p.hintUntil > now) any = true;
@@ -521,6 +527,8 @@ public class ArrowGameView extends View {
               alpha
       );
   }
+
+  drawSpecialBadge(c, p, now);
         }
 
         paint.setStyle(Paint.Style.FILL);
@@ -531,6 +539,67 @@ public class ArrowGameView extends View {
         float tx = boardLeft + tip.x*cell + sx + (p.dy!=0?shake:0);
         float ty = boardTop + tip.y*cell + sy + (p.dx!=0?shake:0);
         drawClearArrowHead(c, tx, ty, p.dx, p.dy, col, alpha);
+    }
+
+    private void drawSpecialBadge(Canvas c, Piece p, long now) {
+        if (p.specialType==0 || p.removed) return;
+        android.graphics.PointF pos;
+        if (p.moving) {
+            float total=piecePathLength(p);
+            pos=routePoint(p,p.moveT*p.moveSteps+total);
+        } else {
+            Point tip=p.pts.get(p.pts.size()-1);
+            pos=new android.graphics.PointF(tip.x,tip.y);
+        }
+        float x=boardLeft+pos.x*cell-p.dy*dp(10), y=boardTop+pos.y*cell+p.dx*dp(10);
+        float r=Math.max(dp(6.5f),cell*.34f);
+        if (p.specialType==1) drawKeyBadge(c,x,y,r);
+        else if (p.specialType==2) drawLockBadge(c,x,y,r,!specialUnlocked(p));
+        else if (p.specialType==3) drawFreezeBadge(c,x,y,r,!specialUnlocked(p));
+        else if (p.specialType==4) drawSwitchBadge(c,x,y,r);
+        else if (p.specialType==5) drawGateBadge(c,x,y,r,!specialUnlocked(p));
+    }
+
+    private void badgeCircle(Canvas c,float x,float y,float r,int bg){
+        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.WHITE);c.drawCircle(x,y,r+dp(1.8f),paint);
+        paint.setColor(bg);c.drawCircle(x,y,r,paint);
+    }
+
+    private void drawKeyBadge(Canvas c,float x,float y,float r){
+        badgeCircle(c,x,y,r,Color.rgb(247,181,32));
+        paint.setColor(Color.WHITE);paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeWidth(Math.max(dp(1.6f),r*.22f));
+        c.drawCircle(x-r*.23f,y-r*.13f,r*.24f,paint);
+        c.drawLine(x-r*.03f,y+r*.03f,x+r*.40f,y+r*.43f,paint);
+        c.drawLine(x+r*.22f,y+r*.25f,x+r*.35f,y+r*.12f,paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    private void drawLockBadge(Canvas c,float x,float y,float r,boolean closed){
+        badgeCircle(c,x,y,r,closed?Color.rgb(103,116,139):Color.rgb(47,149,235));
+        paint.setColor(Color.WHITE);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(Math.max(dp(1.4f),r*.18f));
+        RectF shackle=new RectF(x-r*.34f,y-r*.48f,x+r*.34f,y+r*.10f);c.drawArc(shackle,180,180,false,paint);
+        paint.setStyle(Paint.Style.FILL);RectF body=new RectF(x-r*.46f,y-r*.05f,x+r*.46f,y+r*.48f);c.drawRoundRect(body,r*.12f,r*.12f,paint);
+    }
+
+    private void drawFreezeBadge(Canvas c,float x,float y,float r,boolean frozen){
+        badgeCircle(c,x,y,r,frozen?Color.rgb(60,173,220):Color.rgb(101,190,156));
+        paint.setColor(Color.WHITE);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(Math.max(dp(1.2f),r*.16f));paint.setStrokeCap(Paint.Cap.ROUND);
+        for(int i=0;i<3;i++){double a=i*Math.PI/3;float dx=(float)Math.cos(a)*r*.55f,dy=(float)Math.sin(a)*r*.55f;c.drawLine(x-dx,y-dy,x+dx,y+dy,paint);}
+        paint.setStyle(Paint.Style.FILL);
+    }
+
+    private void drawSwitchBadge(Canvas c,float x,float y,float r){
+        badgeCircle(c,x,y,r,Color.rgb(132,88,207));
+        paint.setColor(Color.WHITE);Path bolt=new Path();bolt.moveTo(x+r*.10f,y-r*.55f);bolt.lineTo(x-r*.28f,y+r*.02f);bolt.lineTo(x+r*.02f,y+r*.02f);bolt.lineTo(x-r*.08f,y+r*.55f);bolt.lineTo(x+r*.34f,y-r*.10f);bolt.lineTo(x+r*.05f,y-r*.10f);bolt.close();c.drawPath(bolt,paint);
+    }
+
+    private void drawGateBadge(Canvas c,float x,float y,float r,boolean closed){
+        badgeCircle(c,x,y,r,closed?Color.rgb(222,92,75):Color.rgb(75,181,124));
+        paint.setColor(Color.WHITE);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(Math.max(dp(1.2f),r*.15f));
+        for(int i=-1;i<=1;i++)c.drawLine(x+i*r*.28f,y-r*.48f,x+i*r*.28f,y+r*.48f,paint);
+        c.drawLine(x-r*.48f,y-r*.25f,x+r*.48f,y-r*.25f,paint);c.drawLine(x-r*.48f,y+r*.25f,x+r*.48f,y+r*.25f,paint);
+        paint.setStyle(Paint.Style.FILL);
     }
 
     private void drawMilestoneIntro(Canvas c) {
@@ -689,6 +758,7 @@ public class ArrowGameView extends View {
         screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;
         mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;combo=0;bestCombo=0;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         generateLevel(level);
+        configureSpecialMechanics();
         milestoneIntroUntil=(dailyChallenge||isSuperHard(level))?SystemClock.elapsedRealtime()+1600L:0L;
         saveProgress();invalidate();
     }
@@ -733,6 +803,7 @@ public class ArrowGameView extends View {
 
     private void tapPiece(Piece p) {
         if(p.removed||p.moving||failed||finished)return;
+        String specialBlock = specialBlockedMessage(p);
         boolean selfBlocked = !hasSelfClearance(p);
         if(isClear(p)) {
             if(settings.getBoolean("haptics",true))performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
@@ -747,7 +818,7 @@ public class ArrowGameView extends View {
             combo=0;
             p.flashUntil=SystemClock.elapsedRealtime()+390;hearts--;mistakes++;
             playSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,110);buzz(55);
-            showToast(selfBlocked ? "Tail blocks this escape" : "Blocked by another arrow");
+            showToast(specialBlock != null ? specialBlock : (selfBlocked ? "Tail blocks this escape" : "Blocked by another arrow"));
             if(hearts<=0)failed=true;
         }
         saveProgress();invalidate();
@@ -942,6 +1013,125 @@ public class ArrowGameView extends View {
     private int exitSteps(Piece p){for(int k=1;k<gridW+gridH+20;k++)if(allOutside(p,k))return k+1;return gridW+gridH;}
 
 
+    private Piece pieceById(int id) {
+        for (Piece p : pieces) if (p.id == id) return p;
+        return null;
+    }
+
+    private boolean specialUnlocked(Piece p) {
+        if (p.specialType == 2 || p.specialType == 5) {
+            Piece a = pieceById(p.prereqA);
+            return a == null || a.removed;
+        }
+        if (p.specialType == 3) {
+            Piece a = pieceById(p.prereqA), b = pieceById(p.prereqB);
+            return (a == null || a.removed) && (b == null || b.removed);
+        }
+        return true;
+    }
+
+    private String specialBlockedMessage(Piece p) {
+        if (specialUnlocked(p)) return null;
+        if (p.specialType == 2) return "Locked · clear the key arrow first";
+        if (p.specialType == 3) return "Frozen · clear both blocking arrows";
+        if (p.specialType == 5) return "Gate closed · activate the switch";
+        return null;
+    }
+
+    /**
+     * Finds only physical head-path blockers and deliberately ignores V18
+     * special requirements. We use this once at level setup to place special
+     * mechanics on dependency edges that already exist in the original puzzle.
+     */
+    private ArrayList<Piece> physicalBlockers(Piece target) {
+        ArrayList<Piece> blockers = new ArrayList<>();
+        if (target == null || target.pts.isEmpty()) return blockers;
+        Point tip = target.pts.get(target.pts.size()-1);
+        int x = tip.x, y = tip.y;
+        int max = gridW + gridH + 20;
+        HashSet<Integer> seen = new HashSet<>();
+        for (int step=1; step<=max; step++) {
+            int nx=x+target.dx*step, ny=y+target.dy*step;
+            int px=x+target.dx*(step-1), py=y+target.dy*(step-1);
+            if (nx<0 || nx>gridW || ny<0 || ny>gridH) break;
+            for (Piece other : pieces) {
+                if (other == target || seen.contains(other.id)) continue;
+                boolean hit = other.nodes.contains(nodeKey(nx,ny));
+                if (!hit) {
+                    if (target.dx != 0) hit = other.edges.contains(edgeKey(Math.min(px,nx),py,1));
+                    else hit = other.edges.contains(edgeKey(px,Math.min(py,ny),2));
+                }
+                if (hit) {
+                    blockers.add(other);
+                    seen.add(other.id);
+                }
+            }
+        }
+        blockers.sort((a,b)->Integer.compare(a.id,b.id));
+        return blockers;
+    }
+
+    private boolean specialFree(Piece p) {
+        return p != null && p.specialType == 0;
+    }
+
+    private void configureSpecialMechanics() {
+        for (Piece p : pieces) {
+            p.specialType=0; p.prereqA=-1; p.prereqB=-1; p.specialTarget=-1;
+        }
+        if (level < 41 || pieces.size() < 8) return;
+
+        ArrayList<Piece> targets = new ArrayList<>(pieces);
+        targets.sort((a,b)->Integer.compare(a.id,b.id));
+        int rotate = Math.floorMod(level * 17, Math.max(1, targets.size()));
+        Collections.rotate(targets, rotate);
+
+        // Chapter 3+: Key + Lock. The key is already a physical blocker.
+        for (Piece target : targets) {
+            ArrayList<Piece> blockers=physicalBlockers(target);
+            if (specialFree(target) && !blockers.isEmpty()) {
+                for (Piece key : blockers) if (specialFree(key)) {
+                    key.specialType=1; key.specialTarget=target.id;
+                    target.specialType=2; target.prereqA=key.id;
+                    blockers=null;
+                    break;
+                }
+            }
+            if (target.specialType==2) break;
+        }
+
+        // Chapter 5+: Frozen arrow needs two blockers that already sit in its path.
+        if (level >= 81) {
+            for (Piece target : targets) {
+                if (!specialFree(target)) continue;
+                ArrayList<Piece> blockers=physicalBlockers(target);
+                Piece a=null,b=null;
+                for (Piece q:blockers) if (specialFree(q)) {
+                    if(a==null)a=q; else {b=q;break;}
+                }
+                if(a!=null&&b!=null){
+                    target.specialType=3;target.prereqA=a.id;target.prereqB=b.id;
+                    break;
+                }
+            }
+        }
+
+        // Chapter 6+: Switch + Gate, also placed on an existing blocker edge.
+        if (level >= 121) {
+            for (Piece target : targets) {
+                if (!specialFree(target)) continue;
+                ArrayList<Piece> blockers=physicalBlockers(target);
+                for (Piece sw:blockers) if (specialFree(sw)) {
+                    sw.specialType=4;sw.specialTarget=target.id;
+                    target.specialType=5;target.prereqA=sw.id;
+                    blockers=null;
+                    break;
+                }
+                if(target.specialType==5)break;
+            }
+        }
+    }
+
     /**
      * Simulates the geometry of our approved snake/path-following motion against
      * the arrow's own body. The head travels straight while the tail advances
@@ -978,6 +1168,7 @@ public class ArrowGameView extends View {
     }
 
     private boolean isClear(Piece target) {
+        if(!specialUnlocked(target))return false;
         if(!hasSelfClearance(target))return false;
 
         HashSet<Long> nodes =
