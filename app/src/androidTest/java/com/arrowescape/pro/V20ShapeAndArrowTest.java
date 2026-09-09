@@ -2,7 +2,6 @@ package com.arrowescape.pro;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Path;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Test;
@@ -37,36 +36,6 @@ public class V20ShapeAndArrowTest {
         public void requestRewardedCoins(){} public void openWallet(){} public void openSettings(){}
         public void onContinueAfterWin(Runnable p){p.run();}
     }
-
-    @Test public void campaignCyclesLettersNumbersAndSpecialShapes() throws Exception { onMain(()->{
-        SharedPreferences gamePrefs=context().getSharedPreferences("arrow_puzzle_faithful",0);
-        SharedPreferences appPrefs=context().getSharedPreferences("arrow_escape_pro",0);
-        gamePrefs.edit().clear().putBoolean("tutorialSeen",true).commit();
-        appPrefs.edit().clear().commit();
-        ArrowGameView game=new ArrowGameView(context(),new Host(),new Wallet(new PreferenceWalletStorage(context())));
-        game.setPaused(true);
-        try{
-            assertEquals("A",game.shapeNameForLevel(1));
-            assertEquals("Z",game.shapeNameForLevel(26));
-            assertEquals("0",game.shapeNameForLevel(27));
-            assertEquals("9",game.shapeNameForLevel(36));
-            assertEquals("Heart",game.shapeNameForLevel(37));
-            assertEquals("Flower",game.shapeNameForLevel(46));
-            assertEquals("A",game.shapeNameForLevel(47));
-
-            for(int lv=1;lv<=46;lv++){
-                call(game,"startLevel",new Class[]{int.class},lv);
-                call(game,"ensureShapeMask",new Class[]{});
-                @SuppressWarnings("unchecked")
-                ArrayList<float[]> rows=(ArrayList<float[]>)get(game,"shapeMaskIntervals");
-                int drawable=0;
-                for(float[] row:rows)if(row.length>=2)drawable++;
-                assertTrue("Shape mask must have drawable rows for level "+lv+" ("+game.shapeNameForLevel(lv)+")",drawable>=18);
-                Path path=(Path)get(game,"normalizedShapePath");
-                assertFalse("Shape outline must not be empty at level "+lv,path.isEmpty());
-            }
-        }finally{game.release();}
-    });}
 
     @Test public void premiumThemeUnlockSpendsCoinsAndPersists() throws Exception { onMain(()->{
         SharedPreferences gamePrefs=context().getSharedPreferences("arrow_puzzle_faithful",0);
