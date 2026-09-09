@@ -59,17 +59,27 @@ jobs:
 
       - run:
           name: Verify build outputs
-          command: python3 scripts/verify-build.py
+          command: |
+            python3 scripts/verify-build.py
+            APK="app/build/outputs/apk/debug/app-debug.apk"
+            BYTES=$(stat -c%s "$APK")
+            echo "Installable debug APK size: $BYTES bytes"
+            test "$BYTES" -gt 2000000
 
       - run:
-          name: Package artifacts
+          name: Package clear download artifacts
           command: |
+            rm -rf dist
             mkdir -p dist
-            cp app/build/outputs/apk/debug/app-debug.apk dist/ArrowEscape-PuzzleMaze-1.0.0-test.apk
-            cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-PuzzleMaze-1.0.0-release-unsigned.apk
-            cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-1.0.0-tests.apk
-            cp app/build/outputs/bundle/release/app-release.aab dist/ArrowEscape-PuzzleMaze-1.0.0-release-unsigned.aab
-            cp tests/hard-level-metrics.json dist/level-metrics.json
+            cp app/build/outputs/apk/debug/app-debug.apk dist/INSTALL-THIS-ArrowEscape-v21-test.apk
+            cp app/build/outputs/bundle/release/app-release.aab dist/PLAY-STORE-ArrowEscape-v21-unsigned.aab
+            {
+              echo "INSTALL THIS ON PHONE/TABLET:"
+              ls -lh dist/INSTALL-THIS-ArrowEscape-v21-test.apk
+              echo
+              echo "PLAY STORE BUNDLE:"
+              ls -lh dist/PLAY-STORE-ArrowEscape-v21-unsigned.aab
+            } > dist/BUILD-SIZES.txt
             sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
 
       - save_cache:
@@ -80,8 +90,20 @@ jobs:
             - ~/gradle/gradle-9.6.0
 
       - store_artifacts:
-          path: dist
-          destination: ArrowEscape-1.0.0
+          path: dist/INSTALL-THIS-ArrowEscape-v21-test.apk
+          destination: INSTALL-THIS-ArrowEscape-v21-test.apk
+
+      - store_artifacts:
+          path: dist/PLAY-STORE-ArrowEscape-v21-unsigned.aab
+          destination: PLAY-STORE-ArrowEscape-v21-unsigned.aab
+
+      - store_artifacts:
+          path: dist/BUILD-SIZES.txt
+          destination: BUILD-SIZES.txt
+
+      - store_artifacts:
+          path: dist/SHA256SUMS.txt
+          destination: SHA256SUMS.txt
 
 workflows:
   build-arrow-escape:
