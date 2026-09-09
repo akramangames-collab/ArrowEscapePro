@@ -1,0 +1,89 @@
+version: 2.1
+
+jobs:
+  android-build:
+    docker:
+      - image: cimg/android:2026.08
+    resource_class: medium
+    environment:
+      GRADLE_USER_HOME: /home/circleci/.gradle
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx3g"
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - gradle-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "app/build.gradle.kts" }}
+            - gradle-v1-
+
+      - run:
+          name: Verify Java and Android toolchain
+          command: |
+            java -version
+            sdkmanager --version
+            yes | sdkmanager --licenses >/dev/null || true
+            sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - run:
+          name: Install Gradle 9.6
+          command: |
+            if [ ! -x "$HOME/gradle/gradle-9.6/bin/gradle" ]; then
+              mkdir -p "$HOME/gradle"
+              curl -fsSL https://services.gradle.org/distributions/gradle-9.6-bin.zip -o /tmp/gradle-9.6-bin.zip
+              unzip -q /tmp/gradle-9.6-bin.zip -d "$HOME/gradle"
+            fi
+            "$HOME/gradle/gradle-9.6/bin/gradle" --version
+
+      - run:
+          name: Validate level pack
+          command: python3 scripts/generate-hard-levels.py --check
+
+      - run:
+          name: Verify levels and gameplay rules
+          command: python3 scripts/verify-levels.py
+
+      - run:
+          name: Verify wallet
+          command: bash scripts/test-wallet.sh
+
+      - run:
+          name: Build APKs and Play Store bundle
+          command: |
+            "$HOME/gradle/gradle-9.6/bin/gradle" \
+              :app:assembleDebug \
+              :app:assembleRelease \
+              :app:bundleRelease \
+              :app:assembleDebugAndroidTest \
+              --stacktrace --no-daemon
+
+      - run:
+          name: Verify build outputs
+          command: python3 scripts/verify-build.py
+
+      - run:
+          name: Package artifacts
+          command: |
+            mkdir -p dist
+            cp app/build/outputs/apk/debug/app-debug.apk dist/ArrowEscape-PuzzleMaze-1.0.0-test.apk
+            cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-PuzzleMaze-1.0.0-release-unsigned.apk
+            cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-1.0.0-tests.apk
+            cp app/build/outputs/bundle/release/app-release.aab dist/ArrowEscape-PuzzleMaze-1.0.0-release-unsigned.aab
+            cp tests/hard-level-metrics.json dist/level-metrics.json
+            sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
+
+      - save_cache:
+          key: gradle-v1-{{ checksum "build.gradle.kts" }}-{{ checksum "app/build.gradle.kts" }}
+          paths:
+            - ~/.gradle/caches
+            - ~/.gradle/notifications
+            - ~/gradle/gradle-9.6
+
+      - store_artifacts:
+          path: dist
+          destination: ArrowEscape-1.0.0
+
+workflows:
+  build-arrow-escape:
+    jobs:
+      - android-build
