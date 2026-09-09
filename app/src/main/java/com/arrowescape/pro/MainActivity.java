@@ -227,7 +227,6 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
                 toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")));
                 toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();game.invalidate();});body.addView(toggle);
             }
-            body.addView(text("Current puzzle shape · "+game.currentShapeName(),13,MUTED));
             final Button[] arrowTypeButton=new Button[1];
             arrowTypeButton[0]=button("Arrow type · "+game.currentArrowType(),()->{
                 String[] options=game.arrowTypeOptionLabels();
