@@ -60,8 +60,9 @@ public class ArrowGameView extends View {
     private final Wallet wallet;
     private boolean paused;
     private int mistakes, winReward, earnedStars, assistsUsed;
+    private int combo, bestCombo;
     private boolean dailyChallenge;
-    private long challengeDay = -1L, milestoneIntroUntil = 0L;
+    private long challengeDay = -1L, milestoneIntroUntil = 0L, comboFlashUntil = 0L;
     private int normalLevelBeforeChallenge = 1;
     private String runId;
     private final RectF walletHit = new RectF(), hintHit = new RectF(), eraseHit = new RectF(), rewardHit = new RectF();
@@ -211,13 +212,17 @@ public class ArrowGameView extends View {
     }
 
     private void drawPlay(Canvas c, long now) {
+        c.drawColor(boardBackground());
         float w = getWidth(), h = getHeight(), top = insetTop + dp(8);
         drawBack(c, dp(28), top + dp(30));
         String title = dailyChallenge ? "Daily Challenge" : (isBoss(level) ? "Boss Level " + level : "Level " + level);
         label(c, title, w/2, top + dp(29), 23, NAVY, true);
         int difficultyColor = dailyChallenge ? DAILY_PURPLE : (isBoss(level) ? BOSS_GOLD : isSuperHard(level) ? SUPER_HARD : Color.rgb(100,116,139));
-        String sub = dailyChallenge ? "SUPER HARD DAILY  ·  puzzle " + level : difficulty() + "  ·  " + level + " / 200";
-        label(c, sub, w/2, top + dp(49), 11, difficultyColor, dailyChallenge || isSuperHard(level));
+        String sub = dailyChallenge
+            ? "SUPER HARD DAILY  ·  puzzle " + level
+            : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + difficulty();
+        if (!dailyChallenge && combo >= 2) sub += " · STREAK x" + combo;
+        label(c, sub, w/2, top + dp(49), 11, difficultyColor, dailyChallenge || isSuperHard(level) || combo >= 3);
         drawGear(c, w-dp(31), top+dp(30));
         float statY = top + dp(84);
         pill(c,new RectF(dp(16),statY-dp(21),dp(94),statY+dp(21)),PALE);
@@ -429,7 +434,7 @@ public class ArrowGameView extends View {
           : (
               p.hintUntil > now
               ? Color.rgb(236, 167, 28)
-              : (settings.getBoolean("contrast",false)?Color.BLACK:NAVY)
+              : (settings.getBoolean("contrast",false)?Color.BLACK:selectedArrowColor())
           );
 
   int alpha = 255;
@@ -600,9 +605,11 @@ public class ArrowGameView extends View {
     }
 
     private void drawLevels(Canvas c) {
+        c.drawColor(boardBackground());
         float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
         paint.setColor(TEXT);paint.setTextAlign(Paint.Align.CENTER);paint.setTextSize(dp(27));paint.setFakeBoldText(true);c.drawText("Levels",w/2,top+dp(31),paint);paint.setFakeBoldText(false);
-        label(c,totalStars()+" / 600 stars",w/2,top+dp(55),12,Color.rgb(100,116,139),false);
+        int pageLevel=Math.min(MAX_LEVEL,levelPage*20+1);
+        label(c,"CH "+chapterNumber(pageLevel)+" · "+chapterName(pageLevel)+" · "+totalStars()+" / 600★",w/2,top+dp(55),11,Color.rgb(100,116,139),false);
         drawBack(c,dp(28),top+dp(28));
         int start=levelPage*20+1;
         float gap=dp(10), left=dp(20), bw=(w-left*2-gap*3)/4f, bh=dp(66), y0=top+dp(82);
@@ -680,7 +687,7 @@ public class ArrowGameView extends View {
         level=Math.max(1,Math.min(MAX_LEVEL,lv));
         if(persistNormal){prefs.edit().putInt("lastLevel",level).apply();normalLevelBeforeChallenge=level;}
         screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;
-        mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
+        mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;combo=0;bestCombo=0;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         generateLevel(level);
         milestoneIntroUntil=(dailyChallenge||isSuperHard(level))?SystemClock.elapsedRealtime()+1600L:0L;
         saveProgress();invalidate();
@@ -730,8 +737,14 @@ public class ArrowGameView extends View {
         if(isClear(p)) {
             if(settings.getBoolean("haptics",true))performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
             p.moving=true;p.moveT=0;p.moveSteps=snakeTravelSteps(p);
-            playSound(ToneGenerator.TONE_PROP_BEEP,70);buzz(20);
+            combo++;bestCombo=Math.max(bestCombo,combo);comboFlashUntil=SystemClock.elapsedRealtime()+1400L;
+            if(combo==3)showToast("SMART · 3 move streak");
+            else if(combo==5)showToast("GREAT · 5 move streak");
+            else if(combo==8)showToast("GENIUS · 8 move streak");
+            else if(combo>0&&combo%10==0)showToast("MASTER STREAK · x"+combo);
+            playSound(ToneGenerator.TONE_PROP_BEEP,70);buzz(combo>=5?28:20);
         } else {
+            combo=0;
             p.flashUntil=SystemClock.elapsedRealtime()+390;hearts--;mistakes++;
             playSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,110);buzz(55);
             showToast(selfBlocked ? "Tail blocks this escape" : "Blocked by another arrow");
@@ -745,17 +758,27 @@ public class ArrowGameView extends View {
         for(Piece p:pieces){if(!p.removed&&!p.moving&&p.hintUntil>now)return;if(!p.removed&&!p.moving&&isClear(p))safe.add(p);}
         if(safe.isEmpty()){showToast("Wait for the moving arrows");return;}
         if(hints>0)hints--;else if(!wallet.spend(Wallet.HINT_COST)){host.openWallet();return;}
-        assistsUsed++;
+        assistsUsed++;combo=0;
         Piece p=safe.get(rng.nextInt(safe.size()));p.hintUntil=now+2400;
         saveProgress();showToast("Safe arrow highlighted");invalidate();
     }
 
-    private void useEraser(){if(erasers<=0){host.requestRewardedErase();return;}ArrayList<Piece> active=new ArrayList<>();for(Piece p:pieces)if(!p.removed&&!p.moving)active.add(p);if(active.isEmpty())return;Piece p=active.get(rng.nextInt(active.size()));erasers--;assistsUsed++;p.moving=true;p.moveT=0;p.moveSteps=snakeTravelSteps(p);showToast("One arrow removed");saveProgress();invalidate();}
+    private void useEraser(){if(erasers<=0){host.requestRewardedErase();return;}ArrayList<Piece> active=new ArrayList<>();for(Piece p:pieces)if(!p.removed&&!p.moving)active.add(p);if(active.isEmpty())return;Piece p=active.get(rng.nextInt(active.size()));erasers--;assistsUsed++;combo=0;p.moving=true;p.moveT=0;p.moveSteps=snakeTravelSteps(p);showToast("One arrow removed");saveProgress();invalidate();}
 
     public void grantEraser(){erasers++;saveProgress();showToast("Eraser added");invalidate();}
     public void grantRevive(){if(!failed)return;failed=false;hearts=2;assistsUsed++;saveProgress();showToast("Revived with 2 hearts");invalidate();}
 
     private int remaining(){int n=0;for(Piece p:pieces)if(!p.removed)n++;return n;}
+    private int chapterNumber(int lv){if(lv<=20)return 1;if(lv<=40)return 2;if(lv<=60)return 3;if(lv<=80)return 4;if(lv<=100)return 5;if(lv<=140)return 6;if(lv<=180)return 7;return 8;}
+    private String chapterName(int lv){switch(chapterNumber(lv)){case 1:return "First Escape";case 2:return "Twisted Paths";case 3:return "Tail Trouble";case 4:return "Locked Logic";case 5:return "Chain Reaction";case 6:return "Master Escape";case 7:return "Impossible Maze";default:return "Grandmaster";}}
+    private int selectedArrowColor(){int s=Math.floorMod(settings.getInt("arrow_style",0),4);if(s==1)return Color.rgb(28,145,194);if(s==2)return Color.rgb(126,76,196);if(s==3)return Color.rgb(190,121,12);return NAVY;}
+    private int boardBackground(){int t=Math.floorMod(settings.getInt("board_theme",0),4);if(t==1)return Color.rgb(244,249,255);if(t==2)return Color.rgb(255,249,237);if(t==3)return Color.rgb(241,251,247);return Color.WHITE;}
+    private String arrowStyleName(int s){switch(Math.floorMod(s,4)){case 1:return "Ocean";case 2:return "Galaxy";case 3:return "Gold";default:return "Classic";}}
+    private String boardThemeName(int t){switch(Math.floorMod(t,4)){case 1:return "Ice";case 2:return "Warm";case 3:return "Mint";default:return "Clean";}}
+    public String cycleArrowStyle(){int next=Math.floorMod(settings.getInt("arrow_style",0)+1,4);settings.edit().putInt("arrow_style",next).apply();invalidate();return arrowStyleName(next);}
+    public String cycleBoardTheme(){int next=Math.floorMod(settings.getInt("board_theme",0)+1,4);settings.edit().putInt("board_theme",next).apply();invalidate();return boardThemeName(next);}
+    public String currentArrowStyle(){return arrowStyleName(settings.getInt("arrow_style",0));}
+    public String currentBoardTheme(){return boardThemeName(settings.getInt("board_theme",0));}
     private boolean isSuperHard(int lv){return lv%5==0;}
     private boolean isBoss(int lv){return lv==25||lv==50||lv==100||lv==150||lv==200;}
     private String difficulty(){if(isBoss(level))return "BOSS MILESTONE";if(isSuperHard(level))return "SUPER HARD ★";if(level<=40)return "Hard";if(level<=120)return "Expert";return "Master";}
@@ -1072,7 +1095,7 @@ public class ArrowGameView extends View {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
             state.put("packVersion",LEVEL_PACK_VERSION).put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
-                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars)
+                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo)
                  .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("normalLevel",normalLevelBeforeChallenge)
                  .put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
             prefs.edit().putString("v16_progress",state.toString()).commit();
@@ -1091,7 +1114,7 @@ public class ArrowGameView extends View {
             else startLevel(savedLevel);
             runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
             hints=Math.max(0,Math.min(2,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
-            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);
+            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));
             finished=state.optBoolean("finished",false);failed=state.optBoolean("failed",false);winReward=state.optInt("winReward",0);
             org.json.JSONArray removed=state.getJSONArray("removed");java.util.HashSet<Integer> ids=new java.util.HashSet<>();
             for(int i=0;i<removed.length();i++)ids.add(removed.getInt(i));for(Piece p:pieces)p.removed=ids.contains(p.id);
