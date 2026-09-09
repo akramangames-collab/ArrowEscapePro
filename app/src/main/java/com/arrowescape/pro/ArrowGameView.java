@@ -1692,6 +1692,7 @@ public class ArrowGameView extends View {
     private void showLevelSelect(){screen=Screen.LEVELS;levelPage=(level-1)/20;saveProgress();invalidate();}
     public void openLevels(){showLevelSelect();}
     public void openPlay(){screen=Screen.PLAY;invalidate();}
+    public int currentLevelNumber(){return level;}
     public int dailyPuzzleNumber(){return dailyLevelForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
     public int totalStarCount(){return totalStars();}
     public int completedLevelCount(){return completedLevels();}
