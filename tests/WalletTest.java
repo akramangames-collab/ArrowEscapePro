@@ -8,9 +8,12 @@ public class WalletTest {
     static int assertions;
     static void eq(long expected,long actual){assertions++;if(expected!=actual)throw new AssertionError("Expected "+expected+" but got "+actual);}
     static void yes(boolean value){eq(1,value?1:0);}
+    static void no(boolean value){eq(0,value?1:0);}
     public static void main(String[] args) {
         Storage s=new Storage();Wallet w=new Wallet(s);eq(100,w.balance());
         yes(w.spend(25));eq(75,new Wallet(s).balance());
+        yes(w.ownsArrowType(0));no(w.ownsArrowType(1));
+        no(w.purchaseArrowType(1,200));eq(75,w.balance());
         eq(25,w.rewardLevel("run1",1,3));eq(0,w.rewardLevel("run1",1,3));
         eq(90,w.rewardLevel("run5",5,1));eq(100,w.rewardLevel("run10",10,3));
         eq(175,w.rewardLevel("boss25",25,3));eq(465,w.balance());
@@ -21,6 +24,9 @@ public class WalletTest {
         yes(w.canRewardWeeklyChallenge(7));eq(350,w.rewardWeeklyChallenge(7,3));eq(0,new Wallet(s).rewardWeeklyChallenge(7,3));
         eq(300,w.rewardWeeklyChallenge(8,2));eq(0,w.rewardWeeklyChallenge(8,2));
         eq(75,w.rewardAd("ad1"));eq(0,new Wallet(s).rewardAd("ad1"));
+        yes(w.purchaseArrowType(1,200));yes(w.ownsArrowType(1));
+        int afterSlim=w.balance();yes(w.purchaseArrowType(1,200));eq(afterSlim,w.balance());
+        yes(new Wallet(s).ownsArrowType(1));
         s.fail=true;int balance=w.balance();eq(0,w.rewardAd("failed"));eq(balance,w.balance());s.fail=false;eq(75,w.rewardAd("failed"));
         Storage legacy=new Storage();legacy.state.coins=460;legacy.state.dailyDay=20;legacy.state.streak=4;
         Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(100,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.streak());
