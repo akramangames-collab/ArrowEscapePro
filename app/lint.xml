@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- Android 16 explicitly permits this temporary opt-out while legacy
+         Activity.onBackPressed handling remains enabled in the manifest. -->
+    <issue id="GestureBackNavigation" severity="ignore" />
+</lint>
