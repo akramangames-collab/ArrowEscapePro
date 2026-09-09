@@ -276,11 +276,42 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
             body.addView(arrowStyleButton[0]);
             final Button[] boardThemeButton=new Button[1];
             boardThemeButton[0]=button("Board theme · "+game.currentBoardTheme(),()->{
-                String name=game.cycleBoardTheme();
-                boardThemeButton[0].setText("Board theme · "+name);
-                toast("Board theme: "+name);
+                String[] options=game.boardThemeOptionLabels();
+                new AlertDialog.Builder(this)
+                    .setTitle("Theme Shop")
+                    .setSingleChoiceItems(options,game.currentBoardThemeIndex(),(dialog,which)->{
+                        if(game.isBoardThemeOwned(which)){
+                            game.unlockAndSelectBoardTheme(which);
+                            boardThemeButton[0].setText("Board theme · "+game.currentBoardTheme());
+                            toast(game.currentBoardTheme()+" selected · "+game.boardThemeFeature(which));
+                            dialog.dismiss();
+                            return;
+                        }
+                        int price=game.boardThemePrice(which);
+                        String name=game.boardThemeNames()[which];
+                        String feature=game.boardThemeFeature(which);
+                        dialog.dismiss();
+                        new AlertDialog.Builder(this)
+                            .setTitle("Unlock "+name+" theme?")
+                            .setMessage(feature+"\n\nPrice: "+price+" coins\nYour balance: "+wallet.balance()+" coins")
+                            .setNegativeButton("Not now",null)
+                            .setPositiveButton("Unlock",(buy,w)->{
+                                if(game.unlockAndSelectBoardTheme(which)){
+                                    updateBalance();
+                                    boardThemeButton[0].setText("Board theme · "+game.currentBoardTheme());
+                                    toast(name+" theme unlocked");
+                                }else{
+                                    int need=Math.max(0,price-wallet.balance());
+                                    toast(need>0?"Need "+need+" more coins":"Could not save purchase");
+                                }
+                            })
+                            .show();
+                    })
+                    .setNegativeButton("Cancel",null)
+                    .show();
             },false);
             body.addView(boardThemeButton[0]);
+            body.addView(text("Clean is free. Ice 250 · Sunset 300 · Mint 350 · Midnight 500 · Lava 650 coins.",12,MUTED));
             body.addView(button("How to play",()->{menu.dismiss();game.showTutorialAgain();},false));
             body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
             body.addView(button("Restart this level",()->{menu.dismiss();new AlertDialog.Builder(this).setTitle("Restart level?").setMessage("Your coin balance is kept. This puzzle starts again.").setNegativeButton("Keep playing",null).setPositiveButton("Restart",(d,w)->game.restartCurrentLevel()).show();},false));
