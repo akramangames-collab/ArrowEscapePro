@@ -294,7 +294,7 @@ public class ArrowGameView extends View {
             for(int i=0;i<8;i++){double a=i*Math.PI/4;c.drawLine(cx,cy,cx+(float)Math.cos(a)*r,cy+(float)Math.sin(a)*r,paint);}
         }
         paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(44,Color.red(accent),Color.green(accent),Color.blue(accent)));
-        label(c,"BOSS WORLD · "+(level==25?"DIAMOND":level==50?"CROWN":level==100?"INFINITY":level==150?"ROCKET":"GRANDMASTER"),w/2,h*.20f,11,accent,true);
+        label(c,"BOSS SHAPE · "+currentShapeName().toUpperCase(Locale.US),w/2,h*.20f,11,accent,true);
     }
 
     private static final String[] SPECIAL_SHAPES={
@@ -820,8 +820,9 @@ public class ArrowGameView extends View {
             paint.setColor(cardColor);c.drawRoundRect(r,dp(16),dp(16),paint);
             if(milestone){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(boss?2.7f:2));paint.setColor(open?(boss?BOSS_GOLD:SUPER_HARD):Color.rgb(210,190,170));c.drawRoundRect(r,dp(16),dp(16),paint);paint.setStyle(Paint.Style.FILL);}
             int stars=open?bestStars(lv):0;
-            paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(18));paint.setColor(open?(boss?BOSS_GOLD:milestone?SUPER_HARD:TEXT):Color.rgb(171,180,194));c.drawText(open?String.valueOf(lv):"•",r.centerX(),r.top+dp(30),paint);paint.setFakeBoldText(false);
-            if(open&&stars>0)label(c,starString(stars),r.centerX(),r.bottom-dp(8),9,Color.rgb(225,161,20),true);
+            paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(17));paint.setColor(open?(boss?BOSS_GOLD:milestone?SUPER_HARD:TEXT):Color.rgb(171,180,194));c.drawText(open?String.valueOf(lv):"•",r.centerX(),r.top+dp(25),paint);paint.setFakeBoldText(false);
+            if(open)label(c,shapeNameForLevel(lv),r.centerX(),r.top+dp(43),8,Color.rgb(105,119,142),true);
+            if(open&&stars>0)label(c,starString(stars),r.centerX(),r.bottom-dp(7),8,Color.rgb(225,161,20),true);
             if(milestone)label(c,boss?"BOSS":"★",r.right-dp(boss?22:13),r.top+dp(15),boss?7:10,open?(boss?BOSS_GOLD:SUPER_HARD):Color.rgb(190,180,170),true);
         }
         float y=h-insetBottom-dp(72);RectF prev=new RectF(dp(24),y,w*.45f,y+dp(48));RectF next=new RectF(w*.55f,y,w-dp(24),y+dp(48));
