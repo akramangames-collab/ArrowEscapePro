@@ -603,6 +603,24 @@ public class ArrowGameView extends View {
     }
 
     private void drawMilestoneIntro(Canvas c) {
+        if(!dailyChallenge&&(level==41||level==81||level==121)){
+            RectF r=modal(c,300);
+            int accent=level==41?Color.rgb(219,157,25):level==81?Color.rgb(60,173,220):Color.rgb(132,88,207);
+            String title=level==41?"KEYS & LOCKS":level==81?"FROZEN ARROWS":"SWITCHES & GATES";
+            String line1=level==41?"Clear the gold key arrow before its locked arrow can escape."
+                :level==81?"Frozen arrows thaw only after both marked blockers are gone."
+                :"Clear the purple switch arrow to open its red gate.";
+            String line2=level==41?"The key was already part of the puzzle's blocking chain."
+                :level==81?"Hints understand the ice rule, so they stay safe."
+                :"Gate logic follows the same full-clearance solver.";
+            label(c,"NEW MECHANIC",r.centerX(),r.top+dp(39),12,accent,true);
+            label(c,title,r.centerX(),r.top+dp(79),27,accent,true);
+            label(c,line1,r.centerX(),r.top+dp(128),13,NAVY,true);
+            label(c,line2,r.centerX(),r.top+dp(161),12,TEXT,false);
+            label(c,"Wrong special-arrow taps still cost a heart.",r.centerX(),r.top+dp(195),12,RED,true);
+            label(c,"Tap anywhere to start",r.centerX(),r.bottom-dp(31),12,Color.rgb(111,124,145),false);
+            return;
+        }
         RectF r=modal(c,dailyChallenge?250:270);
         int accent=dailyChallenge?DAILY_PURPLE:(isBoss(level)?BOSS_GOLD:SUPER_HARD);
         label(c,dailyChallenge?"DAILY CHALLENGE":(isBoss(level)?"BOSS MILESTONE":"SUPER HARD"),r.centerX(),r.top+dp(52),28,accent,true);
@@ -759,7 +777,8 @@ public class ArrowGameView extends View {
         mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;combo=0;bestCombo=0;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         generateLevel(level);
         configureSpecialMechanics();
-        milestoneIntroUntil=(dailyChallenge||isSuperHard(level))?SystemClock.elapsedRealtime()+1600L:0L;
+        boolean mechanicIntro=!dailyChallenge&&(level==41||level==81||level==121);
+        milestoneIntroUntil=(dailyChallenge||isSuperHard(level)||mechanicIntro)?SystemClock.elapsedRealtime()+(mechanicIntro?5000L:1600L):0L;
         saveProgress();invalidate();
     }
 
