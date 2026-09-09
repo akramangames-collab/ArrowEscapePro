@@ -8,12 +8,10 @@
         <item name="android:textColorSecondary">#9CB3D5</item>
         <item name="android:alertDialogTheme">@style/PremiumAlertDialog</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
         <item name="android:statusBarColor">#050B1E</item>
         <item name="android:navigationBarColor">#050B1E</item>
         <item name="android:windowBackground">#050B1E</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="android:forceDarkAllowed">false</item>
     </style>
 
     <style name="PremiumAlertDialog" parent="android:style/Theme.Material.Dialog.Alert">
@@ -28,7 +26,6 @@
         <item name="android:backgroundDimEnabled">true</item>
         <item name="android:backgroundDimAmount">0.72</item>
         <item name="android:windowAnimationStyle">@style/PremiumWindowAnimation</item>
-        <item name="android:forceDarkAllowed">false</item>
     </style>
 
     <style name="PremiumWindowAnimation">
