@@ -49,6 +49,16 @@
 - Improved: explicitly disabled system force-dark transformation on the premium theme path to protect cyan/purple/gold contrast on devices that apply OEM dark-mode overrides.
 - Preserved: no gameplay movement, level generation, self-tail/full-clearance, reward amount, or progression rule changes.
 - Commit: fb27f3c809c850319256909e1e5b68ca9dabd17a.
+- Build: CircleCI android-build SUCCESS.
+
+## Pass 5 — build delivery clarity + version consistency
+- Re-verified Pass 4 CI before making another change: CircleCI android-build is SUCCESS.
+- Upload-readiness finding: the active CircleCI pipeline still packaged current V23/1.0.0 builds under old V22 filenames. This creates a real risk of installing or sharing the wrong APK during the morning design/working review.
+- Fixed: debug APK is now packaged as INSTALL-THIS-ArrowEscape-1.0.0-test.apk.
+- Fixed: release bundle is now packaged as PLAY-STORE-ArrowEscape-1.0.0-unsigned.aab and explicitly labeled unsigned so signing is not confused with the pre-approval APK review.
+- Fixed: BUILD-SIZES.txt wording now clearly distinguishes the installable test APK from the unsigned Play Store bundle.
+- Preserved: no gameplay, rewards, level generation, movement, self-tail/full-clearance, or UI behavior changed in this pass.
+- Commit: 8b17ec1ad5756164098377416d6074c856ed5344.
 - Build: CircleCI android-build pending at end of this pass.
 
-Next: validate Pass 4 build, then continue first-launch/accessibility and Home/Store/Levels/Achievements visual hierarchy audit.
+Next: validate Pass 5 build, then continue first-launch/accessibility and Home/Store/Levels/Achievements visual hierarchy audit.
