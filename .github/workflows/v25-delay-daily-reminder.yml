@@ -2,8 +2,7 @@ name: Delay Daily Challenge Reminder
 
 on:
   push:
-    branches:
-      - v23-upload-ready-nightly
+    branches: [v23-upload-ready-nightly]
 
 permissions:
   contents: write
@@ -28,98 +27,104 @@ jobs:
               print('Reminder delay already applied')
               raise SystemExit(0)
 
-          pairs = [
-              (
-                  '    private long lastInterstitialAt = SystemClock.elapsedRealtime();\n',
-                  '    private long lastInterstitialAt = SystemClock.elapsedRealtime();\n'
-                  '    private static final long DAILY_CHALLENGE_REMINDER_DELAY_MS = 150000L; // 2.5 minutes\n'
-                  '    private static final long DAILY_CHALLENGE_REMINDER_RETRY_MS = 30000L;\n'
-                  '    private boolean dailyReminderScheduled;\n'
-                  '    private final Runnable dailyReminderTask = this::tryShowDailyChallengeReminder;\n'
-              ),
-              (
-                  '            showHome();\n            maybeShowDailyChallengeReminder();\n',
-                  '            showHome();\n'
-              ),
-              (
-                  '        hero.addView(button("▶  PLAY",()->{if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);\n',
-                  '        hero.addView(button("▶  PLAY",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);\n'
-              ),
-              (
-                  '        row1.addView(tileButton("▥\\nLEVELS\\n200 PUZZLES",CYAN,()->{if(menu!=null)menu.dismiss();game.openLevels();}));\n',
-                  '        row1.addView(tileButton("▥\\nLEVELS\\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();}));\n'
-              ),
-              (
-                  '    private void showDailyChallengePanel() {\n        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");\n        long day=System.currentTimeMillis()/Wallet.DAY_MS;boolean rewardReady=wallet.canRewardDailyChallenge(day);\n',
-                  '    private void showDailyChallengePanel() {\n'
-                  '        long day=System.currentTimeMillis()/Wallet.DAY_MS;\n'
-                  '        settings.edit().putLong("daily_challenge_prompt_day",day).apply();\n'
-                  '        dailyReminderScheduled=false;\n'
-                  '        if(game!=null)game.removeCallbacks(dailyReminderTask);\n'
-                  '        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");\n'
-                  '        boolean rewardReady=wallet.canRewardDailyChallenge(day);\n'
-              ),
-              (
-                  '        reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);reminder.show();\n',
-                  '        reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);\n'
-                  '        reminder.setOnDismissListener(d->{if(!showingAd&&(menu==null||!menu.isShowing()))game.setPaused(false);});\n'
-                  '        game.setPaused(true);reminder.show();\n'
-              ),
-              (
-                  '    @Override protected void onDestroy(){destroyBanner();if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}\n',
-                  '    @Override protected void onDestroy(){destroyBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}\n'
-              )
-          ]
-
-          for old, new in pairs:
+          def one(old, new, label):
+              global s
               if s.count(old) != 1:
-                  raise SystemExit('Expected reminder source pattern not found exactly once')
+                  raise SystemExit(f'{label}: expected one match, found {s.count(old)}')
               s = s.replace(old, new, 1)
+
+          one(
+              '    private long lastInterstitialAt = SystemClock.elapsedRealtime();\n',
+              '    private long lastInterstitialAt = SystemClock.elapsedRealtime();\n'
+              '    private static final long DAILY_CHALLENGE_REMINDER_DELAY_MS = 150000L; // 2.5 minutes\n'
+              '    private static final long DAILY_CHALLENGE_REMINDER_RETRY_MS = 30000L;\n'
+              '    private boolean dailyReminderScheduled;\n'
+              '    private final Runnable dailyReminderTask = this::tryShowDailyChallengeReminder;\n',
+              'fields')
+
+          one(
+              '            showHome();\n            maybeShowDailyChallengeReminder();\n',
+              '            showHome();\n',
+              'startup')
+
+          one(
+              '        hero.addView(button("▶  PLAY",()->{if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);\n',
+              '        hero.addView(button("▶  PLAY",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);\n',
+              'play button')
+
+          one(
+              '        row1.addView(tileButton("▥\\nLEVELS\\n200 PUZZLES",CYAN,()->{if(menu!=null)menu.dismiss();game.openLevels();}));\n',
+              '        row1.addView(tileButton("▥\\nLEVELS\\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();}));\n',
+              'levels button')
+
+          one(
+              '    private void showDailyChallengePanel() {\n        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");\n        long day=System.currentTimeMillis()/Wallet.DAY_MS;boolean rewardReady=wallet.canRewardDailyChallenge(day);\n',
+              '    private void showDailyChallengePanel() {\n'
+              '        long day=System.currentTimeMillis()/Wallet.DAY_MS;\n'
+              '        settings.edit().putLong("daily_challenge_prompt_day",day).apply();\n'
+              '        dailyReminderScheduled=false;\n'
+              '        if(game!=null)game.removeCallbacks(dailyReminderTask);\n'
+              '        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");\n'
+              '        boolean rewardReady=wallet.canRewardDailyChallenge(day);\n',
+              'manual challenge panel')
 
           marker = '    private void maybeShowDailyChallengeReminder() {\n'
           if s.count(marker) != 1:
-              raise SystemExit('Reminder method marker not found')
-          methods = '''    private void scheduleDailyChallengeReminder() {
-        if(dailyReminderScheduled || game==null)return;
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
-        if(!wallet.canRewardDailyChallenge(day))return;
-        if(settings.getLong("daily_challenge_prompt_day",-1L)==day)return;
-        dailyReminderScheduled=true;
-        game.removeCallbacks(dailyReminderTask);
-        game.postDelayed(dailyReminderTask,DAILY_CHALLENGE_REMINDER_DELAY_MS);
-    }
-
-    private void tryShowDailyChallengeReminder() {
-        if(isFinishing()||isDestroyed()||game==null){dailyReminderScheduled=false;return;}
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
-        if(!wallet.canRewardDailyChallenge(day)||settings.getLong("daily_challenge_prompt_day",-1L)==day){
-            dailyReminderScheduled=false;
-            return;
-        }
-        if(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing())){
-            game.postDelayed(dailyReminderTask,DAILY_CHALLENGE_REMINDER_RETRY_MS);
-            return;
-        }
-        dailyReminderScheduled=false;
-        maybeShowDailyChallengeReminder();
-    }
-
-'''
+              raise SystemExit('reminder marker missing')
+          methods = (
+              '    private void scheduleDailyChallengeReminder() {\n'
+              '        if(dailyReminderScheduled || game==null)return;\n'
+              '        long day=System.currentTimeMillis()/Wallet.DAY_MS;\n'
+              '        if(!wallet.canRewardDailyChallenge(day))return;\n'
+              '        if(settings.getLong("daily_challenge_prompt_day",-1L)==day)return;\n'
+              '        dailyReminderScheduled=true;\n'
+              '        game.removeCallbacks(dailyReminderTask);\n'
+              '        game.postDelayed(dailyReminderTask,DAILY_CHALLENGE_REMINDER_DELAY_MS);\n'
+              '    }\n\n'
+              '    private void tryShowDailyChallengeReminder() {\n'
+              '        if(isFinishing()||isDestroyed()||game==null){dailyReminderScheduled=false;return;}\n'
+              '        long day=System.currentTimeMillis()/Wallet.DAY_MS;\n'
+              '        if(!wallet.canRewardDailyChallenge(day)||settings.getLong("daily_challenge_prompt_day",-1L)==day){\n'
+              '            dailyReminderScheduled=false;\n'
+              '            return;\n'
+              '        }\n'
+              '        if(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing())){\n'
+              '            game.postDelayed(dailyReminderTask,DAILY_CHALLENGE_REMINDER_RETRY_MS);\n'
+              '            return;\n'
+              '        }\n'
+              '        dailyReminderScheduled=false;\n'
+              '        maybeShowDailyChallengeReminder();\n'
+              '    }\n\n'
+          )
           s = s.replace(marker, methods + marker, 1)
+
+          one(
+              '        reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);reminder.show();\n',
+              '        reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);\n'
+              '        reminder.setOnDismissListener(d->{if(!showingAd&&(menu==null||!menu.isShowing()))game.setPaused(false);});\n'
+              '        game.setPaused(true);reminder.show();\n',
+              'reminder pause')
+
+          one(
+              '    @Override protected void onDestroy(){destroyBanner();if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}\n',
+              '    @Override protected void onDestroy(){destroyBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}\n',
+              'destroy cleanup')
+
           p.write_text(s)
           PY
 
-      - name: Verify source
+      - name: Verify source behavior
         shell: bash
         run: |
-          grep -q 'DAILY_CHALLENGE_REMINDER_DELAY_MS = 150000L' app/src/main/java/com/arrowescape/pro/MainActivity.java
-          grep -q 'scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();' app/src/main/java/com/arrowescape/pro/MainActivity.java
           python3 - <<'PY'
           from pathlib import Path
-          s=Path('app/src/main/java/com/arrowescape/pro/MainActivity.java').read_text()
-          startup=s[s.index('game.postDelayed(() ->'):s.index('consent = UserMessagingPlatform')]
+          s = Path('app/src/main/java/com/arrowescape/pro/MainActivity.java').read_text()
+          assert 'DAILY_CHALLENGE_REMINDER_DELAY_MS = 150000L' in s
+          startup = s[s.index('game.postDelayed(() ->'):s.index('consent = UserMessagingPlatform')]
           assert 'maybeShowDailyChallengeReminder()' not in startup
-          print('Reminder starts only after gameplay begins')
+          assert 'scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();' in s
+          assert 'scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();' in s
+          print('Daily Challenge reminder delay source checks passed')
           PY
 
       - uses: actions/setup-java@v5
