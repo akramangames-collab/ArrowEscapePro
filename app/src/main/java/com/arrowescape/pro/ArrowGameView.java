@@ -1026,7 +1026,12 @@ public class ArrowGameView extends View {
         if(walletHit.contains(x,y)||rewardHit.contains(x,y)){host.openWallet();return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
         if(eraseHit.contains(x,y)){useEraser();return true;}
-        Piece piece=findPieceAt(x,y);if(piece!=null)tapPiece(piece);return true;
+        // A tap belongs to the arrow selected on ACTION_DOWN. Re-running hit testing
+        // on ACTION_UP can switch to a neighbouring dense-grid arrow after normal finger
+        // drift, causing a false blocked result and an incorrect heart penalty.
+        Piece piece=(releasedPress!=null&&!releasedPress.removed&&!releasedPress.moving)
+                ? releasedPress : findPieceAt(x,y);
+        if(piece!=null)tapPiece(piece);return true;
     }
 
     private void startLevel(int lv) {
