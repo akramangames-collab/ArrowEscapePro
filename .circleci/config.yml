@@ -109,3 +109,5 @@ workflows:
   build-arrow-escape:
     jobs:
       - android-build
+
+# V22 full neon final build trigger
