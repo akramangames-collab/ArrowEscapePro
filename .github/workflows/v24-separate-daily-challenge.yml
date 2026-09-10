@@ -1,0 +1,205 @@
+name: Separate Daily Challenge Pack
+
+on:
+  push:
+    branches: [v23-upload-ready-nightly]
+
+permissions:
+  contents: write
+
+jobs:
+  build-separate-daily-pack:
+    if: ${{ contains(github.event.head_commit.message, '[daily-separate-bootstrap]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Generate 366 dedicated Daily Challenges
+        run: python3 scripts/generate-daily-challenges.py
+
+      - name: Patch gameplay to use the dedicated pack
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('app/src/main/java/com/arrowescape/pro/ArrowGameView.java')
+          s=p.read_text()
+
+          def replace(old,new,label):
+              global s
+              if old not in s:
+                  raise SystemExit(f'Patch target missing: {label}')
+              s=s.replace(old,new,1)
+
+          replace('private static final String LEVEL_PACK_VERSION = "v17-chains-1";',
+                  'private static final String LEVEL_PACK_VERSION = "v24-daily-separate-1";',
+                  'pack version')
+          replace('    private String[] packedLevels;\n',
+                  '    private String[] packedLevels;\n    private String[] packedDailyChallenges;\n',
+                  'daily pack field')
+          replace('        loadPackedLevels();\n',
+                  '        loadPackedLevels();\n        loadPackedDailyChallenges();\n',
+                  'load daily pack')
+          replace('        generateLevel(level);\n        configureSpecialMechanics();',
+                  '        if(dailyChallenge) generateDailyChallenge(challengeDay);\n        else generateLevel(level);\n        configureSpecialMechanics();',
+                  'challenge setup')
+
+          old='''    public void startDailyChallenge() {\n        normalLevelBeforeChallenge=Math.max(1,Math.min(MAX_LEVEL,prefs.getInt("lastLevel",level)));\n        challengeDay=System.currentTimeMillis()/Wallet.DAY_MS;\n        weeklyChallenge=false;challengeWeek=-1L;dailyChallenge=true;\n        setupLevel(dailyLevelForDay(challengeDay),false);\n    }\n'''
+          new='''    public void startDailyChallenge() {\n        if(packedDailyChallenges==null||packedDailyChallenges.length==0){showToast("Daily Challenge unavailable");return;}\n        normalLevelBeforeChallenge=Math.max(1,Math.min(MAX_LEVEL,prefs.getInt("lastLevel",level)));\n        challengeDay=System.currentTimeMillis()/Wallet.DAY_MS;\n        weeklyChallenge=false;challengeWeek=-1L;dailyChallenge=true;\n        // Daily Challenge is its own puzzle pack. MAX_LEVEL is only a difficulty\n        // profile marker for special mechanics; no campaign level is loaded.\n        setupLevel(MAX_LEVEL,false);\n    }\n'''
+          replace(old,new,'startDailyChallenge')
+
+          replace('    private int dailyLevelForDay(long day){return 5+(int)Math.floorMod(day*73L+19L,40L)*5;}\n',
+                  '''    private int dailyChallengeIndex(long day){\n        int count=packedDailyChallenges==null?0:packedDailyChallenges.length;\n        if(count<=0)return 0;\n        return (int)Math.floorMod(day*131L+47L,count);\n    }\n    private int dailyChallengeNumberForDay(long day){return dailyChallengeIndex(day)+1;}\n''',
+                  'daily selector')
+          replace('    public int dailyPuzzleNumber(){return dailyLevelForDay(System.currentTimeMillis()/Wallet.DAY_MS);}\n',
+                  '    public int dailyPuzzleNumber(){return dailyChallengeNumberForDay(System.currentTimeMillis()/Wallet.DAY_MS);}\n',
+                  'daily puzzle number')
+          replace('            ? "SUPER HARD DAILY  ·  puzzle " + level\n',
+                  '            ? "SUPER HARD DAILY  ·  puzzle " + dailyChallengeNumberForDay(challengeDay)\n',
+                  'daily play subtitle')
+
+          load_anchor='''    private void generateLevel(int lv){\n'''
+          helper='''    private void loadPackedDailyChallenges(){\n        try {\n            BufferedReader br = new BufferedReader(new InputStreamReader(getContext().getAssets().open("daily_challenges.txt")));\n            ArrayList<String> lines = new ArrayList<>();\n            String line;\n            while ((line = br.readLine()) != null) if (!line.trim().isEmpty()) lines.add(line.trim());\n            br.close();\n            packedDailyChallenges = lines.toArray(new String[0]);\n        } catch (Exception ignored) {\n            packedDailyChallenges = null;\n        }\n    }\n\n    private void generateDailyChallenge(long day){\n        if(packedDailyChallenges==null||packedDailyChallenges.length==0){\n            pieces.clear();gridW=24;gridH=30;return;\n        }\n        String[] normalPack=packedLevels;\n        try {\n            packedLevels=packedDailyChallenges;\n            generateLevel(dailyChallengeIndex(day)+1);\n        } finally {\n            packedLevels=normalPack;\n        }\n    }\n\n    private void generateLevel(int lv){\n'''
+          replace(load_anchor,helper,'daily pack loader/generator')
+
+          old_restore='''            } else if(savedDaily){\n                dailyChallenge=true;weeklyChallenge=false;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);\n            } else startLevel(savedLevel);'''
+          new_restore='''            } else if(savedDaily){\n                dailyChallenge=true;weeklyChallenge=false;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(MAX_LEVEL,false);\n            } else startLevel(savedLevel);'''
+          replace(old_restore,new_restore,'daily restore')
+
+          p.write_text(s)
+
+          p=Path('app/src/main/java/com/arrowescape/pro/MainActivity.java')
+          s=p.read_text()
+          old='''        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","One new SUPER HARD puzzle every UTC day");'''
+          new='''        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");'''
+          if old not in s: raise SystemExit('Daily Challenge header target missing')
+          s=s.replace(old,new,1)
+          old='''        hero.addView(text("Puzzle "+game.dailyPuzzleNumber()+"  ·  Same challenge for the whole day",13,MUTED));'''
+          new='''        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 200 campaign levels",13,MUTED));'''
+          if old not in s: raise SystemExit('Daily Challenge hero target missing')
+          p.write_text(s.replace(old,new,1))
+          PY
+
+      - name: Add Daily Challenge isolation regression tests
+        run: |
+          cat > app/src/androidTest/java/com/arrowescape/pro/V24DailyChallengeIsolationTest.java <<'JAVA'
+          package com.arrowescape.pro;
+
+          import android.content.Context;
+          import androidx.test.ext.junit.runners.AndroidJUnit4;
+          import androidx.test.platform.app.InstrumentationRegistry;
+          import org.junit.Test;
+          import org.junit.runner.RunWith;
+          import java.io.BufferedReader;
+          import java.io.InputStreamReader;
+          import java.util.ArrayList;
+          import java.util.HashSet;
+          import static org.junit.Assert.*;
+
+          @RunWith(AndroidJUnit4.class)
+          public class V24DailyChallengeIsolationTest {
+              private interface Checked { void run() throws Exception; }
+              private static void onMain(Checked action) throws Exception {
+                  Throwable[] error={null};
+                  InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+                      try { action.run(); } catch(Throwable t) { error[0]=t; }
+                  });
+                  if(error[0]!=null)throw new AssertionError(error[0]);
+              }
+              private static Context context(){return InstrumentationRegistry.getInstrumentation().getTargetContext();}
+              private static ArrayList<String> assetLines(String name) throws Exception {
+                  ArrayList<String> out=new ArrayList<>();
+                  try(BufferedReader br=new BufferedReader(new InputStreamReader(context().getAssets().open(name)))){
+                      String line;while((line=br.readLine())!=null)if(!line.trim().isEmpty())out.add(line.trim());
+                  }
+                  return out;
+              }
+
+              @Test public void dedicatedPackHas366UniquePuzzlesAndZeroCampaignOverlap() throws Exception {
+                  ArrayList<String> daily=assetLines("daily_challenges.txt");
+                  ArrayList<String> normal=assetLines("levels.txt");
+                  assertEquals(366,daily.size());
+                  assertEquals(366,new HashSet<>(daily).size());
+                  HashSet<String> campaign=new HashSet<>(normal);
+                  for(String puzzle:daily)assertFalse("Daily Challenge must never reuse a campaign level",campaign.contains(puzzle));
+              }
+
+              @Test public void dailyChallengeDoesNotChangeCampaignProgress() throws Exception {onMain(()->{
+                  Context c=context();
+                  c.getSharedPreferences("arrow_puzzle_faithful",0).edit().clear().putInt("lastLevel",37).putInt("maxUnlocked",37).putBoolean("tutorialSeen",true).commit();
+                  c.getSharedPreferences("arrow_escape_pro",0).edit().clear().commit();
+                  ArrowGameView g=new ArrowGameView(c,new ArrowGameView.Host(){
+                      public void onLevelCompleted(){} public void requestRewardedErase(){} public void requestRewardedRevive(){} public void requestRewardedCoins(){} public void openWallet(){} public void openSettings(){} public void onContinueAfterWin(Runnable p){p.run();}
+                  },new Wallet(new PreferenceWalletStorage(c)));
+                  try {
+                      assertEquals(37,g.currentLevelNumber());
+                      g.startDailyChallenge();
+                      int n=g.dailyPuzzleNumber();
+                      assertTrue(n>=1&&n<=366);
+                      assertEquals("Daily play must not overwrite the campaign checkpoint",37,c.getSharedPreferences("arrow_puzzle_faithful",0).getInt("lastLevel",-1));
+                      g.restartCurrentLevel();
+                      assertEquals(37,c.getSharedPreferences("arrow_puzzle_faithful",0).getInt("lastLevel",-1));
+                      g.handleBack();
+                      assertEquals("Leaving Daily Challenge returns to the campaign level",37,g.currentLevelNumber());
+                  } finally { g.release(); }
+              });}
+          }
+          JAVA
+
+      - name: Verify dedicated challenge pack
+        run: |
+          python3 scripts/generate-daily-challenges.py --check
+          python3 - <<'PY'
+          from pathlib import Path
+          daily=[x.strip() for x in Path('app/src/main/assets/daily_challenges.txt').read_text().splitlines() if x.strip()]
+          normal=set(x.strip() for x in Path('app/src/main/assets/levels.txt').read_text().splitlines() if x.strip())
+          assert len(daily)==366 and len(set(daily))==366
+          assert not (set(daily)&normal)
+          print('366 dedicated Daily Challenges verified; 0/366 are campaign levels')
+          PY
+          python3 scripts/generate-hard-levels.py --check
+          python3 scripts/verify-levels.py
+          bash scripts/test-wallet.sh
+          python3 scripts/verify-ui-ux.py
+
+      - name: Lint and build
+        run: gradle :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease :app:assembleDebugAndroidTest --stacktrace
+
+      - name: Verify build metadata
+        run: python3 scripts/verify-build.py
+
+      - name: Commit separate Daily Challenge implementation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/daily_challenges.txt tests/daily-challenge-metrics.json app/src/main/java/com/arrowescape/pro/ArrowGameView.java app/src/main/java/com/arrowescape/pro/MainActivity.java app/src/androidTest/java/com/arrowescape/pro/V24DailyChallengeIsolationTest.java
+          git commit -m "Create dedicated Daily Challenge puzzle pack [daily-separate-applied]"
+          git push origin HEAD:v23-upload-ready-nightly
+
+      - name: Package verification build
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/INSTALL-THIS-ArrowEscape-daily-separate.apk
+          cp app/build/outputs/bundle/release/app-release.aab dist/PLAY-STORE-ArrowEscape-daily-separate-unsigned.aab
+          sha256sum dist/* > dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArrowEscape-daily-separate-delivery
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
