@@ -444,12 +444,12 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     }
 
     private void showDailyChallengePanel() {
-        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","One new SUPER HARD puzzle every UTC day");
+        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");
         long day=System.currentTimeMillis()/Wallet.DAY_MS;boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
         TextView crown=text("♛  DAILY CHALLENGE",24,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
         TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
-        hero.addView(text("Puzzle "+game.dailyPuzzleNumber()+"  ·  Same challenge for the whole day",13,MUTED));
+        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 200 campaign levels",13,MUTED));
         body.addView(hero);
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
         amount.setGravity(Gravity.CENTER);amount.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(amount);

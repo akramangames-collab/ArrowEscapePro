@@ -44,7 +44,7 @@ public class ArrowGameView extends View {
     }
 
     private static final int MAX_LEVEL = 200;
-    private static final String LEVEL_PACK_VERSION = "v17-chains-1";
+    private static final String LEVEL_PACK_VERSION = "v24-daily-separate-1";
     private static final int NAVY = Color.rgb(239, 247, 255);
     private static final int BLUE = Color.rgb(23, 199, 255);
     private static final int PALE = Color.rgb(13, 30, 64);
@@ -79,6 +79,7 @@ public class ArrowGameView extends View {
     private final Random rng = new Random();
     private final ArrayList<Piece> pieces = new ArrayList<>();
     private String[] packedLevels;
+    private String[] packedDailyChallenges;
 
     private Screen screen = Screen.PLAY;
     private int level;
@@ -138,6 +139,7 @@ public class ArrowGameView extends View {
         setBackgroundColor(Color.rgb(5,11,30));
         setFocusable(true);
         loadPackedLevels();
+        loadPackedDailyChallenges();
         setOnApplyWindowInsetsListener((v, insets) -> {
             if (Build.VERSION.SDK_INT >= 30) {
                 android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars());
@@ -248,7 +250,7 @@ public class ArrowGameView extends View {
         String sub = weeklyChallenge
             ? "ELITE WEEKLY  ·  puzzle " + level
             : dailyChallenge
-            ? "SUPER HARD DAILY  ·  puzzle " + level
+            ? "SUPER HARD DAILY  ·  puzzle " + dailyChallengeNumberForDay(challengeDay)
             : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + difficulty();
         if (!challengeActive() && combo >= 2) sub += " · STREAK x" + combo;
         label(c, sub, w/2, top + dp(49), 11, difficultyColor, challengeActive() || isSuperHard(level) || combo >= 3);
@@ -1044,7 +1046,8 @@ public class ArrowGameView extends View {
         if(persistNormal){prefs.edit().putInt("lastLevel",level).apply();normalLevelBeforeChallenge=level;}
         screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;
         mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;combo=0;bestCombo=0;lastCorrectTapAt=0L;flowShield=false;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
-        generateLevel(level);
+        if(dailyChallenge) generateDailyChallenge(challengeDay);
+        else generateLevel(level);
         configureSpecialMechanics();
         boolean mechanicIntro=!challengeActive()&&(level==41||level==81||level==121||level==161);
         milestoneIntroUntil=(challengeActive()||isSuperHard(level)||mechanicIntro)?SystemClock.elapsedRealtime()+(mechanicIntro?5000L:1600L):0L;
@@ -1052,10 +1055,13 @@ public class ArrowGameView extends View {
     }
 
     public void startDailyChallenge() {
+        if(packedDailyChallenges==null||packedDailyChallenges.length==0){showToast("Daily Challenge unavailable");return;}
         normalLevelBeforeChallenge=Math.max(1,Math.min(MAX_LEVEL,prefs.getInt("lastLevel",level)));
         challengeDay=System.currentTimeMillis()/Wallet.DAY_MS;
         weeklyChallenge=false;challengeWeek=-1L;dailyChallenge=true;
-        setupLevel(dailyLevelForDay(challengeDay),false);
+        // Daily Challenge is its own puzzle pack. MAX_LEVEL is only a difficulty
+        // profile marker for special mechanics; no campaign level is loaded.
+        setupLevel(MAX_LEVEL,false);
     }
 
     public void startWeeklyChallenge() {
@@ -1067,7 +1073,12 @@ public class ArrowGameView extends View {
     }
 
     private boolean challengeActive(){return dailyChallenge||weeklyChallenge;}
-    private int dailyLevelForDay(long day){return 5+(int)Math.floorMod(day*73L+19L,40L)*5;}
+    private int dailyChallengeIndex(long day){
+        int count=packedDailyChallenges==null?0:packedDailyChallenges.length;
+        if(count<=0)return 0;
+        return (int)Math.floorMod(day*131L+47L,count);
+    }
+    private int dailyChallengeNumberForDay(long day){return dailyChallengeIndex(day)+1;}
     private int weeklyLevelForWeek(long week){return 80+(int)Math.floorMod(week*97L+11L,25L)*5;}
     public int bestDailyStarsToday(){
         long day=System.currentTimeMillis()/Wallet.DAY_MS;
@@ -1271,6 +1282,32 @@ public class ArrowGameView extends View {
             packedLevels = lines.toArray(new String[0]);
         } catch (Exception ignored) {
             packedLevels = null;
+        }
+    }
+
+    private void loadPackedDailyChallenges(){
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(getContext().getAssets().open("daily_challenges.txt")));
+            ArrayList<String> lines = new ArrayList<>();
+            String line;
+            while ((line = br.readLine()) != null) if (!line.trim().isEmpty()) lines.add(line.trim());
+            br.close();
+            packedDailyChallenges = lines.toArray(new String[0]);
+        } catch (Exception ignored) {
+            packedDailyChallenges = null;
+        }
+    }
+
+    private void generateDailyChallenge(long day){
+        if(packedDailyChallenges==null||packedDailyChallenges.length==0){
+            pieces.clear();gridW=24;gridH=30;return;
+        }
+        String[] normalPack=packedLevels;
+        try {
+            packedLevels=packedDailyChallenges;
+            generateLevel(dailyChallengeIndex(day)+1);
+        } finally {
+            packedLevels=normalPack;
         }
     }
 
@@ -1698,7 +1735,7 @@ public class ArrowGameView extends View {
     public void openLevels(){showLevelSelect();}
     public void openPlay(){screen=Screen.PLAY;invalidate();}
     public int currentLevelNumber(){return level;}
-    public int dailyPuzzleNumber(){return dailyLevelForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
+    public int dailyPuzzleNumber(){return dailyChallengeNumberForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
     public int totalStarCount(){return totalStars();}
     public int completedLevelCount(){return completedLevels();}
     public int perfectLevelCount(){return perfectLevels();}
@@ -1734,7 +1771,7 @@ public class ArrowGameView extends View {
             if(savedWeekly){
                 weeklyChallenge=true;dailyChallenge=false;challengeWeek=state.optLong("challengeWeek",(System.currentTimeMillis()/Wallet.DAY_MS)/7L);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);
             } else if(savedDaily){
-                dailyChallenge=true;weeklyChallenge=false;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);
+                dailyChallenge=true;weeklyChallenge=false;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(MAX_LEVEL,false);
             } else startLevel(savedLevel);
             runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
             hints=Math.max(0,Math.min(2,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
