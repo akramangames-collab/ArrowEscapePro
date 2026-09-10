@@ -1,0 +1,169 @@
+name: V23 Touch Regression Repair
+
+on:
+  push:
+    branches: [v23-upload-ready-nightly]
+
+permissions:
+  contents: write
+
+jobs:
+  repair-test-build:
+    if: ${{ !contains(github.event.head_commit.message, '[touch-fix-applied]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Patch tap target identity bug
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('app/src/main/java/com/arrowescape/pro/ArrowGameView.java')
+          s = p.read_text()
+          old = '        Piece piece=findPieceAt(x,y);if(piece!=null)tapPiece(piece);return true;'
+          new = '''        // A tap belongs to the arrow selected on ACTION_DOWN. Re-running hit testing\n        // on ACTION_UP can switch to a neighbouring dense-grid arrow after normal finger\n        // drift, causing a false blocked result and an incorrect heart penalty.\n        Piece piece=(releasedPress!=null&&!releasedPress.removed&&!releasedPress.moving)\n                ? releasedPress : findPieceAt(x,y);\n        if(piece!=null)tapPiece(piece);return true;'''
+          if old not in s:
+              raise SystemExit('Expected tap handler not found; refusing unsafe patch')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
+      - name: Add real touch regression tests
+        run: |
+          cat > app/src/androidTest/java/com/arrowescape/pro/V23TouchRegressionTest.java <<'JAVA'
+          package com.arrowescape.pro;
+
+          import android.content.Context;
+          import android.graphics.Point;
+          import android.view.MotionEvent;
+          import androidx.test.ext.junit.runners.AndroidJUnit4;
+          import androidx.test.platform.app.InstrumentationRegistry;
+          import org.junit.Test;
+          import org.junit.runner.RunWith;
+          import java.lang.reflect.Field;
+          import java.lang.reflect.Method;
+          import java.util.ArrayList;
+          import static org.junit.Assert.*;
+
+          @RunWith(AndroidJUnit4.class)
+          public class V23TouchRegressionTest {
+              private interface Checked { void run() throws Exception; }
+              private static void onMain(Checked action) throws Exception {
+                  Throwable[] error={null};
+                  InstrumentationRegistry.getInstrumentation().runOnMainSync(()->{
+                      try { action.run(); } catch(Throwable t) { error[0]=t; }
+                  });
+                  if(error[0]!=null)throw new AssertionError(error[0]);
+              }
+              private static Object get(Object o,String key) throws Exception {Field f=o.getClass().getDeclaredField(key);f.setAccessible(true);return f.get(o);}
+              private static void set(Object o,String key,Object v) throws Exception {Field f=o.getClass().getDeclaredField(key);f.setAccessible(true);f.set(o,v);}
+              private static Object call(Object o,String name,Class<?>[] types,Object... args) throws Exception {Method m=o.getClass().getDeclaredMethod(name,types);m.setAccessible(true);return m.invoke(o,args);}
+              private static Context context(){return InstrumentationRegistry.getInstrumentation().getTargetContext();}
+              private static class Host implements ArrowGameView.Host {
+                  public void onLevelCompleted(){} public void requestRewardedErase(){} public void requestRewardedRevive(){} public void requestRewardedCoins(){} public void openWallet(){} public void openSettings(){} public void onContinueAfterWin(Runnable p){p.run();}
+              }
+              @SuppressWarnings("unchecked") private static ArrayList<Object> pieces(ArrowGameView g) throws Exception {return (ArrayList<Object>)get(g,"pieces");}
+              @SuppressWarnings("unchecked") private static ArrayList<Point> points(Object p) throws Exception {return (ArrayList<Point>)get(p,"pts");}
+              private static boolean clear(ArrowGameView g,Object p) throws Exception {return (Boolean)call(g,"isClear",new Class[]{p.getClass()},p);}
+
+              @Test public void level2MarkedArrowIsClearAfterItsTwoVisibleBlockersAreGone() throws Exception {onMain(()->{
+                  context().getSharedPreferences("arrow_puzzle_faithful",0).edit().clear().commit();
+                  context().getSharedPreferences("arrow_escape_pro",0).edit().clear().commit();
+                  ArrowGameView g=new ArrowGameView(context(),new Host(),new Wallet(new PreferenceWalletStorage(context())));
+                  try {
+                      set(g,"tutorial",false);
+                      call(g,"startLevel",new Class[]{int.class},2);
+                      ArrayList<Object> all=pieces(g);
+                      assertEquals(24,all.size());
+                      Object blockerA=all.get(9), blockerB=all.get(14), target=all.get(22);
+                      set(blockerA,"removed",true); set(blockerB,"removed",true);
+                      assertTrue("The marked right-side up arrow must be clear after pieces 9 and 14 are removed",clear(g,target));
+                      int hearts=(Integer)get(g,"hearts");
+                      call(g,"tapPiece",new Class[]{target.getClass()},target);
+                      assertEquals("A valid escape must never cost a heart",hearts,get(g,"hearts"));
+                      assertTrue("The intended arrow must start moving",(Boolean)get(target,"moving"));
+                  } finally { g.release(); }
+              });}
+
+              @Test public void actionUpDriftCannotRetargetToNeighbouringBlockedArrow() throws Exception {onMain(()->{
+                  context().getSharedPreferences("arrow_puzzle_faithful",0).edit().clear().commit();
+                  context().getSharedPreferences("arrow_escape_pro",0).edit().clear().commit();
+                  ArrowGameView g=new ArrowGameView(context(),new Host(),new Wallet(new PreferenceWalletStorage(context())));
+                  try {
+                      set(g,"tutorial",false);
+                      call(g,"startLevel",new Class[]{int.class},2);
+                      ArrayList<Object> all=pieces(g);
+                      set(all.get(9),"removed",true); set(all.get(14),"removed",true);
+                      Object target=all.get(22), neighbour=all.get(5);
+                      assertTrue(clear(g,target)); assertFalse(clear(g,neighbour));
+
+                      // Match the screenshot's grid geometry. ACTION_DOWN is directly on the
+                      // clear arrow. ACTION_UP drifts one grid cell left, where old code could
+                      // re-hit-test to a blocked neighbour and wrongly remove a heart.
+                      set(g,"cell",30f); set(g,"boardLeft",70f); set(g,"boardTop",360f);
+                      Point tip=points(target).get(points(target).size()-1);
+                      float downX=70f+tip.x*30f, downY=360f+(tip.y+1f)*30f;
+                      float upX=downX-30f, upY=downY;
+                      long now=android.os.SystemClock.uptimeMillis();
+                      g.onTouchEvent(MotionEvent.obtain(now,now,MotionEvent.ACTION_DOWN,downX,downY,0));
+                      g.onTouchEvent(MotionEvent.obtain(now,now+80,MotionEvent.ACTION_UP,upX,upY,0));
+                      assertEquals("Finger drift must not charge a heart for a different arrow",3,get(g,"hearts"));
+                      assertTrue("ACTION_UP must use the arrow captured on ACTION_DOWN",(Boolean)get(target,"moving"));
+                      assertFalse("Blocked neighbour must not be selected",(Boolean)get(neighbour,"moving"));
+                  } finally { g.release(); }
+              });}
+          }
+          JAVA
+
+      - name: Verify all 200 shipped levels
+        run: |
+          python3 scripts/generate-hard-levels.py --check
+          python3 scripts/verify-levels.py
+
+      - name: Verify wallet and UI contracts
+        run: |
+          bash scripts/test-wallet.sh
+          python3 scripts/verify-ui-ux.py
+
+      - name: Lint and build all deliverables
+        run: gradle :app:lintDebug :app:assembleDebug :app:assembleRelease :app:bundleRelease :app:assembleDebugAndroidTest --stacktrace
+
+      - name: Verify build metadata
+        run: python3 scripts/verify-build.py
+
+      - name: Commit repaired source and regression test
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/com/arrowescape/pro/ArrowGameView.java app/src/androidTest/java/com/arrowescape/pro/V23TouchRegressionTest.java
+          git commit -m "Fix dense-grid tap retarget heart penalty [touch-fix-applied]"
+          git push origin HEAD:v23-upload-ready-nightly
+
+      - name: Package corrected APK and AAB
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/INSTALL-THIS-ArrowEscape-1.0.0-V23-touchfix.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk dist/ArrowEscape-1.0.0-release-unsigned.apk
+          cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk dist/ArrowEscape-1.0.0-tests.apk
+          cp app/build/outputs/bundle/release/app-release.aab dist/PLAY-STORE-ArrowEscape-1.0.0-unsigned.aab
+          sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArrowEscape-V23-touchfix-delivery
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
