@@ -94,6 +94,14 @@
 - Fixed scripts/device-smoke.sh to install the current V23/1.0.0 artifact names: INSTALL-THIS-ArrowEscape-1.0.0-test.apk and ArrowEscape-1.0.0-tests.apk.
 - This is a validation-path fix only; gameplay and UI behavior are unchanged.
 - Commit: d1ff4a1ed4edb39e445d0ccf4871805668724ac8.
-- Trusted GitHub quality workflow rerun is in progress; build job is executing the full validation chain before device smoke.
+- Trusted GitHub quality workflow rerun: SUCCESS. Build job passed generated level pack, self-clearance/solvability/V15 movement, wallet, premium UI/UX contract, Android lint, APK/AAB assembly, ad/package metadata; device-test also passed all instrumentation and process checks.
 
-Next: inspect device-smoke result and screenshots, then continue any remaining visual hierarchy/accessibility polish.
+## Pass 10 — clean visual-QA capture isolation
+- Inspected the successful device-smoke screenshot artifact from Pass 9.
+- Found: the app itself remained responsive and the device-test passed, but emulator screenshots for Home/Store/Settings were visually contaminated by an unrelated `Pixel Launcher isn't responding` system ANR dialog. This makes human UI/UX review unreliable even though it is not an Arrow Escape crash.
+- Fixed the emulator smoke harness to suppress infrastructure error dialogs during screenshot capture, disable emulator transition/animation noise, clear logcat before test execution, and still fail specifically on Arrow Escape fatal-process evidence.
+- This improves the trustworthiness of visual review without hiding Arrow Escape crashes or changing production behavior.
+- Commit: 6a8d25c157a9bf7a2f73cc3754690eea6b14f972.
+- Preserved: no gameplay movement, level generation, rewards, full-clearance/self-tail rules or production UI behavior changed.
+
+Next: validate the clean screenshot rerun, inspect Home/Store/Settings hierarchy without system overlay, then make any justified UI polish changes only if the clean captures expose them.
