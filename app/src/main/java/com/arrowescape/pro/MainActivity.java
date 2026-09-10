@@ -41,6 +41,10 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     private long rewardedLoadedAt, interstitialLoadedAt;
     private int completedSinceAd;
     private long lastInterstitialAt = SystemClock.elapsedRealtime();
+    private static final long DAILY_CHALLENGE_REMINDER_DELAY_MS = 150000L; // 2.5 minutes
+    private static final long DAILY_CHALLENGE_REMINDER_RETRY_MS = 30000L;
+    private boolean dailyReminderScheduled;
+    private final Runnable dailyReminderTask = this::tryShowDailyChallengeReminder;
 
     private final int INK = 0xFF050B1E;
     private final int PANEL = 0xFF0D1E40;
@@ -64,7 +68,6 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         game.postDelayed(() -> {
             if (isFinishing() || isDestroyed()) return;
             showHome();
-            maybeShowDailyChallengeReminder();
         }, 450L);
         consent = UserMessagingPlatform.getConsentInformation(this);
         if (BuildConfig.DEBUG) { startAdsIfAllowed(); return; }
@@ -300,10 +303,10 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         LinearLayout hero=panel();
         TextView levelTitle=text("Continue Level "+game.currentLevelNumber(),20,TEXT);levelTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(levelTitle);
         hero.addView(text(game.currentShapeName()+" world  ·  "+game.progressSummary(),12,MUTED));
-        hero.addView(button("▶  PLAY",()->{if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);
+        hero.addView(button("▶  PLAY",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);
 
         LinearLayout row1=new LinearLayout(this);row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.addView(tileButton("▥\nLEVELS\n200 PUZZLES",CYAN,()->{if(menu!=null)menu.dismiss();game.openLevels();}));
+        row1.addView(tileButton("▥\nLEVELS\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();}));
         row1.addView(tileButton("▣\nDAILY CHALLENGE\n200 COINS",PURPLE,()->showDailyChallengePanel()));body.addView(row1);
 
         LinearLayout row2=new LinearLayout(this);row2.setOrientation(LinearLayout.HORIZONTAL);
@@ -444,8 +447,12 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     }
 
     private void showDailyChallengePanel() {
+        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        settings.edit().putLong("daily_challenge_prompt_day",day).apply();
+        dailyReminderScheduled=false;
+        if(game!=null)game.removeCallbacks(dailyReminderTask);
         LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;boolean rewardReady=wallet.canRewardDailyChallenge(day);
+        boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
         TextView crown=text("♛  DAILY CHALLENGE",24,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
         TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
@@ -457,6 +464,31 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         body.addView(button("▶  PLAY DAILY CHALLENGE",()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();},true));
         body.addView(text("The Daily Challenge always uses the full-clearance rule, including self-tail blocking. One coin reward per day.",12,MUTED));
         body.addView(button("⌂  Back to Home",this::showHome,false));presentFullScreen(body);
+    }
+
+    private void scheduleDailyChallengeReminder() {
+        if(dailyReminderScheduled || game==null)return;
+        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        if(!wallet.canRewardDailyChallenge(day))return;
+        if(settings.getLong("daily_challenge_prompt_day",-1L)==day)return;
+        dailyReminderScheduled=true;
+        game.removeCallbacks(dailyReminderTask);
+        game.postDelayed(dailyReminderTask,DAILY_CHALLENGE_REMINDER_DELAY_MS);
+    }
+
+    private void tryShowDailyChallengeReminder() {
+        if(isFinishing()||isDestroyed()||game==null){dailyReminderScheduled=false;return;}
+        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        if(!wallet.canRewardDailyChallenge(day)||settings.getLong("daily_challenge_prompt_day",-1L)==day){
+            dailyReminderScheduled=false;
+            return;
+        }
+        if(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing())){
+            game.postDelayed(dailyReminderTask,DAILY_CHALLENGE_REMINDER_RETRY_MS);
+            return;
+        }
+        dailyReminderScheduled=false;
+        maybeShowDailyChallengeReminder();
     }
 
     private void maybeShowDailyChallengeReminder() {
@@ -475,7 +507,9 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         body.addView(button("▶  PLAY NOW",()->{if(reminder!=null)reminder.dismiss();showDailyChallengePanel();},true));
         body.addView(button("Later",()->{if(reminder!=null)reminder.dismiss();},false));
 
-        reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);reminder.show();
+        reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);
+        reminder.setOnDismissListener(d->{if(!showingAd&&(menu==null||!menu.isShowing()))game.setPaused(false);});
+        game.setPaused(true);reminder.show();
         if(reminder.getWindow()!=null){reminder.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);reminder.getWindow().setStatusBarColor(INK);}
     }
 
@@ -668,6 +702,6 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();}
     @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();}
-    @Override protected void onDestroy(){destroyBanner();if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
+    @Override protected void onDestroy(){destroyBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
     @Override public void onBackPressed(){if(reminder!=null&&reminder.isShowing())reminder.dismiss();else if(menu!=null&&menu.isShowing())menu.dismiss();else if(game.handleBack()){}else super.onBackPressed();}
 }
