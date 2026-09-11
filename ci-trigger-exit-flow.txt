@@ -1,1 +1,1 @@
-Trigger the nonblocking exit-flow repair so arrows already accepted for escape no longer reserve a lane for safe followers.
+Verify commit 473872604d8378a2e8bff108560399ab8d57e73d: once an arrow is accepted for escape, its animation must not reserve the lane or block a safe follower behind it.
