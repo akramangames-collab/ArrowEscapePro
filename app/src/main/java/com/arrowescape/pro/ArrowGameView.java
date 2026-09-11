@@ -1678,10 +1678,10 @@ public class ArrowGameView extends View {
       new HashSet<>();
 
         for (Piece p : pieces) {
-  if (p == target || p.removed) continue;
+  if (p == target || p.removed || p.moving) continue;
 
-  // A moving arrow blocks only where its snake body is visibly present now.
-  // Cells already vacated by the animated tail must not cause false heart loss.
+  // An accepted moving arrow is logically leaving and must not reserve the lane.
+  // This lets a safe follower escape immediately while the first arrow animates out.
   if (p.moving) {
       addMovingOccupancy(p,nodes,edges);
   } else {

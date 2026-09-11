@@ -96,7 +96,7 @@ public class V23TouchRegressionTest {
             int stepsB=(Integer)call(g,"snakeTravelSteps",new Class[]{blockerB.getClass()},blockerB);
             set(blockerA,"moving",true); set(blockerA,"moveSteps",stepsA); set(blockerA,"moveT",0f);
             set(blockerB,"moving",true); set(blockerB,"moveSteps",stepsB); set(blockerB,"moveT",0f);
-            assertFalse("Moving bodies must still block while visibly occupying the lane",clear(g,target));
+            assertTrue("A safe follower must be tappable immediately behind arrows already accepted for escape",clear(g,target));
 
             set(blockerA,"moveT",0.90f);
             set(blockerB,"moveT",0.90f);
