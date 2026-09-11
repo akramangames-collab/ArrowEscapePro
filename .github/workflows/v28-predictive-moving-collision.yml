@@ -1,0 +1,84 @@
+name: Predictive Moving Collision Repair
+
+on:
+  push:
+    branches: [v23-upload-ready-nightly]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ contains(github.event.head_commit.message, '[predictive-collision-bootstrap]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: v23-upload-ready-nightly
+          fetch-depth: 0
+
+      - name: Apply predictive collision rule
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+
+          helper=base64.b64decode('CiAgICBwcml2YXRlIGZsb2F0IHByZWRpY3RlZFRyYXZlbFNlY29uZHMoaW50IHN0ZXBzKSB7CiAgICAgICAgZmxvYXQgYz1jZWxsPjAuMDAxZj9jZWxsOjFmOwogICAgICAgIGZsb2F0IHdpZHRoUHg9Z2V0V2lkdGgoKT4wP2dldFdpZHRoKCk6KGdyaWRXKzJmKSpjOwogICAgICAgIGxvbmcgbm93PVN5c3RlbUNsb2NrLmVsYXBzZWRSZWFsdGltZSgpOwogICAgICAgIGludCBwcm9qZWN0ZWRDb21ibz0obGFzdENvcnJlY3RUYXBBdD4wTCYmbm93LWxhc3RDb3JyZWN0VGFwQXQ8PTI0MDBMKT9jb21ibysxOjE7CiAgICAgICAgZmxvYXQgZmxvd0Jvb3N0PTFmK01hdGgubWluKDEwLE1hdGgubWF4KDEscHJvamVjdGVkQ29tYm8pKSouMDM1ZjsKICAgICAgICBmbG9hdCBzcGVlZFB4UGVyU2VjPU1hdGgubWF4KHdpZHRoUHgqMS4zMGYsYyo5ZikqZmxvd0Jvb3N0OwogICAgICAgIGZsb2F0IHRyYXZlbFB4PU1hdGgubWF4KGMsTWF0aC5tYXgoMSxzdGVwcykqYyk7CiAgICAgICAgcmV0dXJuIE1hdGgubWF4KC4zMGYsTWF0aC5taW4oMS40NWYsdHJhdmVsUHgvTWF0aC5tYXgoLjAwMWYsc3BlZWRQeFBlclNlYykpKTsKICAgIH0KCiAgICBwcml2YXRlIGZsb2F0IHBvaW50U2VnbWVudERpc3RhbmNlKGFuZHJvaWQuZ3JhcGhpY3MuUG9pbnRGIHEsYW5kcm9pZC5ncmFwaGljcy5Qb2ludEYgYSxhbmRyb2lkLmdyYXBoaWNzLlBvaW50RiBiKSB7CiAgICAgICAgZmxvYXQgdng9Yi54LWEueCx2eT1iLnktYS55LHd4PXEueC1hLngsd3k9cS55LWEueTsKICAgICAgICBmbG9hdCB2dj12eCp2eCt2eSp2eTsKICAgICAgICBpZih2djw9LjAwMDAwMWYpcmV0dXJuIChmbG9hdClNYXRoLmh5cG90KHEueC1hLngscS55LWEueSk7CiAgICAgICAgZmxvYXQgdD1NYXRoLm1heCgwZixNYXRoLm1pbigxZiwod3gqdngrd3kqdnkpL3Z2KSk7CiAgICAgICAgZmxvYXQgcHg9YS54K3QqdngscHk9YS55K3Qqdnk7CiAgICAgICAgcmV0dXJuIChmbG9hdClNYXRoLmh5cG90KHEueC1weCxxLnktcHkpOwogICAgfQoKICAgIHByaXZhdGUgZmxvYXQgZGlzdGFuY2VUb1NuYWtlKFBpZWNlIHAsZmxvYXQgYWR2YW5jZSxhbmRyb2lkLmdyYXBoaWNzLlBvaW50RiBxKSB7CiAgICAgICAgZmxvYXQgdG90YWw9cGllY2VQYXRoTGVuZ3RoKHApOwogICAgICAgIGZsb2F0IGZyb209TWF0aC5tYXgoMGYsYWR2YW5jZSksdG89ZnJvbSt0b3RhbDsKICAgICAgICBhbmRyb2lkLmdyYXBoaWNzLlBvaW50RiBwcmV2PXJvdXRlUG9pbnQocCxmcm9tKTsKICAgICAgICBmbG9hdCBiZXN0PShmbG9hdClNYXRoLmh5cG90KHEueC1wcmV2LngscS55LXByZXYueSk7CiAgICAgICAgZmxvYXQgd2Fsa2VkPTBmOwogICAgICAgIGZvcihpbnQgaT0wO2k8cC5wdHMuc2l6ZSgpLTE7aSsrKXsKICAgICAgICAgICAgUG9pbnQgYT1wLnB0cy5nZXQoaSksYj1wLnB0cy5nZXQoaSsxKTsKICAgICAgICAgICAgd2Fsa2VkKz1NYXRoLmFicyhiLngtYS54KStNYXRoLmFicyhiLnktYS55KTsKICAgICAgICAgICAgaWYod2Fsa2VkPmZyb20rLjAwMDFmJiZ3YWxrZWQ8dG8tLjAwMDFmKXsKICAgICAgICAgICAgICAgIGFuZHJvaWQuZ3JhcGhpY3MuUG9pbnRGIGN1cj1yb3V0ZVBvaW50KHAsd2Fsa2VkKTsKICAgICAgICAgICAgICAgIGJlc3Q9TWF0aC5taW4oYmVzdCxwb2ludFNlZ21lbnREaXN0YW5jZShxLHByZXYsY3VyKSk7CiAgICAgICAgICAgICAgICBwcmV2PWN1cjsKICAgICAgICAgICAgfQogICAgICAgIH0KICAgICAgICBhbmRyb2lkLmdyYXBoaWNzLlBvaW50RiBlbmQ9cm91dGVQb2ludChwLHRvKTsKICAgICAgICByZXR1cm4gTWF0aC5taW4oYmVzdCxwb2ludFNlZ21lbnREaXN0YW5jZShxLHByZXYsZW5kKSk7CiAgICB9CgogICAgLyoqCiAgICAgKiBBIG1vdmluZyBhcnJvdyBtdXN0IG5vdCByZXNlcnZlIGl0cyB3aG9sZSBsYW5lLiBXZSBjb21wYXJlIGJvdGggYXJyb3dzIGF0CiAgICAgKiB0aGUgc2FtZSBmdXR1cmUgaW5zdGFudHMgYW5kIGJsb2NrIG9ubHkgaWYgdGhlaXIgbGl2ZSBzbmFrZSBnZW9tZXRyaWVzCiAgICAgKiB3b3VsZCBhY3R1YWxseSBtZWV0IHdoaWxlIHRoZXkgYXJlIGVzY2FwaW5nLgogICAgICovCiAgICBwcml2YXRlIGJvb2xlYW4gd2lsbENvbGxpZGVXaXRoTW92aW5nKFBpZWNlIHRhcmdldCxQaWVjZSBtb3ZpbmcpIHsKICAgICAgICBpZihtb3Zpbmc9PW51bGx8fG1vdmluZy5yZW1vdmVkfHwhbW92aW5nLm1vdmluZylyZXR1cm4gZmFsc2U7CiAgICAgICAgaW50IHRhcmdldFN0ZXBzPU1hdGgubWF4KDEsc25ha2VUcmF2ZWxTdGVwcyh0YXJnZXQpKTsKICAgICAgICBpbnQgbW92aW5nU3RlcHM9TWF0aC5tYXgoMSxtb3ZpbmcubW92ZVN0ZXBzPjA/bW92aW5nLm1vdmVTdGVwczpzbmFrZVRyYXZlbFN0ZXBzKG1vdmluZykpOwogICAgICAgIGZsb2F0IHRhcmdldFNlYz1wcmVkaWN0ZWRUcmF2ZWxTZWNvbmRzKHRhcmdldFN0ZXBzKTsKICAgICAgICBmbG9hdCBtb3ZpbmdTZWM9cHJlZGljdGVkVHJhdmVsU2Vjb25kcyhtb3ZpbmdTdGVwcyk7CiAgICAgICAgZmxvYXQgbW92aW5nU3RhcnQ9TWF0aC5tYXgoMGYsTWF0aC5taW4oMWYsbW92aW5nLm1vdmVUKSkqbW92aW5nU3RlcHM7CiAgICAgICAgZmxvYXQgdGFyZ2V0UmF0ZT10YXJnZXRTdGVwcy9NYXRoLm1heCguMDAxZix0YXJnZXRTZWMpOwogICAgICAgIGZsb2F0IG1vdmluZ1JhdGU9bW92aW5nU3RlcHMvTWF0aC5tYXgoLjAwMWYsbW92aW5nU2VjKTsKICAgICAgICBmbG9hdCBtb3ZpbmdSZW1haW5pbmc9KG1vdmluZ1N0ZXBzLW1vdmluZ1N0YXJ0KS9NYXRoLm1heCguMDAxZixtb3ZpbmdSYXRlKTsKICAgICAgICBmbG9hdCBob3Jpem9uPU1hdGgubWluKHRhcmdldFNlYyxtb3ZpbmdSZW1haW5pbmcpOwogICAgICAgIGlmKGhvcml6b248PTBmKXJldHVybiBmYWxzZTsKCiAgICAgICAgZmxvYXQgdGFyZ2V0VG90YWw9cGllY2VQYXRoTGVuZ3RoKHRhcmdldCk7CiAgICAgICAgZmxvYXQgbW92aW5nVG90YWw9cGllY2VQYXRoTGVuZ3RoKG1vdmluZyk7CiAgICAgICAgZmxvYXQgbWF4UmF0ZT1NYXRoLm1heCh0YXJnZXRSYXRlLG1vdmluZ1JhdGUpOwogICAgICAgIGludCBzYW1wbGVzPU1hdGgubWF4KDEyLE1hdGgubWluKDEyMDAsKGludClNYXRoLmNlaWwoaG9yaXpvbiptYXhSYXRlKjEwZikpKTsKICAgICAgICBmaW5hbCBmbG9hdCBjb2xsaXNpb25SYWRpdXM9LjEyZjsKICAgICAgICBmb3IoaW50IGk9MDtpPD1zYW1wbGVzO2krKyl7CiAgICAgICAgICAgIGZsb2F0IHQ9aG9yaXpvbippLyhmbG9hdClzYW1wbGVzOwogICAgICAgICAgICBmbG9hdCB0YXJnZXRBZHZhbmNlPU1hdGgubWluKHRhcmdldFN0ZXBzLHRhcmdldFJhdGUqdCk7CiAgICAgICAgICAgIGZsb2F0IG1vdmluZ0FkdmFuY2U9TWF0aC5taW4obW92aW5nU3RlcHMsbW92aW5nU3RhcnQrbW92aW5nUmF0ZSp0KTsKICAgICAgICAgICAgYW5kcm9pZC5ncmFwaGljcy5Qb2ludEYgdGFyZ2V0SGVhZD1yb3V0ZVBvaW50KHRhcmdldCx0YXJnZXRUb3RhbCt0YXJnZXRBZHZhbmNlKTsKICAgICAgICAgICAgYW5kcm9pZC5ncmFwaGljcy5Qb2ludEYgbW92aW5nSGVhZD1yb3V0ZVBvaW50KG1vdmluZyxtb3ZpbmdUb3RhbCttb3ZpbmdBZHZhbmNlKTsKICAgICAgICAgICAgaWYoZGlzdGFuY2VUb1NuYWtlKG1vdmluZyxtb3ZpbmdBZHZhbmNlLHRhcmdldEhlYWQpPD1jb2xsaXNpb25SYWRpdXMpcmV0dXJuIHRydWU7CiAgICAgICAgICAgIGlmKGRpc3RhbmNlVG9TbmFrZSh0YXJnZXQsdGFyZ2V0QWR2YW5jZSxtb3ZpbmdIZWFkKTw9Y29sbGlzaW9uUmFkaXVzKXJldHVybiB0cnVlOwogICAgICAgIH0KICAgICAgICByZXR1cm4gZmFsc2U7CiAgICB9Cgo=').decode()
+          old_loop=base64.b64decode('ICAgICAgICBmb3IgKFBpZWNlIHAgOiBwaWVjZXMpIHsKICBpZiAocCA9PSB0YXJnZXQgfHwgcC5yZW1vdmVkIHx8IHAubW92aW5nKSBjb250aW51ZTsKCiAgLy8gQW4gYWNjZXB0ZWQgbW92aW5nIGFycm93IGlzIGxvZ2ljYWxseSBsZWF2aW5nIGFuZCBtdXN0IG5vdCByZXNlcnZlIHRoZSBsYW5lLgogIC8vIFRoaXMgbGV0cyBhIHNhZmUgZm9sbG93ZXIgZXNjYXBlIGltbWVkaWF0ZWx5IHdoaWxlIHRoZSBmaXJzdCBhcnJvdyBhbmltYXRlcyBvdXQuCiAgaWYgKHAubW92aW5nKSB7CiAgICAgIGFkZE1vdmluZ09jY3VwYW5jeShwLG5vZGVzLGVkZ2VzKTsKICB9IGVsc2UgewogICAgICBub2Rlcy5hZGRBbGwocC5ub2Rlcyk7CiAgICAgIGVkZ2VzLmFkZEFsbChwLmVkZ2VzKTsKICB9CiAgICAgICAgfQo=').decode()
+          new_loop=base64.b64decode('ICAgICAgICBmb3IgKFBpZWNlIHAgOiBwaWVjZXMpIHsKICBpZiAocCA9PSB0YXJnZXQgfHwgcC5yZW1vdmVkKSBjb250aW51ZTsKICBpZiAocC5tb3ZpbmcpIHsKICAgICAgaWYgKHdpbGxDb2xsaWRlV2l0aE1vdmluZyh0YXJnZXQscCkpIHJldHVybiBmYWxzZTsKICAgICAgY29udGludWU7CiAgfQogIG5vZGVzLmFkZEFsbChwLm5vZGVzKTsKICBlZGdlcy5hZGRBbGwocC5lZGdlcyk7CiAgICAgICAgfQo=').decode()
+
+          src=Path('app/src/main/java/com/arrowescape/pro/ArrowGameView.java')
+          s=src.read_text()
+          marker='    private boolean isClear(Piece target) {'
+          if 'private boolean willCollideWithMoving(' not in s:
+              if marker not in s: raise SystemExit('isClear marker missing')
+              s=s.replace(marker,helper+marker,1)
+          if old_loop not in s: raise SystemExit('current moving-arrow loop missing')
+          s=s.replace(old_loop,new_loop,1)
+          src.write_text(s)
+
+          test=Path('app/src/androidTest/java/com/arrowescape/pro/V17ClearanceTest.java')
+          t=test.read_text()
+          old='''            set(blocker,"moving",true);assertFalse("Moving tails still reserve their escape",clear(g,target));
+            set(blocker,"removed",true);assertTrue(clear(g,target));
+
+            Object bent=piece(g,0,0,0,4,4,4);'''
+          new='''            int blockerSteps=(Integer)call(g,"snakeTravelSteps",new Class[]{blocker.getClass()},blocker);
+            set(blocker,"moving",true);set(blocker,"moveSteps",blockerSteps);set(blocker,"moveT",0f);
+            assertTrue("A moving arrow must not reserve a lane when its future motion will not collide",clear(g,target));
+            set(blocker,"removed",true);assertTrue(clear(g,target));
+
+            Object crossingTarget=piece(g,0,10,2,10),crossing=piece(g,4,4,4,10);
+            pieces(g).clear();pieces(g).add(crossingTarget);pieces(g).add(crossing);
+            int crossingSteps=(Integer)call(g,"snakeTravelSteps",new Class[]{crossing.getClass()},crossing);
+            set(crossing,"moving",true);set(crossing,"moveSteps",crossingSteps);set(crossing,"moveT",0f);
+            assertFalse("A moving arrow must still block when live future snake bodies actually collide",clear(g,crossingTarget));
+
+            Object bent=piece(g,0,0,0,4,4,4);'''
+          if old not in t: raise SystemExit('V17 moving blocker assertion block missing')
+          test.write_text(t.replace(old,new,1))
+          PY
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Compile app and instrumentation tests
+        run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
+      - name: Commit predictive collision implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/java/com/arrowescape/pro/ArrowGameView.java app/src/androidTest/java/com/arrowescape/pro/V17ClearanceTest.java
+          git rm .github/workflows/v28-predictive-moving-collision.yml
+          git commit -m "Check real moving-arrow collisions without reserving lanes"
+          git push origin HEAD:v23-upload-ready-nightly
