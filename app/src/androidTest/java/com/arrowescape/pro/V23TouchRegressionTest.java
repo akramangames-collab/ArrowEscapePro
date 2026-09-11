@@ -79,4 +79,27 @@ public class V23TouchRegressionTest {
             assertFalse("Blocked neighbour must not be selected",(Boolean)get(neighbour,"moving"));
         } finally { g.release(); }
     });}
+
+    @Test public void movingBlockersAlreadyEscapingCannotChargeHeart() throws Exception {onMain(()->{
+        context().getSharedPreferences("arrow_puzzle_faithful",0).edit().clear().commit();
+        context().getSharedPreferences("arrow_escape_pro",0).edit().clear().commit();
+        ArrowGameView g=new ArrowGameView(context(),new Host(),new Wallet(new PreferenceWalletStorage(context())));
+        try {
+            set(g,"tutorial",false);
+            call(g,"startLevel",new Class[]{int.class},2);
+            ArrayList<Object> all=pieces(g);
+            Object blockerA=all.get(9), blockerB=all.get(14), target=all.get(22);
+
+            // Real gameplay state after the visible blockers have been tapped:
+            // they are animating out (moving=true) but are not removed yet.
+            set(blockerA,"moving",true); set(blockerA,"moveT",0.45f);
+            set(blockerB,"moving",true); set(blockerB,"moveT",0.45f);
+
+            assertTrue("Accepted/moving arrows must not keep a visually clear lane blocked",clear(g,target));
+            int hearts=(Integer)get(g,"hearts");
+            call(g,"tapPiece",new Class[]{target.getClass()},target);
+            assertEquals("A visually clear escape must never cost a heart because earlier arrows are still animating",hearts,get(g,"hearts"));
+            assertTrue("The target arrow must start moving immediately",(Boolean)get(target,"moving"));
+        } finally { g.release(); }
+    });}
 }
