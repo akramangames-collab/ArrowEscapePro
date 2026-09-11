@@ -90,12 +90,17 @@ public class V23TouchRegressionTest {
             ArrayList<Object> all=pieces(g);
             Object blockerA=all.get(9), blockerB=all.get(14), target=all.get(22);
 
-            // Real gameplay state after the visible blockers have been tapped:
-            // they are animating out (moving=true) but are not removed yet.
-            set(blockerA,"moving",true); set(blockerA,"moveT",0.45f);
-            set(blockerB,"moving",true); set(blockerB,"moveT",0.45f);
+            // Match real gameplay: moving arrows retain their full snake body until
+            // their animated tail actually vacates a cell.
+            int stepsA=(Integer)call(g,"snakeTravelSteps",new Class[]{blockerA.getClass()},blockerA);
+            int stepsB=(Integer)call(g,"snakeTravelSteps",new Class[]{blockerB.getClass()},blockerB);
+            set(blockerA,"moving",true); set(blockerA,"moveSteps",stepsA); set(blockerA,"moveT",0f);
+            set(blockerB,"moving",true); set(blockerB,"moveSteps",stepsB); set(blockerB,"moveT",0f);
+            assertFalse("Moving bodies must still block while visibly occupying the lane",clear(g,target));
 
-            assertTrue("Accepted/moving arrows must not keep a visually clear lane blocked",clear(g,target));
+            set(blockerA,"moveT",0.90f);
+            set(blockerB,"moveT",0.90f);
+            assertTrue("Once moving tails visibly clear the lane, the target must be allowed",clear(g,target));
             int hearts=(Integer)get(g,"hearts");
             call(g,"tapPiece",new Class[]{target.getClass()},target);
             assertEquals("A visually clear escape must never cost a heart because earlier arrows are still animating",hearts,get(g,"hearts"));

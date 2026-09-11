@@ -1620,6 +1620,53 @@ public class ArrowGameView extends View {
         return true;
     }
 
+    private void addMovingOccupancy(Piece p,HashSet<Long> nodes,HashSet<Long> edges) {
+        float total=piecePathLength(p);
+        float advance=p.moveT*Math.max(0,p.moveSteps);
+        float end=advance+total;
+        ArrayList<Float> stops=new ArrayList<>();
+        stops.add(advance);
+        float walked=0f;
+        for(int i=0;i<p.pts.size()-1;i++){
+            Point a=p.pts.get(i),b=p.pts.get(i+1);
+            walked+=Math.abs(b.x-a.x)+Math.abs(b.y-a.y);
+            if(walked>advance+0.0001f&&walked<end-0.0001f)stops.add(walked);
+        }
+        stops.add(end);
+        for(int i=0;i<stops.size()-1;i++){
+            android.graphics.PointF a=routePoint(p,stops.get(i));
+            android.graphics.PointF b=routePoint(p,stops.get(i+1));
+            addMovingSegmentOccupancy(a,b,nodes,edges);
+        }
+    }
+
+    private void addMovingSegmentOccupancy(android.graphics.PointF a,android.graphics.PointF b,HashSet<Long> nodes,HashSet<Long> edges) {
+        final float eps=0.001f;
+        if(Math.abs(a.y-b.y)<=eps){
+            int y=Math.round((a.y+b.y)*0.5f);
+            float lo=Math.min(a.x,b.x),hi=Math.max(a.x,b.x);
+            if(hi-lo<=eps)return;
+            int firstNode=(int)Math.ceil(lo-eps),lastNode=(int)Math.floor(hi+eps);
+            for(int x=firstNode;x<=lastNode;x++)if(x>=0&&x<=gridW&&y>=0&&y<=gridH)nodes.add(nodeKey(x,y));
+            int firstEdge=(int)Math.floor(lo),lastEdge=(int)Math.ceil(hi)-1;
+            for(int x=firstEdge;x<=lastEdge;x++){
+                float overlap=Math.min(hi,x+1f)-Math.max(lo,x);
+                if(overlap>eps&&x>=0&&x<gridW&&y>=0&&y<=gridH)edges.add(edgeKey(x,y,1));
+            }
+        }else if(Math.abs(a.x-b.x)<=eps){
+            int x=Math.round((a.x+b.x)*0.5f);
+            float lo=Math.min(a.y,b.y),hi=Math.max(a.y,b.y);
+            if(hi-lo<=eps)return;
+            int firstNode=(int)Math.ceil(lo-eps),lastNode=(int)Math.floor(hi+eps);
+            for(int y=firstNode;y<=lastNode;y++)if(x>=0&&x<=gridW&&y>=0&&y<=gridH)nodes.add(nodeKey(x,y));
+            int firstEdge=(int)Math.floor(lo),lastEdge=(int)Math.ceil(hi)-1;
+            for(int y=firstEdge;y<=lastEdge;y++){
+                float overlap=Math.min(hi,y+1f)-Math.max(lo,y);
+                if(overlap>eps&&x>=0&&x<=gridW&&y>=0&&y<gridH)edges.add(edgeKey(x,y,2));
+            }
+        }
+    }
+
     private boolean isClear(Piece target) {
         if(!specialUnlocked(target))return false;
         if(!hasSelfClearance(target))return false;
@@ -1631,16 +1678,16 @@ public class ArrowGameView extends View {
       new HashSet<>();
 
         for (Piece p : pieces) {
-  // Reserve a moving arrow's route until its tail has fully exited. Otherwise
-  // rapid taps can release a dependent arrow into a body still on the board.
-  if (p == target
-          || p.removed
-          || p.moving) {
-      continue;
-  }
+  if (p == target || p.removed) continue;
 
-  nodes.addAll(p.nodes);
-  edges.addAll(p.edges);
+  // A moving arrow blocks only where its snake body is visibly present now.
+  // Cells already vacated by the animated tail must not cause false heart loss.
+  if (p.moving) {
+      addMovingOccupancy(p,nodes,edges);
+  } else {
+      nodes.addAll(p.nodes);
+      edges.addAll(p.edges);
+  }
         }
 
         Point tip =
