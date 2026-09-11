@@ -1,2 +1,2 @@
-Verification trigger for commit 8b4be14ee79c76b1ee6f67c6f0c2f91953fe8d2e.
-Bug: visually cleared arrow paths could still lose a heart while prior arrows were still in their exit animation.
+Verification trigger for commit 162bf509f2452dab48c3e791bc62487702ac897a.
+Bug: moving arrows must block only where their visible snake body currently remains; vacated cells must not deduct a heart.
