@@ -1,1 +1,1 @@
-Run predictive collision repair v3 and verify safe followers do not wait behind an escaping arrow.
+Build latest verified APK from predictive moving-collision fix commit 6162af689ea701be566e4c1fa77a86efdf781591.
