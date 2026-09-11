@@ -1,1 +1,1 @@
-Apply final release rule: once an arrow starts a successful escape, it is logically removed immediately and cannot block or charge a heart to a safe follower.
+Run corrected final release rule: escaping arrows are logically gone immediately; verify safe followers and build Play Store package.
