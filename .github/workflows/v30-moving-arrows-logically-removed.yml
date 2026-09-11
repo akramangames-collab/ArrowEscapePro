@@ -1,0 +1,80 @@
+name: Final Moving Arrow Release Fix
+
+on:
+  push:
+    branches: [v23-upload-ready-nightly]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: ${{ contains(github.event.head_commit.message, '[moving-logical-remove]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: v23-upload-ready-nightly
+          fetch-depth: 0
+
+      - name: Apply final moving-arrow rule
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          src = Path('app/src/main/java/com/arrowescape/pro/ArrowGameView.java')
+          s = src.read_text()
+          old = '''        for (Piece p : pieces) {
+  if (p == target || p.removed) continue;
+  if (p.moving) {
+      if (willCollideWithMoving(target,p)) return false;
+      continue;
+  }
+  nodes.addAll(p.nodes);
+  edges.addAll(p.edges);
+        }
+'''
+          new = '''        for (Piece p : pieces) {
+  if (p == target || p.removed) continue;
+  // Once an arrow has been accepted for escape it is logically removed from
+  // gameplay immediately. Its snake animation is visual only and must never
+  // reserve a lane or charge a heart to a safe follower behind it.
+  if (p.moving) continue;
+  nodes.addAll(p.nodes);
+  edges.addAll(p.edges);
+        }
+'''
+          if old not in s:
+              raise SystemExit('current isClear moving-arrow block not found')
+          src.write_text(s.replace(old, new, 1))
+
+          test = Path('app/src/androidTest/java/com/arrowescape/pro/V17ClearanceTest.java')
+          t = test.read_text()
+          old_assert = '            assertFalse("A moving arrow must still block when live future snake bodies actually collide",clear(g,crossingTarget));'
+          new_assert = '            assertTrue("An accepted moving arrow is logically gone even if its exit animation visually crosses another escape",clear(g,crossingTarget));'
+          if old_assert not in t:
+              raise SystemExit('V17 moving collision assertion not found')
+          test.write_text(t.replace(old_assert, new_assert, 1))
+          PY
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK
+        run: yes | sdkmanager --licenses >/dev/null && sdkmanager 'platforms;android-36' 'build-tools;36.0.0' platform-tools >/dev/null
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6'
+      - name: Compile app and instrumentation tests
+        run: gradle :app:compileDebugJavaWithJavac :app:compileDebugAndroidTestJavaWithJavac --no-daemon
+      - name: Commit final rule
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app/src/main/java/com/arrowescape/pro/ArrowGameView.java app/src/androidTest/java/com/arrowescape/pro/V17ClearanceTest.java
+          git commit -m 'Treat accepted moving arrows as logically removed'
+          git push origin HEAD:v23-upload-ready-nightly
