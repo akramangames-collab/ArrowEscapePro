@@ -1,1 +1,1 @@
-Run corrected final release rule: escaping arrows are logically gone immediately; verify safe followers and build Play Store package.
+Retry corrected final release rule with exact build tooling; escaping arrows are logically removed immediately.
