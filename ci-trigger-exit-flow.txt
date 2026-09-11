@@ -1,1 +1,1 @@
-Trigger corrected predictive collision patch: safe follower allowed immediately, real simultaneous collision still blocks.
+Run predictive collision repair v3 and verify safe followers do not wait behind an escaping arrow.
