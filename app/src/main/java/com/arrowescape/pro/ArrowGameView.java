@@ -1634,7 +1634,8 @@ public class ArrowGameView extends View {
   // Reserve a moving arrow's route until its tail has fully exited. Otherwise
   // rapid taps can release a dependent arrow into a body still on the board.
   if (p == target
-          || p.removed) {
+          || p.removed
+          || p.moving) {
       continue;
   }
 
