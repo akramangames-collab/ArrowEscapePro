@@ -1,0 +1,116 @@
+name: Sign Arrow Escape Release
+
+on:
+  push:
+    branches: [v23-upload-ready-nightly]
+
+permissions:
+  contents: read
+
+jobs:
+  sign-release:
+    if: ${{ contains(github.event.head_commit.message, '[sign-apk-bootstrap]') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Build unsigned release APK and AAB
+        run: gradle :app:assembleRelease :app:bundleRelease --stacktrace
+
+      - name: Generate upload key and sign release
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p signing dist
+          PASS="$(openssl rand -hex 20)"
+          echo "::add-mask::$PASS"
+          ALIAS="arrowescape_upload"
+          KEYSTORE="signing/ArrowEscape-upload-key.jks"
+
+          keytool -genkeypair -v \
+            -keystore "$KEYSTORE" \
+            -storepass "$PASS" \
+            -keypass "$PASS" \
+            -alias "$ALIAS" \
+            -keyalg RSA \
+            -keysize 4096 \
+            -validity 10000 \
+            -dname "CN=Arrow Escape Pro, OU=Android Release, O=Akraman Games, C=IN"
+
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          ZIPALIGN="$ANDROID_HOME/build-tools/36.0.0/zipalign"
+
+          "$ZIPALIGN" -f -p 4 \
+            app/build/outputs/apk/release/app-release-unsigned.apk \
+            dist/ArrowEscape-1.0.0-release-aligned.apk
+
+          "$APKSIGNER" sign \
+            --ks "$KEYSTORE" \
+            --ks-key-alias "$ALIAS" \
+            --ks-pass "pass:$PASS" \
+            --key-pass "pass:$PASS" \
+            --out dist/ArrowEscape-1.0.0-SIGNED-release.apk \
+            dist/ArrowEscape-1.0.0-release-aligned.apk
+
+          "$APKSIGNER" verify --verbose --print-certs \
+            dist/ArrowEscape-1.0.0-SIGNED-release.apk \
+            | tee dist/APK-SIGNATURE-VERIFICATION.txt
+
+          cp app/build/outputs/bundle/release/app-release.aab \
+            dist/PLAY-STORE-ArrowEscape-1.0.0-SIGNED.aab
+
+          jarsigner \
+            -keystore "$KEYSTORE" \
+            -storepass "$PASS" \
+            -keypass "$PASS" \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            dist/PLAY-STORE-ArrowEscape-1.0.0-SIGNED.aab \
+            "$ALIAS"
+
+          jarsigner -verify -verbose -certs \
+            dist/PLAY-STORE-ArrowEscape-1.0.0-SIGNED.aab \
+            > dist/AAB-SIGNATURE-VERIFICATION.txt
+
+          cp "$KEYSTORE" dist/ArrowEscape-upload-key.jks
+          cat > dist/KEEP-SAFE-signing-credentials.txt <<EOF
+          Arrow Escape signing/upload key
+          ===============================
+          Keystore file: ArrowEscape-upload-key.jks
+          Key alias: $ALIAS
+          Keystore password: $PASS
+          Key password: $PASS
+
+          IMPORTANT: Keep this keystore and password safe. Use the same upload key for future updates unless Google Play App Signing explicitly rotates/resets the upload key.
+          EOF
+
+          keytool -list -v \
+            -keystore "$KEYSTORE" \
+            -storepass "$PASS" \
+            -alias "$ALIAS" \
+            > dist/SIGNING-CERTIFICATE.txt
+
+          rm -f dist/ArrowEscape-1.0.0-release-aligned.apk
+          sha256sum dist/*.apk dist/*.aab dist/*.jks > dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArrowEscape-V26-SIGNED-RELEASE
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
