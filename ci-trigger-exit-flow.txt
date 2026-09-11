@@ -1,1 +1,1 @@
-Build latest verified APK from predictive moving-collision fix commit 6162af689ea701be566e4c1fa77a86efdf781591.
+Apply final release rule: once an arrow starts a successful escape, it is logically removed immediately and cannot block or charge a heart to a safe follower.
