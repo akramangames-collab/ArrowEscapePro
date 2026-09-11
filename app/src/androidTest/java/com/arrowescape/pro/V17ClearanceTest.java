@@ -109,8 +109,16 @@ public class V17ClearanceTest {
             pieces(g).clear();pieces(g).add(target);pieces(g).add(blocker);
             call(g,"tapPiece",new Class[]{target.getClass()},target);
             assertEquals("Blocked by another arrow",get(g,"toast"));assertEquals(2,get(g,"hearts"));
-            set(blocker,"moving",true);assertFalse("Moving tails still reserve their escape",clear(g,target));
+            int blockerSteps=(Integer)call(g,"snakeTravelSteps",new Class[]{blocker.getClass()},blocker);
+            set(blocker,"moving",true);set(blocker,"moveSteps",blockerSteps);set(blocker,"moveT",0f);
+            assertTrue("A moving arrow must not reserve a lane when its future motion will not collide",clear(g,target));
             set(blocker,"removed",true);assertTrue(clear(g,target));
+
+            Object crossingTarget=piece(g,0,10,2,10),crossing=piece(g,4,4,4,10);
+            pieces(g).clear();pieces(g).add(crossingTarget);pieces(g).add(crossing);
+            int crossingSteps=(Integer)call(g,"snakeTravelSteps",new Class[]{crossing.getClass()},crossing);
+            set(crossing,"moving",true);set(crossing,"moveSteps",crossingSteps);set(crossing,"moveT",0f);
+            assertFalse("A moving arrow must still block when live future snake bodies actually collide",clear(g,crossingTarget));
 
             Object bent=piece(g,0,0,0,4,4,4);
             PointF tail=(PointF)call(g,"routePoint",new Class[]{bent.getClass(),float.class},bent,2f);

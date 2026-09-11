@@ -1667,6 +1667,81 @@ public class ArrowGameView extends View {
         }
     }
 
+
+    private float predictedTravelSeconds(int steps) {
+        float c=cell>0.001f?cell:1f;
+        float widthPx=getWidth()>0?getWidth():(gridW+2f)*c;
+        long now=SystemClock.elapsedRealtime();
+        int projectedCombo=(lastCorrectTapAt>0L&&now-lastCorrectTapAt<=2400L)?combo+1:1;
+        float flowBoost=1f+Math.min(10,Math.max(1,projectedCombo))*.035f;
+        float speedPxPerSec=Math.max(widthPx*1.30f,c*9f)*flowBoost;
+        float travelPx=Math.max(c,Math.max(1,steps)*c);
+        return Math.max(.30f,Math.min(1.45f,travelPx/Math.max(.001f,speedPxPerSec)));
+    }
+
+    private float pointSegmentDistance(android.graphics.PointF q,android.graphics.PointF a,android.graphics.PointF b) {
+        float vx=b.x-a.x,vy=b.y-a.y,wx=q.x-a.x,wy=q.y-a.y;
+        float vv=vx*vx+vy*vy;
+        if(vv<=.000001f)return (float)Math.hypot(q.x-a.x,q.y-a.y);
+        float t=Math.max(0f,Math.min(1f,(wx*vx+wy*vy)/vv));
+        float px=a.x+t*vx,py=a.y+t*vy;
+        return (float)Math.hypot(q.x-px,q.y-py);
+    }
+
+    private float distanceToSnake(Piece p,float advance,android.graphics.PointF q) {
+        float total=piecePathLength(p);
+        float from=Math.max(0f,advance),to=from+total;
+        android.graphics.PointF prev=routePoint(p,from);
+        float best=(float)Math.hypot(q.x-prev.x,q.y-prev.y);
+        float walked=0f;
+        for(int i=0;i<p.pts.size()-1;i++){
+            Point a=p.pts.get(i),b=p.pts.get(i+1);
+            walked+=Math.abs(b.x-a.x)+Math.abs(b.y-a.y);
+            if(walked>from+.0001f&&walked<to-.0001f){
+                android.graphics.PointF cur=routePoint(p,walked);
+                best=Math.min(best,pointSegmentDistance(q,prev,cur));
+                prev=cur;
+            }
+        }
+        android.graphics.PointF end=routePoint(p,to);
+        return Math.min(best,pointSegmentDistance(q,prev,end));
+    }
+
+    /**
+     * A moving arrow must not reserve its whole lane. We compare both arrows at
+     * the same future instants and block only if their live snake geometries
+     * would actually meet while they are escaping.
+     */
+    private boolean willCollideWithMoving(Piece target,Piece moving) {
+        if(moving==null||moving.removed||!moving.moving)return false;
+        int targetSteps=Math.max(1,snakeTravelSteps(target));
+        int movingSteps=Math.max(1,moving.moveSteps>0?moving.moveSteps:snakeTravelSteps(moving));
+        float targetSec=predictedTravelSeconds(targetSteps);
+        float movingSec=predictedTravelSeconds(movingSteps);
+        float movingStart=Math.max(0f,Math.min(1f,moving.moveT))*movingSteps;
+        float targetRate=targetSteps/Math.max(.001f,targetSec);
+        float movingRate=movingSteps/Math.max(.001f,movingSec);
+        float movingRemaining=(movingSteps-movingStart)/Math.max(.001f,movingRate);
+        float horizon=Math.min(targetSec,movingRemaining);
+        if(horizon<=0f)return false;
+
+        float targetTotal=piecePathLength(target);
+        float movingTotal=piecePathLength(moving);
+        float maxRate=Math.max(targetRate,movingRate);
+        int samples=Math.max(12,Math.min(1200,(int)Math.ceil(horizon*maxRate*10f)));
+        final float collisionRadius=.12f;
+        for(int i=0;i<=samples;i++){
+            float t=horizon*i/(float)samples;
+            float targetAdvance=Math.min(targetSteps,targetRate*t);
+            float movingAdvance=Math.min(movingSteps,movingStart+movingRate*t);
+            android.graphics.PointF targetHead=routePoint(target,targetTotal+targetAdvance);
+            android.graphics.PointF movingHead=routePoint(moving,movingTotal+movingAdvance);
+            if(distanceToSnake(moving,movingAdvance,targetHead)<=collisionRadius)return true;
+            if(distanceToSnake(target,targetAdvance,movingHead)<=collisionRadius)return true;
+        }
+        return false;
+    }
+
     private boolean isClear(Piece target) {
         if(!specialUnlocked(target))return false;
         if(!hasSelfClearance(target))return false;
@@ -1678,16 +1753,13 @@ public class ArrowGameView extends View {
       new HashSet<>();
 
         for (Piece p : pieces) {
-  if (p == target || p.removed || p.moving) continue;
-
-  // An accepted moving arrow is logically leaving and must not reserve the lane.
-  // This lets a safe follower escape immediately while the first arrow animates out.
+  if (p == target || p.removed) continue;
   if (p.moving) {
-      addMovingOccupancy(p,nodes,edges);
-  } else {
-      nodes.addAll(p.nodes);
-      edges.addAll(p.edges);
+      if (willCollideWithMoving(target,p)) return false;
+      continue;
   }
+  nodes.addAll(p.nodes);
+  edges.addAll(p.edges);
         }
 
         Point tip =
