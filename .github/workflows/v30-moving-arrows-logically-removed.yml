@@ -59,10 +59,10 @@ jobs:
           java-version: '17'
       - uses: android-actions/setup-android@v3
       - name: Install Android SDK
-        run: yes | sdkmanager --licenses >/dev/null && sdkmanager 'platforms;android-36' 'build-tools;36.0.0' platform-tools >/dev/null
+        run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '9.6'
+          gradle-version: '9.6.0'
       - name: Compile app and instrumentation tests
         run: gradle :app:compileDebugJavaWithJavac :app:compileDebugAndroidTestJavaWithJavac --no-daemon
       - name: Commit final rule
