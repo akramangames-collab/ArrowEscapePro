@@ -1,0 +1,2 @@
+Verification trigger for commit 8b4be14ee79c76b1ee6f67c6f0c2f91953fe8d2e.
+Bug: visually cleared arrow paths could still lose a heart while prior arrows were still in their exit animation.
