@@ -1754,10 +1754,8 @@ public class ArrowGameView extends View {
 
         for (Piece p : pieces) {
   if (p == target || p.removed) continue;
-  if (p.moving) {
-      if (willCollideWithMoving(target,p)) return false;
-      continue;
-  }
+  // Accepted escaping arrows are logically removed immediately; animation is visual only.
+  if (p.moving) continue;
   nodes.addAll(p.nodes);
   edges.addAll(p.edges);
         }

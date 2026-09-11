@@ -118,7 +118,7 @@ public class V17ClearanceTest {
             pieces(g).clear();pieces(g).add(crossingTarget);pieces(g).add(crossing);
             int crossingSteps=(Integer)call(g,"snakeTravelSteps",new Class[]{crossing.getClass()},crossing);
             set(crossing,"moving",true);set(crossing,"moveSteps",crossingSteps);set(crossing,"moveT",0f);
-            assertFalse("A moving arrow must still block when live future snake bodies actually collide",clear(g,crossingTarget));
+            assertTrue("An accepted moving arrow is logically gone even if its exit animation visually crosses another escape",clear(g,crossingTarget));
 
             Object bent=piece(g,0,0,0,4,4,4);
             PointF tail=(PointF)call(g,"routePoint",new Class[]{bent.getClass(),float.class},bent,2f);
