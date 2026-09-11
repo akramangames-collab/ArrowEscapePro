@@ -1,1 +1,1 @@
-Retry corrected final release rule with exact build tooling; escaping arrows are logically removed immediately.
+Build and fully device-test the final release candidate after treating accepted escaping arrows as logically removed.
