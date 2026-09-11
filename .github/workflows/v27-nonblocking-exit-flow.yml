@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   repair:
+    if: ${{ contains(github.event.head_commit.message, '[exit-flow-bootstrap]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -17,73 +18,26 @@ jobs:
           ref: v23-upload-ready-nightly
           fetch-depth: 0
 
-      - name: Apply gameplay fix and regression test
-        shell: bash
+      - name: Apply nonblocking exit-flow rule
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          src=Path('app/src/main/java/com/arrowescape/pro/ArrowGameView.java')
-          s=src.read_text()
-          old="""        for (Piece p : pieces) {
-  if (p == target || p.removed) continue;
+          p=Path('app/src/main/java/com/arrowescape/pro/ArrowGameView.java')
+          s=p.read_text()
+          old='if (p == target || p.removed) continue;'
+          new='if (p == target || p.removed || p.moving) continue;'
+          if old not in s: raise SystemExit('source patch target missing')
+          s=s.replace(old,new,1)
+          s=s.replace('// A moving arrow blocks only where its snake body is visibly present now.','// An accepted moving arrow is logically leaving and must not reserve the lane.',1)
+          s=s.replace('// Cells already vacated by the animated tail must not cause false heart loss.','// This lets a safe follower escape immediately while the first arrow animates out.',1)
+          p.write_text(s)
 
-  // A moving arrow blocks only where its snake body is visibly present now.
-  // Cells already vacated by the animated tail must not cause false heart loss.
-  if (p.moving) {
-      addMovingOccupancy(p,nodes,edges);
-  } else {
-      nodes.addAll(p.nodes);
-      edges.addAll(p.edges);
-  }
-        }
-"""
-          new="""        for (Piece p : pieces) {
-  // Once an arrow has been accepted for escape it is logically leaving the
-  // puzzle. Its exit animation must never reserve an entire lane or prevent
-  // a safe follower from being tapped immediately behind it.
-  if (p == target || p.removed || p.moving) continue;
-  nodes.addAll(p.nodes);
-  edges.addAll(p.edges);
-        }
-"""
-          if old not in s:
-              raise SystemExit('current moving occupancy block not found')
-          src.write_text(s.replace(old,new,1))
-
-          test=Path('app/src/androidTest/java/com/arrowescape/pro/V23TouchRegressionTest.java')
-          t=test.read_text()
-          old_test="""            // Match real gameplay: moving arrows retain their full snake body until
-            // their animated tail actually vacates a cell.
-            int stepsA=(Integer)call(g,\"snakeTravelSteps\",new Class[]{blockerA.getClass()},blockerA);
-            int stepsB=(Integer)call(g,\"snakeTravelSteps\",new Class[]{blockerB.getClass()},blockerB);
-            set(blockerA,\"moving\",true); set(blockerA,\"moveSteps\",stepsA); set(blockerA,\"moveT\",0f);
-            set(blockerB,\"moving\",true); set(blockerB,\"moveSteps\",stepsB); set(blockerB,\"moveT\",0f);
-            assertFalse(\"Moving bodies must still block while visibly occupying the lane\",clear(g,target));
-
-            set(blockerA,\"moveT\",0.90f);
-            set(blockerB,\"moveT\",0.90f);
-            assertTrue(\"Once moving tails visibly clear the lane, the target must be allowed\",clear(g,target));
-            int hearts=(Integer)get(g,\"hearts\");
-            call(g,\"tapPiece\",new Class[]{target.getClass()},target);
-            assertEquals(\"A visually clear escape must never cost a heart because earlier arrows are still animating\",hearts,get(g,\"hearts\"));
-            assertTrue(\"The target arrow must start moving immediately\",(Boolean)get(target,\"moving\"));
-"""
-          new_test="""            // An accepted arrow is already leaving the puzzle logically. Its visual
-            // exit animation must not reserve the lane and block a safe follower.
-            int stepsA=(Integer)call(g,\"snakeTravelSteps\",new Class[]{blockerA.getClass()},blockerA);
-            int stepsB=(Integer)call(g,\"snakeTravelSteps\",new Class[]{blockerB.getClass()},blockerB);
-            set(blockerA,\"moving\",true); set(blockerA,\"moveSteps\",stepsA); set(blockerA,\"moveT\",0f);
-            set(blockerB,\"moving\",true); set(blockerB,\"moveSteps\",stepsB); set(blockerB,\"moveT\",0f);
-            assertTrue(\"A safe follower must be tappable immediately behind arrows already accepted for escape\",clear(g,target));
-
-            int hearts=(Integer)get(g,\"hearts\");
-            call(g,\"tapPiece\",new Class[]{target.getClass()},target);
-            assertEquals(\"Following an already escaping arrow must never cost a heart\",hearts,get(g,\"hearts\"));
-            assertTrue(\"The follower arrow must start moving immediately\",(Boolean)get(target,\"moving\"));
-"""
-          if old_test not in t:
-              raise SystemExit('moving blocker regression block not found')
-          test.write_text(t.replace(old_test,new_test,1))
+          p=Path('app/src/androidTest/java/com/arrowescape/pro/V23TouchRegressionTest.java')
+          s=p.read_text()
+          old='assertFalse("Moving bodies must still block while visibly occupying the lane",clear(g,target));'
+          new='assertTrue("A safe follower must be tappable immediately behind arrows already accepted for escape",clear(g,target));'
+          if old not in s: raise SystemExit('regression test patch target missing')
+          p.write_text(s.replace(old,new,1))
           PY
 
       - uses: actions/setup-java@v5
@@ -100,11 +54,10 @@ jobs:
         with:
           gradle-version: '9.6.0'
 
-      - name: Compile
+      - name: Compile app and tests
         run: gradle :app:assembleDebug :app:assembleDebugAndroidTest --stacktrace
 
-      - name: Commit patch
-        shell: bash
+      - name: Commit verified rule
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
