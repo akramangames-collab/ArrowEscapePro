@@ -1,7 +1,7 @@
-name: Build Arrow Escape 1.0.1 AAB
+name: Build Arrow Escape 1.0.2 AAB
 on:
   push:
-    branches: [v23-upload-ready-nightly]
+    branches: [v25-version-1.0.2]
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,17 +23,19 @@ jobs:
           gradle-version: '9.6.0'
       - name: Build Play Store AAB
         run: gradle :app:bundleRelease --stacktrace
-      - name: Verify version and package bundle
+      - name: Verify version, SDK and package bundle
         run: |
           test -f app/build/outputs/bundle/release/app-release.aab
-          grep -q 'versionCode = 2' app/build.gradle.kts
-          grep -q 'versionName = "1.0.1"' app/build.gradle.kts
+          grep -q 'compileSdk = 36' app/build.gradle.kts
+          grep -q 'targetSdk = 36' app/build.gradle.kts
+          grep -q 'versionCode = 3' app/build.gradle.kts
+          grep -q 'versionName = "1.0.2"' app/build.gradle.kts
           mkdir -p dist
-          cp app/build/outputs/bundle/release/app-release.aab dist/Arrow-Escape-1.0.1.aab
-          sha256sum dist/Arrow-Escape-1.0.1.aab > dist/SHA256SUMS.txt
+          cp app/build/outputs/bundle/release/app-release.aab dist/Arrow-Escape-1.0.2-SDK36.aab
+          sha256sum dist/Arrow-Escape-1.0.2-SDK36.aab > dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.0.1-AAB
+          name: Arrow-Escape-1.0.2-SDK36-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 30
