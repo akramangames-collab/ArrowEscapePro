@@ -30,12 +30,13 @@ Private signing material must never be committed to this repository.
 - `ARROW_RELEASE_KEY_ALIAS`
 - `ARROW_RELEASE_KEY_PASSWORD`
 
-The GitHub release workflow maps those values from these repository secrets:
+The GitHub release workflow supplies the known upload-key alias `arrowescape-upload` and maps the remaining values from these repository secrets:
 
 - `ARROW_RELEASE_KEYSTORE_B64` — base64 encoded existing release/upload keystore
 - `ARROW_RELEASE_STORE_PASSWORD`
-- `ARROW_RELEASE_KEY_ALIAS`
 - `ARROW_RELEASE_KEY_PASSWORD`
+
+The verified Play upload certificate SHA-256 fingerprint is pinned in the workflow, so a different keystore cannot silently produce the release artifact.
 
 Use the same existing release/upload key that was used for the Play Store app. Do not create a replacement key unless the Play Console key-management process explicitly requires it.
 
@@ -49,13 +50,13 @@ It is `workflow_dispatch` only. Normal pushes do not start a build.
 
 When manually started, it:
 
-1. Fails immediately if any signing secret is missing.
+1. Fails immediately if any required signing secret is missing.
 2. Installs Android SDK 36.
 3. Restores the private keystore only inside the runner temporary directory.
 4. Verifies the deterministic level pack, clearance/solvability rules, wallet tests and UI/UX contract.
 5. Runs Android lint.
 6. Builds the release AAB with the configured signing key.
-7. Uses `jarsigner -verify -strict` so an unsigned bundle cannot be published as a release artifact.
+7. Verifies the AAB signature and checks that its signer certificate matches the pinned Play upload-certificate SHA-256 fingerprint.
 8. Uploads `PLAY-STORE-Arrow-Escape-1.0.2-SDK36-SIGNED.aab` plus its SHA-256 checksum.
 
 Legacy V16/V22/V23/V24/V30 auto-build and self-modifying workflows are intentionally removed from this branch.
