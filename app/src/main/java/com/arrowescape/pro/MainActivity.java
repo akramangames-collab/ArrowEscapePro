@@ -649,6 +649,7 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
             },false));
 
             body.addView(section("PRIVACY & SUPPORT"));
+            body.addView(button("★  Rate Arrow Escape",this::openPlayStoreRating,false));
             body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
             if(consent!=null && consent.getPrivacyOptionsRequirementStatus()==ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
                 body.addView(button("Privacy choices",()-> UserMessagingPlatform.showPrivacyOptionsForm(this,error->{
@@ -688,6 +689,24 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     }
 
     private void destroyBanner() { if(banner!=null){banner.destroy();banner=null;} }
+    private void openPlayStoreRating() {
+        String packageName=getPackageName();
+        try {
+            android.content.Intent marketIntent=new android.content.Intent(
+                android.content.Intent.ACTION_VIEW,
+                android.net.Uri.parse("market://details?id="+packageName));
+            marketIntent.setPackage("com.android.vending");
+            startActivity(marketIntent);
+        } catch (android.content.ActivityNotFoundException error) {
+            try {
+                startActivity(new android.content.Intent(
+                    android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://play.google.com/store/apps/details?id="+packageName)));
+            } catch (android.content.ActivityNotFoundException ignored) {
+                toast("Play Store is unavailable on this device.");
+            }
+        }
+    }
     private void showPrivacyPolicy() {
         StringBuilder policy=new StringBuilder();
         try(java.io.BufferedReader reader=new java.io.BufferedReader(new java.io.InputStreamReader(getAssets().open("privacy-policy.txt"),java.nio.charset.StandardCharsets.UTF_8))){
