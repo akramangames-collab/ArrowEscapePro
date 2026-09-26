@@ -17,12 +17,10 @@ jobs:
         env:
           KEYSTORE_B64: ${{ secrets.ARROW_RELEASE_KEYSTORE_B64 }}
           STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ARROW_RELEASE_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
         run: |
           test -n "$KEYSTORE_B64" || { echo 'Missing ARROW_RELEASE_KEYSTORE_B64'; exit 1; }
           test -n "$STORE_PASSWORD" || { echo 'Missing ARROW_RELEASE_STORE_PASSWORD'; exit 1; }
-          test -n "$KEY_ALIAS" || { echo 'Missing ARROW_RELEASE_KEY_ALIAS'; exit 1; }
           test -n "$KEY_PASSWORD" || { echo 'Missing ARROW_RELEASE_KEY_PASSWORD'; exit 1; }
 
       - uses: actions/setup-java@v5
@@ -60,19 +58,21 @@ jobs:
         env:
           ARROW_RELEASE_STORE_FILE: ${{ runner.temp }}/arrow-release.jks
           ARROW_RELEASE_STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
-          ARROW_RELEASE_KEY_ALIAS: ${{ secrets.ARROW_RELEASE_KEY_ALIAS }}
+          ARROW_RELEASE_KEY_ALIAS: arrowescape-upload
           ARROW_RELEASE_KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
         run: gradle :app:lintDebug :app:bundleRelease --stacktrace
 
       - name: Verify signed bundle and metadata
         run: |
           AAB="app/build/outputs/bundle/release/app-release.aab"
+          EXPECTED_UPLOAD_SHA256="81:19:CA:D4:48:BF:E8:B6:13:B4:19:45:84:A1:8E:08:33:D3:86:90:7B:80:8C:13:41:03:CD:00:95:FD:4F:97"
           test -f "$AAB"
           grep -q 'compileSdk = 36' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
           grep -q 'versionCode = 3' app/build.gradle.kts
           grep -q 'versionName = "1.0.2"' app/build.gradle.kts
-          jarsigner -verify -strict "$AAB"
+          jarsigner -verify "$AAB"
+          keytool -printcert -jarfile "$AAB" | grep -Fq "SHA256: $EXPECTED_UPLOAD_SHA256"
           mkdir -p dist
           cp "$AAB" dist/PLAY-STORE-Arrow-Escape-1.0.2-SDK36-SIGNED.aab
           sha256sum dist/PLAY-STORE-Arrow-Escape-1.0.2-SDK36-SIGNED.aab > dist/SHA256SUMS.txt
