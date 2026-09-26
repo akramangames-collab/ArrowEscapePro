@@ -1,56 +1,89 @@
-# Arrow Escape: Puzzle Maze — V16
+# Arrow Escape: Puzzle Maze
 
-Android 6.0+ arrow puzzle with 200 hard mazes, based on successful V15 commit `ad619400a21b71ff4fea35c18a4a292810eea318` (Actions run `34047666833`).
+Current release-hardening line for the Android arrow puzzle game.
 
-The arrowhead exits straight ahead and its body follows the original bends. V15 route construction, travel, hit testing and collision methods are verified against saved fingerprints. The V15 level-sorter header bug is repaired, and each original layout is extended with blocking arrows to create harder, solvable levels. New layouts progress from 48 to 188 arrows. No fallback layout is needed.
+## Current build
 
-## V16
+- Version: `1.0.2`
+- Version code: `3`
+- Package: `com.arrowescape.pro`
+- Minimum SDK: `24`
+- Compile SDK: `36`
+- Target SDK: `36`
+- Java: `17`
+- Active hardening branch: `v26-release-hardening`
 
-- Supplied glossy maze/arrow/coin icon, launcher branding and splash screen.
-- Persistent coins, puzzle progress, hearts, free hints and erasers.
-- 100 starter coins for a fresh wallet. Existing V15 wallet balances and daily streaks are retained on compatible upgrades.
-- Each completed attempt: +15 coins, +5 with no blocked taps, +30 on every fifth level. Duplicate completion callbacks cannot grant twice.
-- Two free hints per level, then 25 coins each. A repeated tap while a hint is visible does not spend again.
-- Daily claim: +100 coins once per UTC day; clock rollback cannot reclaim an older day.
-- Earned rewarded ad: +75 coins, or the selected erase/revive benefit. Closing or failing to load an ad grants nothing.
-- Optional heart: 40 coins; continue: 60 coins.
-- Interstitials only at the next-level transition, after at least five clears and two minutes. Banners appear only in the menu.
-- Working sound, vibration, contrast and tutorial controls. Ad requests wait for UMP consent eligibility.
+## Gameplay baseline
 
-## Build
+The approved V15 movement model remains the gameplay foundation: the arrow head travels forward while the body follows the original path like a snake. Later releases preserve that movement while adding full escape validation, including own-tail/body clearance and blocking by other live arrows.
 
-`.github/workflows/build.yml` builds on pushes to `main` or `v16-puzzle-maze`, and supports Run workflow. Source lives in `app/`; no source is generated inside YAML.
+The current product line retains the 200-level campaign, persistent progression/economy, hearts, hints, Daily Challenge, streak rewards, achievements, store/settings surfaces, production AdMob IDs in release and Google test IDs in debug.
 
-The workflow validates all 200 mazes, checks wallet persistence and duplicate rewards, builds both variants, checks compiled ad IDs/version metadata, runs native Android tests and captures screenshots.
+## Release signing
 
-- Debug: `ArrowEscape-PuzzleMaze-V16-test.apk`, official Google test IDs, package `com.arrowescape.pro.debug` so it can coexist with installed production builds.
-- Release: `ArrowEscape-PuzzleMaze-V16-release-unsigned.apk`, supplied production IDs, package `com.arrowescape.pro`, version `16.0.1` / code `18`. CI keeps the release APK unsigned so signing credentials stay private. The final V16 download is signed separately with the V16 release key; retain its private backup for future updates. Private signing keys must never be committed. V15 used a different test certificate, so the signed release requires a fresh installation when that V15 APK is already installed.
+Private signing material must never be committed to this repository.
 
-Production AdMob mapping supplied in the project conversation:
+`app/build.gradle.kts` supports release signing only when all four environment values are present:
 
-| Format | ID |
-|---|---|
-| App | `ca-app-pub-2475015099415787~6197424406` |
-| Banner | `ca-app-pub-2475015099415787/6590130477` |
-| Interstitial | `ca-app-pub-2475015099415787/3782285105` |
-| Rewarded | `ca-app-pub-2475015099415787/2469203439` |
+- `ARROW_RELEASE_STORE_FILE`
+- `ARROW_RELEASE_STORE_PASSWORD`
+- `ARROW_RELEASE_KEY_ALIAS`
+- `ARROW_RELEASE_KEY_PASSWORD`
 
-Documentation: [Google demo ad IDs](https://developers.google.com/admob/android/test-ads), [reward callbacks](https://developers.google.com/admob/android/rewarded), [UMP consent integration](https://developers.google.com/admob/android/privacy).
+The GitHub release workflow supplies the known upload-key alias `arrowescape-upload` and maps the remaining values from these repository secrets:
 
-A production ID does not guarantee ad fill. AdMob account/app readiness and configured privacy messages remain controlled in AdMob. No live ads are clicked during verification.
+- `ARROW_RELEASE_KEYSTORE_B64` — base64 encoded existing release/upload keystore
+- `ARROW_RELEASE_STORE_PASSWORD`
+- `ARROW_RELEASE_KEY_PASSWORD`
 
-## Verification / reproduction
+The verified Play upload certificate SHA-256 fingerprint is pinned in the workflow, so a different keystore cannot silently produce the release artifact.
+
+Use the same existing release/upload key that was used for the Play Store app. Do not create a replacement key unless the Play Console key-management process explicitly requires it.
+
+## GitHub Actions policy
+
+To avoid wasting Actions minutes, the release-hardening branch has one workflow only:
+
+`.github/workflows/aab-1.0.1.yml`
+
+It is `workflow_dispatch` only. Normal pushes do not start a build.
+
+When manually started, it:
+
+1. Fails immediately if any required signing secret is missing.
+2. Installs Android SDK 36.
+3. Restores the private keystore only inside the runner temporary directory.
+4. Verifies the deterministic level pack, clearance/solvability rules, wallet tests and UI/UX contract.
+5. Runs Android lint.
+6. Builds the release AAB with the configured signing key.
+7. Verifies the AAB signature and checks that its signer certificate matches the pinned Play upload-certificate SHA-256 fingerprint.
+8. Uploads `PLAY-STORE-Arrow-Escape-1.0.2-SDK36-SIGNED.aab` plus its SHA-256 checksum.
+
+Legacy V16/V22/V23/V24/V30 auto-build and self-modifying workflows are intentionally removed from this branch.
+
+## Local/static verification
+
+The repository contains the existing validation scripts used throughout development:
 
 ```sh
+python3 scripts/generate-hard-levels.py --check
 python3 scripts/verify-levels.py
 bash scripts/test-wallet.sh
-gradle :app:assembleDebug :app:assembleRelease :app:assembleDebugAndroidTest
+python3 scripts/verify-ui-ux.py
 ```
 
-Regenerate the deterministic harder layouts using `python3 scripts/generate-hard-levels.py`. The original recovered V15 layouts are retained only as the generator fixture in `tests/v15-levels.txt`.
+For an Android build with a configured SDK/Gradle environment:
 
-## Google Play preparation
+```sh
+gradle :app:lintDebug :app:assembleDebug :app:bundleRelease
+```
 
-The approved V16 gameplay and wallet are preserved. Store build 16.0.1 / code 18 adds an offline privacy-policy screen, production App Bundle output and 1080x1920 listing captures. GitHub Actions uploads `ArrowEscape-V16-Play-Bundle`; sign this bundle privately with the existing V16 key before the first Play upload. The original signed V16 APK remains available separately.
+Without the four release-signing environment variables, Gradle may still produce an unsigned release artifact for development checks. Such an artifact is **not** the final Play Store update bundle.
 
-English listing text is in `play-store/`. The privacy text in `PRIVACY.md` matches `app/src/main/assets/privacy-policy.txt`. Select the intended audience and complete the publisher/account declarations in Play Console before submitting the app.
+## Ads
+
+Debug builds use Google's official test ad IDs. Release builds keep the production AdMob IDs already configured for Arrow Escape. Production ads must not be clicked during verification.
+
+## Play Store release rule
+
+Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.0.2` / code `3` is already configured for SDK 36.
