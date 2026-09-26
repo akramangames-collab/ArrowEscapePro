@@ -1,0 +1,4394 @@
+[
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 10,
+    "challenge": 1,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 15,
+    "challenge": 2,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 14,
+    "challenge": 3,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 11,
+    "challenge": 4,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      45,
+      40
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "challenge": 5,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 6,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      48,
+      39
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "challenge": 7,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      40,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 10,
+    "challenge": 8,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      28,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 10,
+    "challenge": 9,
+    "generation_attempts": 6
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      47,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "challenge": 10,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      37,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 13,
+    "challenge": 11,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      40,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 12,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      44,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 7,
+    "challenge": 13,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      46,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 13,
+    "challenge": 14,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 8,
+    "challenge": 15,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      41,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 17,
+    "challenge": 16,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      38,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 17,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 9,
+    "challenge": 18,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      47,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 14,
+    "challenge": 19,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "challenge": 20,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      35,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 21,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 13,
+    "challenge": 22,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      47,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 14,
+    "challenge": 23,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      38,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 12,
+    "challenge": 24,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      33,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 11,
+    "challenge": 25,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      42,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 7,
+    "challenge": 26,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 7,
+    "challenge": 27,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      34,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 12,
+    "challenge": 28,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 11,
+    "challenge": 29,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      38,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 14,
+    "challenge": 30,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 7,
+    "challenge": 31,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      42,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 11,
+    "challenge": 32,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      45,
+      43
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 7,
+    "challenge": 33,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      48,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 16,
+    "challenge": 34,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      48,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 7,
+    "challenge": 35,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 36,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 16,
+    "challenge": 37,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      41,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 9,
+    "challenge": 38,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      39,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 39,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 7,
+    "challenge": 40,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      39,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 8,
+    "challenge": 41,
+    "generation_attempts": 10
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      36,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 10,
+    "challenge": 42,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      49,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 14,
+    "challenge": 43,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      40,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 14,
+    "challenge": 44,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      35,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 11,
+    "challenge": 45,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      40,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 8,
+    "challenge": 46,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      49,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 11,
+    "challenge": 47,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      42,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 48,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      41,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 13,
+    "challenge": 49,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      42
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "challenge": 50,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 51,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      42,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 52,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 53,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      39,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 10,
+    "challenge": 54,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      50,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 13,
+    "challenge": 55,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      36,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 11,
+    "challenge": 56,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      40,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 7,
+    "challenge": 57,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 13,
+    "challenge": 58,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 13,
+    "challenge": 59,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      44,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "challenge": 60,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 7,
+    "challenge": 61,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      39,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "challenge": 62,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      35,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 7,
+    "challenge": 63,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      37,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 12,
+    "challenge": 64,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 6,
+    "challenge": 65,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 8,
+    "challenge": 66,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      38,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 12,
+    "challenge": 67,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      42,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 13,
+    "challenge": 68,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 11,
+    "challenge": 69,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      45
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 9,
+    "challenge": 70,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      33,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 8,
+    "challenge": 71,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      38,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 72,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      34,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 10,
+    "challenge": 73,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      38,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 12,
+    "challenge": 74,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      48,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 7,
+    "challenge": 75,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      40,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 16,
+    "challenge": 76,
+    "generation_attempts": 6
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 15,
+    "challenge": 77,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      44,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 8,
+    "challenge": 78,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      50,
+      57
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 8,
+    "challenge": 79,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      35,
+      43
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 10,
+    "challenge": 80,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      39,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 8,
+    "challenge": 81,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      47,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 13,
+    "challenge": 82,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 10,
+    "challenge": 83,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 10,
+    "challenge": 84,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      31,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 9,
+    "challenge": 85,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      42,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 14,
+    "challenge": 86,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      47,
+      39
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 87,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      44,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 88,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      33,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 8,
+    "challenge": 89,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "challenge": 90,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 11,
+    "challenge": 91,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      34,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 92,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      41,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 15,
+    "challenge": 93,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      40,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 11,
+    "challenge": 94,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      32,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 95,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      31,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 8,
+    "challenge": 96,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      42,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 10,
+    "challenge": 97,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 10,
+    "challenge": 98,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 13,
+    "challenge": 99,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      41,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "challenge": 100,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      42,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 9,
+    "challenge": 101,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      43,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 102,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 8,
+    "challenge": 103,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 13,
+    "challenge": 104,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 11,
+    "challenge": 105,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      41,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 11,
+    "challenge": 106,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      36,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 10,
+    "challenge": 107,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      44,
+      38
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "challenge": 108,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      42,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "challenge": 109,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 110,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      50,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 11,
+    "challenge": 111,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 13,
+    "challenge": 112,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      38,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 13,
+    "challenge": 113,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      48,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 8,
+    "challenge": 114,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      50,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 6,
+    "challenge": 115,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 14,
+    "challenge": 116,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 117,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      48,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 12,
+    "challenge": 118,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      47,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 13,
+    "challenge": 119,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      41,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 120,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      45,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 12,
+    "challenge": 121,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      39,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 11,
+    "challenge": 122,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 5,
+    "challenge": 123,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 13,
+    "challenge": 124,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      45,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 10,
+    "challenge": 125,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      48,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 11,
+    "challenge": 126,
+    "generation_attempts": 8
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 127,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 9,
+    "challenge": 128,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 129,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      37,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 8,
+    "challenge": 130,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      42,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 5,
+    "challenge": 131,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      40,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 132,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      37,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 133,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 14,
+    "challenge": 134,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 11,
+    "challenge": 135,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      43,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 9,
+    "challenge": 136,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      45,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 7,
+    "challenge": 137,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      39,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 138,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      49,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 8,
+    "challenge": 139,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 7,
+    "challenge": 140,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      38,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 9,
+    "challenge": 141,
+    "generation_attempts": 8
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      41,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 13,
+    "challenge": 142,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 8,
+    "challenge": 143,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      42,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 12,
+    "challenge": 144,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      43
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 12,
+    "challenge": 145,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 146,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      48,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 7,
+    "challenge": 147,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 11,
+    "challenge": 148,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 8,
+    "challenge": 149,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 7,
+    "challenge": 150,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      42
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 11,
+    "challenge": 151,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      35,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 152,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      38,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 14,
+    "challenge": 153,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 11,
+    "challenge": 154,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      41,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 9,
+    "challenge": 155,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 156,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      45,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 16,
+    "challenge": 157,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      48,
+      42
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 10,
+    "challenge": 158,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "challenge": 159,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      40
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 8,
+    "challenge": 160,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      42,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "challenge": 161,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      47,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 15,
+    "challenge": 162,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 10,
+    "challenge": 163,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 16,
+    "challenge": 164,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      39
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 165,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 166,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 13,
+    "challenge": 167,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      37,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 10,
+    "challenge": 168,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      38,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 7,
+    "challenge": 169,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      45,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 13,
+    "challenge": 170,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 9,
+    "challenge": 171,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 172,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 9,
+    "challenge": 173,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      46,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "challenge": 174,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      50,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 53,
+    "self_crossing_arrows": 7,
+    "challenge": 175,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      42,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 9,
+    "challenge": 176,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      38,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 13,
+    "challenge": 177,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      39,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 178,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "challenge": 179,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      44,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 12,
+    "challenge": 180,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      38
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 13,
+    "challenge": 181,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      48,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 11,
+    "challenge": 182,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      41,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 8,
+    "challenge": 183,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      42,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 11,
+    "challenge": 184,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "challenge": 185,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 11,
+    "challenge": 186,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      36,
+      57
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 15,
+    "challenge": 187,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      42,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 10,
+    "challenge": 188,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      45,
+      41
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 12,
+    "challenge": 189,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      32,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 10,
+    "challenge": 190,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      50,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 191,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      42,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 9,
+    "challenge": 192,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 193,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      40,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 10,
+    "challenge": 194,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      50,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 10,
+    "challenge": 195,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 15,
+    "challenge": 196,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      45,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 12,
+    "challenge": 197,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      41,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 198,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      40,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "challenge": 199,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      38,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 10,
+    "challenge": 200,
+    "generation_attempts": 6
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 3,
+    "challenge": 201,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      38,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 9,
+    "challenge": 202,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      43
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "challenge": 203,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "challenge": 204,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 8,
+    "challenge": 205,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 11,
+    "challenge": 206,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      31,
+      57
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 9,
+    "challenge": 207,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      42,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 208,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "challenge": 209,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      47,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 12,
+    "challenge": 210,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      40,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 9,
+    "challenge": 211,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      43,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 10,
+    "challenge": 212,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 213,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      42,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 11,
+    "challenge": 214,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      50,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "challenge": 215,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      45
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 5,
+    "challenge": 216,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      45,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 8,
+    "challenge": 217,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      48,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 8,
+    "challenge": 218,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      48,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 5,
+    "challenge": 219,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 10,
+    "challenge": 220,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 221,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      45,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 8,
+    "challenge": 222,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      48,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 6,
+    "challenge": 223,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      41,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 12,
+    "challenge": 224,
+    "generation_attempts": 13
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      38,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 11,
+    "challenge": 225,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      41,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 9,
+    "challenge": 226,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 227,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      41,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 228,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      39,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "challenge": 229,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      41,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 8,
+    "challenge": 230,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 14,
+    "challenge": 231,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      43,
+      34
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 8,
+    "challenge": 232,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      39,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 14,
+    "challenge": 233,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      48,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 11,
+    "challenge": 234,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      43,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 14,
+    "challenge": 235,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      42,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 7,
+    "challenge": 236,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      45,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 13,
+    "challenge": 237,
+    "generation_attempts": 8
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 9,
+    "challenge": 238,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 15,
+    "challenge": 239,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 240,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      39,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 7,
+    "challenge": 241,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 12,
+    "challenge": 242,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      50,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 243,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 12,
+    "challenge": 244,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      39,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "challenge": 245,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 12,
+    "challenge": 246,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      45
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 247,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 10,
+    "challenge": 248,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 15,
+    "challenge": 249,
+    "generation_attempts": 6
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      41,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 11,
+    "challenge": 250,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      43,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 15,
+    "challenge": 251,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      43,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 5,
+    "challenge": 252,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      44,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 253,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      49
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 12,
+    "challenge": 254,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      39,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "challenge": 255,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 8,
+    "challenge": 256,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      43,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "challenge": 257,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      40,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 10,
+    "challenge": 258,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      48,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 11,
+    "challenge": 259,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 11,
+    "challenge": 260,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 8,
+    "challenge": 261,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      48,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 262,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      47,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 8,
+    "challenge": 263,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      42,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 11,
+    "challenge": 264,
+    "generation_attempts": 9
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "challenge": 265,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      45,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "challenge": 266,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      50,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 8,
+    "challenge": 267,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 268,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      42,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 9,
+    "challenge": 269,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 270,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      48,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 8,
+    "challenge": 271,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 272,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 8,
+    "challenge": 273,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      41,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "challenge": 274,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      49,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 14,
+    "challenge": 275,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      38,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 6,
+    "challenge": 276,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 10,
+    "challenge": 277,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      48,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 13,
+    "challenge": 278,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      50,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 8,
+    "challenge": 279,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      38,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "challenge": 280,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      45,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 11,
+    "challenge": 281,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      48,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "challenge": 282,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      37,
+      57
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "challenge": 283,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 12,
+    "challenge": 284,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      36
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "challenge": 285,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      48,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 13,
+    "challenge": 286,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      42,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 287,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 12,
+    "challenge": 288,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      33,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 289,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 16,
+    "challenge": 290,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      37,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 10,
+    "challenge": 291,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      43,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 8,
+    "challenge": 292,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      43,
+      42
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 293,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 13,
+    "challenge": 294,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      44,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "challenge": 295,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      42
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 296,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "challenge": 297,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      47,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 298,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      49,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 11,
+    "challenge": 299,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      30,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 7,
+    "challenge": 300,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 12,
+    "challenge": 301,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      34,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 10,
+    "challenge": 302,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      50,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 8,
+    "challenge": 303,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 8,
+    "challenge": 304,
+    "generation_attempts": 6
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      46,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 10,
+    "challenge": 305,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 10,
+    "challenge": 306,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      40,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 13,
+    "challenge": 307,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      42,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 14,
+    "challenge": 308,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 309,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      43,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 16,
+    "challenge": 310,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      49,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 12,
+    "challenge": 311,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      40,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 312,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      45
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 11,
+    "challenge": 313,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "challenge": 314,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      49,
+      30
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 8,
+    "challenge": 315,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      36,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 7,
+    "challenge": 316,
+    "generation_attempts": 5
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      45,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 12,
+    "challenge": 317,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      47,
+      38
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 8,
+    "challenge": 318,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      47,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 14,
+    "challenge": 319,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      36,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 10,
+    "challenge": 320,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      44,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 7,
+    "challenge": 321,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      42,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 13,
+    "challenge": 322,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      37,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 8,
+    "challenge": 323,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      43,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 14,
+    "challenge": 324,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 16,
+    "challenge": 325,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 9,
+    "challenge": 326,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      35,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 13,
+    "challenge": 327,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      38,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 12,
+    "challenge": 328,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      37,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 329,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      44,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 330,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      32,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 5,
+    "challenge": 331,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      44,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 11,
+    "challenge": 332,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      46,
+      46
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 9,
+    "challenge": 333,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      36,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 11,
+    "challenge": 334,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      42,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 7,
+    "challenge": 335,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      41,
+      45
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 336,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      36,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 6,
+    "challenge": 337,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      47,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 8,
+    "challenge": 338,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      50,
+      57
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "challenge": 339,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 10,
+    "challenge": 340,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      46,
+      40
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 11,
+    "challenge": 341,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      38,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 14,
+    "challenge": 342,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      44,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 8,
+    "challenge": 343,
+    "generation_attempts": 4
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      36,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 9,
+    "challenge": 344,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      43,
+      40
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 8,
+    "challenge": 345,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      38,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "challenge": 346,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      49,
+      41
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 5,
+    "challenge": 347,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      32,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 348,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      46,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "challenge": 349,
+    "generation_attempts": 7
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      37
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "challenge": 350,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      45,
+      58
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 11,
+    "challenge": 351,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      43,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 14,
+    "challenge": 352,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      42,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 8,
+    "challenge": 353,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 12,
+    "challenge": 354,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      50,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 11,
+    "challenge": 355,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      37,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 9,
+    "challenge": 356,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      31,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 7,
+    "challenge": 357,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      47,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 3,
+    "challenge": 358,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      39,
+      57
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 9,
+    "challenge": 359,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      40,
+      50
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "challenge": 360,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      39,
+      52
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 10,
+    "challenge": 361,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 66,
+    "grid": [
+      48,
+      43
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 12,
+    "challenge": 362,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 68,
+    "grid": [
+      39,
+      56
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 14,
+    "challenge": 363,
+    "generation_attempts": 3
+  },
+  {
+    "arrows": 70,
+    "grid": [
+      41,
+      48
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 14,
+    "challenge": 364,
+    "generation_attempts": 2
+  },
+  {
+    "arrows": 62,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 15,
+    "challenge": 365,
+    "generation_attempts": 1
+  },
+  {
+    "arrows": 64,
+    "grid": [
+      47,
+      53
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 16,
+    "challenge": 366,
+    "generation_attempts": 1
+  }
+]

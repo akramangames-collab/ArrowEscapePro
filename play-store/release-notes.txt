@@ -1,0 +1,7 @@
+V17.0.0 makes Arrow Escape substantially more strategic:
+• Every tap now validates the arrow's complete snake/path-following escape, including its own tail.
+• If the head would reach part of its own body before the tail has cleared that space, the move is blocked.
+• All 200 levels are regenerated and solver-verified under the new rule, so no level contains a permanently impossible arrow.
+• Opening choices are deliberately constrained: early levels have only a few valid starts, advanced levels usually 2, and every SUPER HARD milestone has just 1.
+• Levels 25, 50, 100, 150 and 200 remain Boss Milestones with exactly one valid opening move.
+• Hints use the same full-clearance rule, while the approved V15 snake/path-following animation remains unchanged.

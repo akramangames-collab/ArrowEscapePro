@@ -1,0 +1,2 @@
+Verification trigger for commit 162bf509f2452dab48c3e791bc62487702ac897a.
+Bug: moving arrows must block only where their visible snake body currently remains; vacated cells must not deduct a heart.

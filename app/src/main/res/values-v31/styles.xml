@@ -1,0 +1,20 @@
+<resources>
+    <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#17C7FF</item>
+        <item name="android:colorControlActivated">#17C7FF</item>
+        <item name="android:colorControlHighlight">#338B5CFF</item>
+        <item name="android:textColorPrimary">#F1F7FF</item>
+        <item name="android:textColorSecondary">#9CB3D5</item>
+        <item name="android:alertDialogTheme">@style/PremiumAlertDialog</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:statusBarColor">#050B1E</item>
+        <item name="android:navigationBarColor">#050B1E</item>
+        <item name="android:windowBackground">#050B1E</item>
+        <item name="android:windowSplashScreenBackground">#050B1E</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#050B1E</item>
+        <item name="android:forceDarkAllowed">false</item>
+    </style>
+</resources>
