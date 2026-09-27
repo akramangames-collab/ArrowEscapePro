@@ -11,7 +11,7 @@ permissions:
 jobs:
   latest-package:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v5
 
@@ -47,13 +47,24 @@ jobs:
           cp app/build/outputs/bundle/release/app-release.aab dist/Arrow-Escape-1.0.2-SDK36-LATEST-UNSIGNED.aab
           sha256sum dist/Arrow-Escape-1.0.2-SDK36-LATEST-UNSIGNED.aab > dist/UNSIGNED-SHA256.txt
 
+      - name: Upload AAB immediately
+        uses: actions/upload-artifact@v4
+        with:
+          name: Arrow-Escape-Latest-AAB
+          path: |
+            dist/Arrow-Escape-1.0.2-SDK36-LATEST-UNSIGNED.aab
+            dist/UNSIGNED-SHA256.txt
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Capture real current-build screenshots
+        timeout-minutes: 7
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: 29
           target: google_apis
           arch: x86_64
-          profile: pixel_6
+          profile: pixel_3a
           disable-animations: true
           script: |
             adb install -r app/build/outputs/apk/debug/app-debug.apk
@@ -81,9 +92,11 @@ jobs:
             sleep 2
             adb exec-out screencap -p > dist/02-latest-gameplay.png
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-Latest-AAB-and-Screenshots
-          path: dist/
-          if-no-files-found: error
+          name: Arrow-Escape-Latest-Screenshots
+          path: dist/*.png
+          if-no-files-found: ignore
           retention-days: 7
