@@ -3,8 +3,8 @@
 Current production source of truth: `main`
 
 - Package: `com.arrowescape.pro`
-- Current Play release: `1.0.2` (`versionCode 3`)
-- Current track: Early Access / testing
+- Existing Play release: `1.0.2` (`versionCode 3`) on Early Access/testing
+- New production candidate: `1.0.3` (`versionCode 4`)
 - Target / compile SDK: Android 16 / API 36
 - Minimum SDK: 24
 - App type: Game
@@ -17,23 +17,24 @@ Current production source of truth: `main`
 
 Production access has been granted for the app. The old closed-testing requirement is complete.
 
-`1.0.2` / `versionCode 3` is already uploaded to Google Play for Early Access. Do not upload another AAB with code 3 and do not rebuild a different binary under the same version code.
+`1.0.2` / `versionCode 3` is already uploaded to Google Play. Do not upload another AAB with code 3.
 
-For the first public production release, the preferred path is to promote the existing tested `1.0.2` / code `3` release from Early Access/testing to Production.
+The current repository contains improvements beyond the Early Access build, so the production release candidate is now `1.0.3` / `versionCode 4`.
 
 ## Production release path
 
-1. Open the existing `1.0.2` / code `3` release in Play Console.
-2. Use the available promote/copy-to-Production flow for that existing release.
-3. Keep the exact tested bundle and signing lineage already accepted by Play.
-4. Review the Production release summary, declarations and device availability.
-5. Start with a staged rollout for the first public release.
-
-No new AAB is required unless you intentionally want to ship code changes beyond the Early Access build. Any such new binary must use `versionCode 4` or higher.
+1. Build the signed `1.0.3` / code `4` AAB from the manual GitHub Actions release workflow.
+2. Confirm the workflow passes level validation, wallet checks, UI/UX checks, Android lint and signature verification.
+3. Download `PLAY-STORE-Arrow-Escape-1.0.3-SDK36-SIGNED.aab` from the workflow artifact.
+4. In Play Console, create a new Production release and upload that signed AAB.
+5. Use the current `play-store/release-notes.txt` text.
+6. Review App content, Data safety, Ads, Content rating, Target audience, Store listing and Privacy policy for blocking warnings.
+7. Review device availability and the pre-launch report.
+8. Start with a staged rollout, then expand when Android vitals remain healthy.
 
 ## Release build
 
-The repository retains one manual GitHub Actions workflow for future signed Play bundles. It intentionally does not run on every push.
+The repository retains one manual GitHub Actions workflow for signed Play bundles. It intentionally does not run on every push.
 
 The workflow:
 
@@ -42,11 +43,20 @@ The workflow:
 - runs wallet and UI/UX contract checks;
 - runs Android lint;
 - builds `bundleRelease`;
+- verifies `versionCode 4`, `versionName 1.0.3`, `compileSdk 36` and `targetSdk 36`;
 - verifies the AAB signature;
 - verifies the pinned Play upload-certificate SHA-256;
 - uploads the signed AAB as a workflow artifact.
 
 Never commit the keystore or signing passwords to this repository.
+
+Required GitHub Actions secrets:
+
+- `ARROW_RELEASE_KEYSTORE_B64`
+- `ARROW_RELEASE_STORE_PASSWORD`
+- `ARROW_RELEASE_KEY_PASSWORD`
+
+The workflow uses upload-key alias `arrowescape-upload`.
 
 ## Store listing
 
@@ -69,18 +79,8 @@ Play Console Data safety must reflect the Google Mobile Ads SDK. Do not declare 
 
 The game itself stores progress, virtual coins and settings locally and has no player account/backend sync.
 
-## Production rollout checklist
+## Versioning rule
 
-1. Confirm Play Console shows Production access enabled.
-2. Confirm App content, Data safety, Ads, Content rating, Target audience, Store listing and Privacy policy sections have no blocking warnings.
-3. Promote/copy the existing Early Access `1.0.2` / code `3` release to Production.
-4. Review the release summary and device availability.
-5. Start with a staged rollout rather than immediately exposing 100% of eligible users.
-6. Watch Android vitals, crash/ANR rate, Play pre-launch findings, user reviews and AdMob policy/status.
-7. Increase rollout only when the production build remains healthy.
-
-## Versioning rule after first production
-
-Because code 3 is already uploaded to Play, every future new binary must use a strictly higher `versionCode`. The next normal update should therefore be at least `1.0.3` / code `4`.
+`versionCode 3` is already used on Google Play. This production candidate uses `versionCode 4`; every later uploaded binary must use a strictly higher code.
 
 Never reset or reuse a Play version code.
