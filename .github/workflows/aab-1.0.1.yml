@@ -1,4 +1,4 @@
-name: Arrow Escape 1.0.3 Signed Play Release
+name: Arrow Escape 1.0.4 Signed Play Release
 
 on:
   workflow_dispatch:
@@ -69,17 +69,19 @@ jobs:
           test -f "$AAB"
           grep -q 'compileSdk = 36' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 4' app/build.gradle.kts
-          grep -q 'versionName = "1.0.3"' app/build.gradle.kts
+          grep -q 'versionCode = 6' app/build.gradle.kts
+          grep -q 'versionName = "1.0.4"' app/build.gradle.kts
+          grep -q 'isMinifyEnabled = false' app/build.gradle.kts
+          grep -q 'isShrinkResources = false' app/build.gradle.kts
           jarsigner -verify "$AAB"
           keytool -printcert -jarfile "$AAB" | grep -Fq "SHA256: $EXPECTED_UPLOAD_SHA256"
           mkdir -p dist
-          cp "$AAB" dist/PLAY-STORE-Arrow-Escape-1.0.3-SDK36-SIGNED.aab
-          sha256sum dist/PLAY-STORE-Arrow-Escape-1.0.3-SDK36-SIGNED.aab > dist/SHA256SUMS.txt
+          cp "$AAB" dist/PLAY-STORE-Arrow-Escape-1.0.4-SDK36-SIGNED.aab
+          sha256sum dist/PLAY-STORE-Arrow-Escape-1.0.4-SDK36-SIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.0.3-SIGNED-PLAY-AAB
+          name: Arrow-Escape-1.0.4-SIGNED-PLAY-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 30
