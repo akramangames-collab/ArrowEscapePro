@@ -1,4 +1,4 @@
-name: Apply production ads and R8 patch
+name: Production Ads R8 Build
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - ads-r8-production-patch
     paths:
       - .github/workflows/ads-r8-production-patch.yml
+      - .github/scripts/apply_ads_r8_patch.py
 
 permissions:
   contents: write
@@ -15,94 +16,43 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - name: Checkout production main
+      - name: Checkout patch branch
         uses: actions/checkout@v5
         with:
-          ref: main
           fetch-depth: 0
 
-      - name: Patch R8, live AdMob and result banner
+      - name: Preserve patch script and switch to main
         shell: bash
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
+          cp .github/scripts/apply_ads_r8_patch.py /tmp/apply_ads_r8_patch.py
+          git fetch origin main
+          git checkout -B main origin/main
 
-          def replace_once(text, old, new, label):
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected 1 match, found {count}")
-              return text.replace(old, new, 1)
+      - name: Apply production ads and R8 patch
+        run: python3 /tmp/apply_ads_r8_patch.py
 
-          gradle_path = Path('app/build.gradle.kts')
-          g = gradle_path.read_text()
-          g = replace_once(g, 'versionCode = 4', 'versionCode = 5', 'versionCode')
-          g = replace_once(g, 'versionName = "1.0.3"', 'versionName = "1.0.4"', 'versionName')
-          g = g.replace('ca-app-pub-3940256099942544~3347511713', 'ca-app-pub-2475015099415787~6197424406')
-          g = g.replace('ca-app-pub-3940256099942544/6300978111', 'ca-app-pub-2475015099415787/6590130477')
-          g = g.replace('ca-app-pub-3940256099942544/1033173712', 'ca-app-pub-2475015099415787/3782285105')
-          g = g.replace('ca-app-pub-3940256099942544/5224354917', 'ca-app-pub-2475015099415787/2469203439')
-
-          pattern = r'(getByName\("release"\)\s*\{\s*isDebuggable\s*=\s*false\s*)'
-          repl = r'''\1
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-'''
-          g, n = re.subn(pattern, repl, g, count=1, flags=re.S)
-          if n != 1:
-              raise SystemExit(f'R8 block patch failed: {n}')
-          gradle_path.write_text(g)
-
-          Path('app/proguard-rules.pro').write_text('''# Arrow Escape production R8 rules.\n-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod\n-keep public class com.arrowescape.pro.MainActivity { public <init>(); }\n''')
-
-          main_path = Path('app/src/main/java/com/arrowescape/pro/MainActivity.java')
-          s = main_path.read_text()
-          s = replace_once(s,'    private AdView banner;\n','    private AdView banner;\n    private AdView resultBanner;\n    private FrameLayout root, resultBannerSlot;\n','ad fields')
-          s = replace_once(s,
-              '''        game = new ArrowGameView(this, this, wallet);\n        setContentView(game);''',
-              '''        game = new ArrowGameView(this, this, wallet);\n        root = new FrameLayout(this);\n        FrameLayout.LayoutParams gameParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);\n        root.addView(game, gameParams);\n        resultBannerSlot = new FrameLayout(this);\n        resultBannerSlot.setBackgroundColor(INK);\n        resultBannerSlot.setVisibility(View.GONE);\n        FrameLayout.LayoutParams resultSlotParams = new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, dp(60), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);\n        root.addView(resultBannerSlot, resultSlotParams);\n        setContentView(root);''','root layout')
-          s = replace_once(s,
-              '''        consent = UserMessagingPlatform.getConsentInformation(this);\n        if (BuildConfig.DEBUG) { startAdsIfAllowed(); return; }\n        ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();''',
-              '''        consent = UserMessagingPlatform.getConsentInformation(this);\n        ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();''','consent debug bypass')
-          s = replace_once(s,'        if (adsStarted || (!BuildConfig.DEBUG && !consent.canRequestAds()) || isDestroyed()) return;','        if (adsStarted || consent == null || !consent.canRequestAds() || isDestroyed()) return;','start ads gate')
-          s = replace_once(s,'    private boolean canRequestAds() { return adsStarted && consent != null && (BuildConfig.DEBUG || consent.canRequestAds()) && !isDestroyed(); }','    private boolean canRequestAds() { return adsStarted && consent != null && consent.canRequestAds() && !isDestroyed(); }','ads gate')
-          s = replace_once(s,'    @Override public void onLevelCompleted() { completedSinceAd++; }','    @Override public void onLevelCompleted() { completedSinceAd++; showResultBanner(); }','result trigger')
-          s = replace_once(s,'    @Override public void onContinueAfterWin(Runnable proceed) {\n        long now = SystemClock.elapsedRealtime();','    @Override public void onContinueAfterWin(Runnable proceed) {\n        hideResultBanner();\n        long now = SystemClock.elapsedRealtime();','hide result')
-          s = replace_once(s,
-              '''    @Override public void openWallet() { showPremiumStore(); }\n    @Override public void openSettings() { showMenu(false); }\n    @Override public void openHome() { showHome(); }''',
-              '''    @Override public void openWallet() { hideResultBanner(); showPremiumStore(); }\n    @Override public void openSettings() { hideResultBanner(); showMenu(false); }\n    @Override public void openHome() { hideResultBanner(); showHome(); }''','navigation')
-          s = replace_once(s,
-              '''        game.setPaused(true);\n        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);''',
-              '''        game.setPaused(true);\n        addMenuBanner(body);\n        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);''','menu banner')
-
-          anchor='    private void destroyBanner() { if(banner!=null){banner.destroy();banner=null;} }'
-          helpers='''    private void addMenuBanner(LinearLayout body) {\n        FrameLayout slot=new FrameLayout(this);\n        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(66));\n        lp.topMargin=dp(16); body.addView(slot,lp);\n        if(!canRequestAds()){slot.setVisibility(View.GONE);return;}\n        banner=new AdView(this); banner.setAdSize(AdSize.BANNER); banner.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);\n        slot.addView(banner,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));\n        banner.loadAd(new AdRequest.Builder().build());\n    }\n\n    private void showResultBanner() {\n        runOnUiThread(() -> {\n            if(resultBannerSlot==null || !canRequestAds() || isFinishing() || isDestroyed()) return;\n            hideResultBanner();\n            FrameLayout.LayoutParams gp=(FrameLayout.LayoutParams)game.getLayoutParams(); gp.bottomMargin=dp(60); game.setLayoutParams(gp);\n            resultBanner=new AdView(this); resultBanner.setAdSize(AdSize.BANNER); resultBanner.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);\n            resultBannerSlot.removeAllViews(); resultBannerSlot.addView(resultBanner,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));\n            resultBannerSlot.setVisibility(View.VISIBLE); resultBanner.loadAd(new AdRequest.Builder().build());\n        });\n    }\n\n    private void hideResultBanner() {\n        if(resultBanner!=null){resultBanner.destroy();resultBanner=null;}\n        if(resultBannerSlot!=null){resultBannerSlot.removeAllViews();resultBannerSlot.setVisibility(View.GONE);}\n        if(game!=null && game.getLayoutParams() instanceof FrameLayout.LayoutParams){\n            FrameLayout.LayoutParams gp=(FrameLayout.LayoutParams)game.getLayoutParams();\n            if(gp.bottomMargin!=0){gp.bottomMargin=0;game.setLayoutParams(gp);}\n        }\n    }\n\n'''+anchor
-          s = replace_once(s,anchor,helpers,'helpers')
-          s = replace_once(s,'            body.addView(text("Version "+BuildConfig.VERSION_NAME+(BuildConfig.DEBUG?" · Test ads":""),12,MUTED));','            body.addView(text("Version "+BuildConfig.VERSION_NAME,12,MUTED));','version label')
-          s = replace_once(s,'    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();}','    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(resultBanner!=null)resultBanner.pause();}','pause')
-          s = replace_once(s,'    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();}','    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(resultBanner!=null)resultBanner.resume();}','resume')
-          s = replace_once(s,'    @Override protected void onDestroy(){destroyBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}','    @Override protected void onDestroy(){destroyBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}','destroy')
-          main_path.write_text(s)
-          PY
-
+      - name: Validate patch
+        shell: bash
+        run: |
           grep -q 'versionCode = 5' app/build.gradle.kts
-          grep -q 'versionName = "1.0.4"' app/build.gradle.kts
+          grep -q 'versionName = "1.0.3"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
-          ! grep -q 'ca-app-pub-3940256099942544' app/build.gradle.kts
           grep -q 'showResultBanner' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'addMenuBanner(body)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -q 'ca-app-pub-3940256099942544' app/build.gradle.kts
+          grep -q 'ca-app-pub-2475015099415787/6590130477' app/build.gradle.kts
+          grep -q 'ca-app-pub-2475015099415787/3782285105' app/build.gradle.kts
+          grep -q 'ca-app-pub-2475015099415787/2469203439' app/build.gradle.kts
           git diff --check
 
-      - name: Commit production patch to main
+      - name: Commit patch to main
+        shell: bash
         run: |
           git config user.name "akramangames-collab"
           git config user.email "akramangames@gmail.com"
           git add app/build.gradle.kts app/proguard-rules.pro app/src/main/java/com/arrowescape/pro/MainActivity.java
-          git commit -m "Optimize release and expand production ad placements"
+          git commit -m "Enable R8 and production ad placements"
           git push origin HEAD:main
 
       - name: Setup Java 17
@@ -112,6 +62,7 @@ jobs:
           java-version: '17'
 
       - name: Install Android 36 SDK
+        shell: bash
         run: |
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
@@ -122,24 +73,26 @@ jobs:
         with:
           gradle-version: '9.6.0'
 
-      - name: Verify puzzles and wallet
+      - name: Verify gameplay and economy
+        shell: bash
         run: |
           python3 scripts/generate-hard-levels.py --check
           python3 scripts/verify-levels.py
           bash scripts/test-wallet.sh
           python3 scripts/verify-ui-ux.py
 
-      - name: Build optimized unsigned release
+      - name: Build optimized release AAB
+        shell: bash
         run: |
           gradle :app:lintRelease :app:bundleRelease --stacktrace
           test -s app/build/outputs/bundle/release/app-release.aab
           test -s app/build/outputs/mapping/release/mapping.txt
           sha256sum app/build/outputs/bundle/release/app-release.aab
 
-      - name: Upload optimized bundle and R8 mapping
+      - name: Upload optimized release artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.0.4-Code5-R8-UNSIGNED
+          name: Arrow-Escape-1.0.3-Code5-R8-UNSIGNED
           path: |
             app/build/outputs/bundle/release/app-release.aab
             app/build/outputs/mapping/release/mapping.txt
