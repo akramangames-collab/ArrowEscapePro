@@ -15,7 +15,7 @@ g = replace_once(g, "versionCode = 4", "versionCode = 5", "versionCode")
 if 'versionName = "1.0.3"' not in g:
     raise SystemExit("Expected versionName 1.0.3")
 
-# User requested the real AdMob IDs in every variant.
+# User explicitly requested real production AdMob IDs in every build variant.
 g = g.replace("ca-app-pub-3940256099942544~3347511713", "ca-app-pub-2475015099415787~6197424406")
 g = g.replace("ca-app-pub-3940256099942544/6300978111", "ca-app-pub-2475015099415787/6590130477")
 g = g.replace("ca-app-pub-3940256099942544/1033173712", "ca-app-pub-2475015099415787/3782285105")
@@ -39,11 +39,10 @@ g = replace_once(g, release_old, release_new, "release R8 config")
 gradle_path.write_text(g, encoding="utf-8")
 
 Path("app/proguard-rules.pro").write_text(
-    """# Arrow Escape production R8 rules.\n"
-    "# Google Mobile Ads and UMP provide their own consumer keep rules.\n"
+    "# Arrow Escape production R8 rules.\n"
+    "# Google Mobile Ads and UMP provide consumer ProGuard rules.\n"
     "-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod\n"
-    "-keep public class com.arrowescape.pro.MainActivity { public <init>(); }\n"
-    """,
+    "-keep public class com.arrowescape.pro.MainActivity { public <init>(); }\n",
     encoding="utf-8",
 )
 
@@ -64,7 +63,7 @@ s = replace_once(
     "root layout",
 )
 
-# Apply UMP consent consistently even though both debug and release use production IDs.
+# UMP consent remains authoritative before any live ad request.
 s = replace_once(
     s,
     """        consent = UserMessagingPlatform.getConsentInformation(this);\n        if (BuildConfig.DEBUG) { startAdsIfAllowed(); return; }\n        ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();""",
@@ -84,7 +83,7 @@ s = replace_once(
     "canRequestAds consent gate",
 )
 
-# Show a standard banner only on the completed/result state.
+# Result screen gets a dedicated banner. It is removed before navigation/interstitial.
 s = replace_once(
     s,
     "    @Override public void onLevelCompleted() { completedSinceAd++; }",
@@ -104,7 +103,7 @@ s = replace_once(
     "navigation banner cleanup",
 )
 
-# All premium non-gameplay screens use presentFullScreen, so place one banner there.
+# Home, Store, Achievements and Daily Challenge all pass through this presenter.
 s = replace_once(
     s,
     """        game.setPaused(true);\n        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);""",
@@ -143,16 +142,16 @@ s = replace_once(
 
 main_path.write_text(s, encoding="utf-8")
 
-# Sanity checks before anything is committed.
 checks = {
     "version code": "versionCode = 5" in g,
     "version name": 'versionName = "1.0.3"' in g,
     "R8": "isMinifyEnabled = true" in g and "isShrinkResources = true" in g,
-    "production banner ID": "ca-app-pub-2475015099415787/6590130477" in g,
-    "production interstitial ID": "ca-app-pub-2475015099415787/3782285105" in g,
-    "production rewarded ID": "ca-app-pub-2475015099415787/2469203439" in g,
+    "production banner": "ca-app-pub-2475015099415787/6590130477" in g,
+    "production interstitial": "ca-app-pub-2475015099415787/3782285105" in g,
+    "production rewarded": "ca-app-pub-2475015099415787/2469203439" in g,
+    "no test IDs": "ca-app-pub-3940256099942544" not in g,
     "result banner": "showResultBanner()" in s,
-    "menu banner": "addMenuBanner(body)" in s,
+    "premium banner": "addMenuBanner(body)" in s,
 }
 failed = [name for name, ok in checks.items() if not ok]
 if failed:
