@@ -1,0 +1,99 @@
+name: Play Crash Diagnosis
+
+on:
+  push:
+    branches:
+      - play-crash-diagnosis
+    paths:
+      - .github/workflows/play-crash-diagnosis.yml
+
+permissions:
+  contents: read
+
+jobs:
+  release-launch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      ARROW_RELEASE_STORE_FILE: /tmp/arrow-ci-test.jks
+      ARROW_RELEASE_STORE_PASSWORD: changeit
+      ARROW_RELEASE_KEY_ALIAS: ci-test
+      ARROW_RELEASE_KEY_PASSWORD: changeit
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android 36 SDK
+        shell: bash
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" "platform-tools"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Create temporary CI signing key
+        shell: bash
+        run: |
+          keytool -genkeypair -v \
+            -keystore "$ARROW_RELEASE_STORE_FILE" \
+            -storepass "$ARROW_RELEASE_STORE_PASSWORD" \
+            -keypass "$ARROW_RELEASE_KEY_PASSWORD" \
+            -alias "$ARROW_RELEASE_KEY_ALIAS" \
+            -keyalg RSA -keysize 2048 -validity 2 \
+            -dname "CN=Arrow CI,O=CI,C=US"
+
+      - name: Build rejected release configuration
+        shell: bash
+        run: |
+          gradle :app:assembleRelease --stacktrace
+          test -s app/build/outputs/apk/release/app-release.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          sudo chmod 666 /dev/kvm || true
+
+      - name: Launch release APK on emulator and capture crash
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            adb install -r app/build/outputs/apk/release/app-release.apk
+            adb logcat -c
+            adb shell am force-stop com.arrowescape.pro
+            adb shell am start -W -n com.arrowescape.pro/.MainActivity | tee /tmp/start.txt
+            sleep 8
+            adb shell pidof com.arrowescape.pro | tee /tmp/pid.txt || true
+            adb logcat -d -t 1500 | tee /tmp/logcat.txt
+            if ! test -s /tmp/pid.txt; then
+              echo "APP PROCESS IS NOT RUNNING AFTER LAUNCH"
+              exit 1
+            fi
+            if grep -E "FATAL EXCEPTION|Process: com\.arrowescape\.pro|AndroidRuntime.*FATAL" /tmp/logcat.txt; then
+              echo "FATAL CRASH DETECTED"
+              exit 1
+            fi
+            echo "Release process stayed alive after cold launch."
+
+      - name: Upload diagnosis logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: play-crash-diagnosis
+          path: |
+            /tmp/start.txt
+            /tmp/pid.txt
+            /tmp/logcat.txt
+          if-no-files-found: ignore
+          retention-days: 1
