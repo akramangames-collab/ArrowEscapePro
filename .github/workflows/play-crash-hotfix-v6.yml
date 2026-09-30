@@ -92,10 +92,7 @@ jobs:
             adb shell pidof com.arrowescape.pro | tee /tmp/pid-api35.txt || true
             adb logcat -d -t 1800 | tee /tmp/logcat-api35.txt
             test -s /tmp/pid-api35.txt
-            if grep -E "FATAL EXCEPTION|Process: com\.arrowescape\.pro.*PID|AndroidRuntime.*FATAL" /tmp/logcat-api35.txt; then
-              echo "FATAL CRASH DETECTED ON API 35"
-              exit 1
-            fi
+            ! grep -Eq "FATAL EXCEPTION|Process: com\.arrowescape\.pro.*PID|AndroidRuntime.*FATAL" /tmp/logcat-api35.txt
             adb shell am force-stop com.arrowescape.pro
             adb shell am start -W -n com.arrowescape.pro/.MainActivity
             sleep 5
@@ -117,10 +114,7 @@ jobs:
             adb shell pidof com.arrowescape.pro | tee /tmp/pid-api36.txt || true
             adb logcat -d -t 1800 | tee /tmp/logcat-api36.txt
             test -s /tmp/pid-api36.txt
-            if grep -E "FATAL EXCEPTION|Process: com\.arrowescape\.pro.*PID|AndroidRuntime.*FATAL" /tmp/logcat-api36.txt; then
-              echo "FATAL CRASH DETECTED ON API 36"
-              exit 1
-            fi
+            ! grep -Eq "FATAL EXCEPTION|Process: com\.arrowescape\.pro.*PID|AndroidRuntime.*FATAL" /tmp/logcat-api36.txt
             adb shell am force-stop com.arrowescape.pro
             adb shell am start -W -n com.arrowescape.pro/.MainActivity
             sleep 5
