@@ -120,12 +120,14 @@ jobs:
             sleep 5
             adb shell pidof com.arrowescape.pro >/dev/null
 
-      - name: Upload verification evidence
+      - name: Upload verified release APK and evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: arrow-v6-release-verification
+          name: Arrow-Escape-v1.0.4-code6-device-test
           path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
             /tmp/start-api35.txt
             /tmp/pid-api35.txt
             /tmp/logcat-api35.txt
