@@ -2,9 +2,9 @@
 
 ## Release decision
 
-For the first public launch, prefer the exact tested Play Console artifact already used in closed testing: `1.0.2` / `versionCode 3`, provided that is the code-3 artifact shown in Play Console.
+Production access is granted and `versionCode 3` has not been uploaded to Play Console.
 
-If a different binary from the current repository is to be uploaded instead, bump to `versionCode 4` or higher first. Google Play version codes are monotonically increasing and cannot be reused for a different upload.
+Use the current `1.0.2` / `versionCode 3` release as the next new Production upload. Do not unnecessarily skip to code 4.
 
 ## Repository checks completed
 
@@ -12,6 +12,7 @@ If a different binary from the current repository is to be uploaded instead, bum
 - [x] `compileSdk = 36`.
 - [x] `targetSdk = 36`.
 - [x] Current source version is `1.0.2` / code `3`.
+- [x] Code 3 is still available for the next Play upload.
 - [x] Debug build uses Google test AdMob IDs.
 - [x] Release build uses production AdMob IDs.
 - [x] Release signing is environment/secret driven; private keys are not stored in source.
@@ -35,7 +36,8 @@ If a different binary from the current repository is to be uploaded instead, bum
 - [ ] Privacy-policy URL is live and points to the current policy.
 - [ ] Support email is current and monitored.
 - [ ] Countries/regions and pricing are correct.
-- [ ] Release notes are entered for the production release.
+- [ ] Release notes are entered for `1.0.2`.
+- [ ] Signed code-3 AAB uploads successfully to Production.
 - [ ] Pre-launch report has no release-blocking crash/ANR/security issue.
 - [ ] Device catalog does not show an unexpected compatibility restriction.
 
@@ -47,7 +49,6 @@ Monitor at minimum:
 
 - crash rate;
 - ANR rate;
-- excessive wakeups or battery issues if reported;
 - install/update failures;
 - user reviews and support messages;
 - AdMob policy centre and serving status;
@@ -56,4 +57,4 @@ Monitor at minimum:
 
 ## Next update
 
-After production code 3 is live, the next new binary must use `versionCode >= 4`. A normal next semantic version is `1.0.3` / code `4`.
+After code 3 is uploaded, the next new binary must use `versionCode >= 4`. A normal next semantic version is `1.0.3` / code `4`.
