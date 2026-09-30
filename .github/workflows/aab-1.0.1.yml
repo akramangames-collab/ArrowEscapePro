@@ -65,7 +65,7 @@ jobs:
       - name: Verify signed bundle and metadata
         run: |
           AAB="app/build/outputs/bundle/release/app-release.aab"
-          EXPECTED_UPLOAD_SHA256="81:19:CA:D4:48:BF:E8:B6:13:B4:19:45:84:A1:8E:08:33:D3:86:90:7B:80:8C:13:41:03:CD:00:95:FD:4F:97"
+          EXPECTED_UPLOAD_SHA256="C0:F5:B8:4B:37:5B:47:75:BC:C6:7C:37:E0:57:A2:6C:B3:D6:54:FE:79:38:D4:8B:65:8E:B4:23:E4:41:42:9F"
           test -f "$AAB"
           grep -q 'compileSdk = 36' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
