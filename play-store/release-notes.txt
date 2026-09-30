@@ -1,7 +1,7 @@
-Arrow Escape 1.0.2 is ready for wider release.
+Arrow Escape 1.0.3 is ready for production.
 
 • 200 solver-verified puzzle levels with full arrow/tail clearance rules.
 • Daily Challenge, streak rewards, achievements and coin rewards.
-• Improved hints, progression and customization.
-• Refined premium UI and clearer onboarding/settings.
-• Android 16 / API 36 support, privacy choices and production-ready ad handling.
+• Built-in tutorial plus How to Play access from Settings.
+• Rate App, high-contrast arrows, privacy choices and refined production UI.
+• Android 16 / API 36 support with production AdMob handling.
