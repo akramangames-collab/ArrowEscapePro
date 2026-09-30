@@ -2,9 +2,11 @@
 
 ## Release decision
 
-Production access is granted and `versionCode 3` has not been uploaded to Play Console.
+Production access is granted.
 
-Use the current `1.0.2` / `versionCode 3` release as the next new Production upload. Do not unnecessarily skip to code 4.
+`1.0.2` / `versionCode 3` is already uploaded to Google Play for Early Access/testing. Use that exact existing release for the first Production launch. Do not upload another code-3 bundle.
+
+If you decide to ship any code changes beyond the Early Access build, use `versionCode 4` or higher.
 
 ## Repository checks completed
 
@@ -12,11 +14,10 @@ Use the current `1.0.2` / `versionCode 3` release as the next new Production upl
 - [x] `compileSdk = 36`.
 - [x] `targetSdk = 36`.
 - [x] Current source version is `1.0.2` / code `3`.
-- [x] Code 3 is still available for the next Play upload.
+- [x] Code 3 is already present on Google Play Early Access/testing.
 - [x] Debug build uses Google test AdMob IDs.
 - [x] Release build uses production AdMob IDs.
 - [x] Release signing is environment/secret driven; private keys are not stored in source.
-- [x] Manual Play AAB workflow verifies the pinned upload certificate.
 - [x] UMP consent information is refreshed at app launch.
 - [x] Ads are gated by `canRequestAds()` in release builds.
 - [x] Settings exposes Privacy choices when UMP requires an entry point.
@@ -36,8 +37,8 @@ Use the current `1.0.2` / `versionCode 3` release as the next new Production upl
 - [ ] Privacy-policy URL is live and points to the current policy.
 - [ ] Support email is current and monitored.
 - [ ] Countries/regions and pricing are correct.
-- [ ] Release notes are entered for `1.0.2`.
-- [ ] Signed code-3 AAB uploads successfully to Production.
+- [ ] Existing Early Access `1.0.2` / code `3` release is selected/promoted for Production.
+- [ ] Production release notes are correct.
 - [ ] Pre-launch report has no release-blocking crash/ANR/security issue.
 - [ ] Device catalog does not show an unexpected compatibility restriction.
 
@@ -57,4 +58,4 @@ Monitor at minimum:
 
 ## Next update
 
-After code 3 is uploaded, the next new binary must use `versionCode >= 4`. A normal next semantic version is `1.0.3` / code `4`.
+Because code 3 is already uploaded, the next new binary must use `versionCode >= 4`. A normal next semantic version is `1.0.3` / code `4`.
