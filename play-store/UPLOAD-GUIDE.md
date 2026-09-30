@@ -3,7 +3,7 @@
 Current production source of truth: `main`
 
 - Package: `com.arrowescape.pro`
-- Current Play line: `1.0.2` (`versionCode 3`)
+- Next production upload: `1.0.2` (`versionCode 3`)
 - Target / compile SDK: Android 16 / API 36
 - Minimum SDK: 24
 - App type: Game
@@ -14,13 +14,19 @@ Current production source of truth: `main`
 
 ## Production-access status
 
-Production access has been granted for the app. Do not repeat the old closed-testing setup instructions in this repository when preparing the public launch.
+Production access has been granted for the app. The old closed-testing requirement is complete.
 
-## Safest first-production path
+`versionCode 3` has NOT been uploaded to Play Console. Therefore the current `1.0.2` / code `3` release is available to use as the next production upload, assuming no other bundle with code 3 has been uploaded outside this project history.
 
-Prefer promoting the exact tested `1.0.2` / code `3` artifact from the closed-testing track to Production if that is the artifact currently accepted by Play Console. This keeps the first public rollout on the same binary that testers already exercised.
+Do not bump to code 4 just for the first production release. Reserve code 4+ for the next binary after code 3 is uploaded.
 
-Do not rebuild a different binary and try to upload it with an already-used `versionCode`. If the current source has changes that were not part of the Play Console code-3 artifact, bump to at least `versionCode 4` (normally `1.0.3`) before creating a new upload.
+## Production release path
+
+1. Build the current `main` source as signed `1.0.2` / code `3` AAB.
+2. Verify the AAB signature and pinned Play upload certificate.
+3. Upload that AAB to the Production track.
+4. Complete the production release review in Play Console.
+5. Use a staged rollout for the first public release.
 
 ## Release build
 
@@ -50,13 +56,13 @@ Repository copy:
 - Screenshot plan: `play-store/screenshot-production-brief.md`
 - Privacy policy: `PRIVACY.md`
 
-Use the current approved Play Console icon, feature graphic and screenshots unless you are intentionally replacing them with newly reviewed assets. Older V16 asset filenames mentioned by previous documentation are no longer the source of truth.
+Use the current approved Play Console icon, feature graphic and screenshots unless intentionally replacing them with newly reviewed assets.
 
 ## Ads and privacy
 
 Release builds use the production AdMob app/ad-unit IDs; debug builds use Google's test IDs. The app requests updated consent information at launch, only starts production ad requests when Google's consent state allows it, and exposes `Settings > Privacy choices` when required by UMP.
 
-Play Console Data safety must reflect the Google Mobile Ads SDK. Do not declare that the app collects no data. Review the current Google Mobile Ads disclosure for categories such as approximate location, app interactions, diagnostics and device/other identifiers, along with the purposes and sharing fields shown by Play Console.
+Play Console Data safety must reflect the Google Mobile Ads SDK. Do not declare that the app collects no data. Review the form for approximate location, app interactions, diagnostics, device/other identifiers and the associated purposes/sharing fields.
 
 The game itself stores progress, virtual coins and settings locally and has no player account/backend sync.
 
@@ -64,15 +70,17 @@ The game itself stores progress, virtual coins and settings locally and has no p
 
 1. Confirm Play Console shows Production access enabled.
 2. Confirm App content, Data safety, Ads, Content rating, Target audience, Store listing and Privacy policy sections have no blocking warnings.
-3. Prefer promoting the tested closed-track `1.0.2` / code `3` release for the first launch.
-4. Review the release summary and device availability before rollout.
+3. Upload the signed `1.0.2` / code `3` AAB as the new Production release.
+4. Review the release summary and device availability.
 5. Start with a staged rollout rather than immediately exposing 100% of eligible users.
-6. Watch Android vitals, crash/ANR rate, Play pre-launch findings, user reviews and AdMob policy/status after launch.
+6. Watch Android vitals, crash/ANR rate, Play pre-launch findings, user reviews and AdMob policy/status.
 7. Increase rollout only when the production build remains healthy.
 
 ## Versioning rule after first production
 
-Every new Play upload must use a strictly higher `versionCode` than every artifact previously uploaded to Play Console. For the next new binary after code 3, use code 4 or higher. Never reset the Play version code again.
+Once code 3 is uploaded, every later Play upload must use a strictly higher `versionCode`. The normal next binary should therefore be at least `1.0.3` / code `4`.
+
+Never reset or reuse a Play version code.
 
 ## Current policy note
 
