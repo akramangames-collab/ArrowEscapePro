@@ -4,16 +4,16 @@
 
 Production access is granted.
 
-`1.0.2` / `versionCode 3` is already uploaded to Google Play for Early Access/testing. Use that exact existing release for the first Production launch. Do not upload another code-3 bundle.
+`1.0.2` / `versionCode 3` is already on Google Play Early Access/testing. The current repository contains later improvements, so the new Production candidate is `1.0.3` / `versionCode 4`.
 
-If you decide to ship any code changes beyond the Early Access build, use `versionCode 4` or higher.
+Do not upload another code-3 bundle.
 
 ## Repository checks completed
 
 - [x] Package is `com.arrowescape.pro`.
 - [x] `compileSdk = 36`.
 - [x] `targetSdk = 36`.
-- [x] Current source version is `1.0.2` / code `3`.
+- [x] Production candidate is `1.0.3` / code `4`.
 - [x] Code 3 is already present on Google Play Early Access/testing.
 - [x] Debug build uses Google test AdMob IDs.
 - [x] Release build uses production AdMob IDs.
@@ -24,6 +24,18 @@ If you decide to ship any code changes beyond the Early Access build, use `versi
 - [x] Privacy policy describes local game data and Google advertising data processing.
 - [x] Gameplay validation scripts cover generated levels/solvability.
 - [x] Wallet verification and UI/UX verification are part of the release workflow.
+- [x] Built-in tutorial / How to Play is present.
+- [x] Rate App action is present in Settings.
+- [x] High contrast arrows accessibility option is present.
+
+## Signed AAB checks
+
+- [ ] GitHub Actions secrets exist: `ARROW_RELEASE_KEYSTORE_B64`, `ARROW_RELEASE_STORE_PASSWORD`, `ARROW_RELEASE_KEY_PASSWORD`.
+- [ ] Manual `Arrow Escape 1.0.3 Signed Play Release` workflow succeeds.
+- [ ] Artifact name is `Arrow-Escape-1.0.3-SIGNED-PLAY-AAB`.
+- [ ] Final file is `PLAY-STORE-Arrow-Escape-1.0.3-SDK36-SIGNED.aab`.
+- [ ] Workflow verifies the pinned upload certificate SHA-256.
+- [ ] SHA256SUMS.txt is retained with the release artifact.
 
 ## Play Console checks before pressing Start rollout
 
@@ -37,7 +49,7 @@ If you decide to ship any code changes beyond the Early Access build, use `versi
 - [ ] Privacy-policy URL is live and points to the current policy.
 - [ ] Support email is current and monitored.
 - [ ] Countries/regions and pricing are correct.
-- [ ] Existing Early Access `1.0.2` / code `3` release is selected/promoted for Production.
+- [ ] New Production release uses `1.0.3` / code `4` AAB.
 - [ ] Production release notes are correct.
 - [ ] Pre-launch report has no release-blocking crash/ANR/security issue.
 - [ ] Device catalog does not show an unexpected compatibility restriction.
@@ -56,6 +68,6 @@ Monitor at minimum:
 - progression/economy complaints, especially rewards and ads;
 - any level that users report as impossible.
 
-## Next update
+## Versioning after this release
 
-Because code 3 is already uploaded, the next new binary must use `versionCode >= 4`. A normal next semantic version is `1.0.3` / code `4`.
+After code 4 is uploaded, every future new binary must use `versionCode >= 5`.
