@@ -33,7 +33,7 @@ jobs:
           SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
           test -x "$SDKMANAGER"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          "$SDKMANAGER" "platform-tools" "platforms;android-36.1" "build-tools;36.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
         with:
@@ -67,13 +67,15 @@ jobs:
           AAB="app/build/outputs/bundle/release/app-release.aab"
           EXPECTED_UPLOAD_SHA256="C0:F5:B8:4B:37:5B:47:75:BC:C6:7C:37:E0:57:A2:6C:B3:D6:54:FE:79:38:D4:8B:65:8E:B4:23:E4:41:42:9F"
           test -f "$AAB"
-          grep -q 'compileSdk = 36' app/build.gradle.kts
+          grep -q 'version = release(36)' app/build.gradle.kts
+          grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
           grep -q 'versionCode = 7' app/build.gradle.kts
           grep -q 'versionName = "1.0.5"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = false' app/build.gradle.kts
           grep -q 'isShrinkResources = false' app/build.gradle.kts
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
+          grep -q 'androidx.core:core:1.18.0' app/build.gradle.kts
           grep -q 'androidx.fragment:fragment:1.9.1' app/build.gradle.kts
           grep -q 'WindowCompat.enableEdgeToEdge' app/src/main/java/com/arrowescape/pro/MainActivity.java
           ! grep -R -E 'setStatusBarColor\(|setNavigationBarColor\(|setSystemUiVisibility\(' app/src/main/java
@@ -81,7 +83,7 @@ jobs:
           jarsigner -verify "$AAB"
           keytool -printcert -jarfile "$AAB" | grep -Fq "SHA256: $EXPECTED_UPLOAD_SHA256"
           mkdir -p dist
-          cp "$AAB" dist/PLAY-STORE-Arrow-Escape-1.0.5-SDK36-SIGNED.aab
+          cp "$AAB" dist/PLAY-STORE-Arrow-Escape-1.0.5-SDK36.1-SIGNED.aab
           sha256sum dist/PLAY-STORE-Arrow-Escape-1.0.5-SDK36-SIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
