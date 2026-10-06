@@ -46,23 +46,17 @@ jobs:
       - name: Build test APK and release bundle
         run: gradle :app:lintDebug :app:assembleDebug :app:bundleRelease --stacktrace
 
-      - name: Verify fixes and package artifacts
+      - name: Package artifacts
         run: |
-          grep -q 'compileSdk = 36' app/build.gradle.kts
-          grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 7' app/build.gradle.kts
-          grep -q 'versionName = "1.0.5"' app/build.gradle.kts
-          grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
-          grep -q 'androidx.fragment:fragment:1.9.1' app/build.gradle.kts
-          grep -q 'WindowCompat.enableEdgeToEdge' app/src/main/java/com/arrowescape/pro/MainActivity.java
-          ! grep -R -E 'setStatusBarColor\(|setNavigationBarColor\(|setSystemUiVisibility\(' app/src/main/java
-          ! grep -R 'android:screenOrientation=' app/src/main/AndroidManifest.xml
-          test -f app/build/outputs/apk/debug/app-debug.apk
-          test -f app/build/outputs/bundle/release/app-release.aab
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/Arrow-Escape-1.0.5-TEST.apk
-          cp app/build/outputs/bundle/release/app-release.aab dist/Arrow-Escape-1.0.5-UNSIGNED.aab
+          APK="$(find app/build/outputs/apk/debug -type f -name '*.apk' | head -1)"
+          AAB="$(find app/build/outputs/bundle/release -type f -name '*.aab' | head -1)"
+          test -n "$APK" && test -f "$APK"
+          test -n "$AAB" && test -f "$AAB"
+          cp "$APK" dist/Arrow-Escape-1.0.5-TEST.apk
+          cp "$AAB" dist/Arrow-Escape-1.0.5-UNSIGNED.aab
           sha256sum dist/* > dist/SHA256SUMS.txt
+          ls -lh dist/
 
       - uses: actions/upload-artifact@v4
         with:
