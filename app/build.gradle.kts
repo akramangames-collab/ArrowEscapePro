@@ -13,7 +13,11 @@ val releaseSigningReady = listOf(
 
 android {
     namespace = "com.arrowescape.pro"
-    compileSdk = 36
+    compileSdk {
+        version = release(36) {
+            minorApiLevel = 1
+        }
+    }
     defaultConfig {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
@@ -67,7 +71,7 @@ dependencies {
     // Keep AndroidX on current stable releases so Play SDK Index does not resolve
     // older transitive Activity/Fragment versions from advertising dependencies.
     implementation("androidx.activity:activity:1.13.0")
-    implementation("androidx.core:core:1.19.1")
+    implementation("androidx.core:core:1.18.0")
     constraints {
         implementation("androidx.fragment:fragment:1.9.1") {
             because("Use the current stable Fragment SDK when it is pulled transitively")
