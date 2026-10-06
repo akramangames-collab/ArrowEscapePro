@@ -1,6 +1,5 @@
 package com.arrowescape.pro;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -18,13 +17,19 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.ComponentActivity;
+import androidx.activity.OnBackPressedCallback;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.interstitial.*;
 import com.google.android.gms.ads.rewarded.*;
 import com.google.android.ump.*;
 import java.util.UUID;
 
-public class MainActivity extends Activity implements ArrowGameView.Host {
+public class MainActivity extends ComponentActivity implements ArrowGameView.Host {
     private ArrowGameView game;
     private Wallet wallet;
     private SharedPreferences settings;
@@ -60,13 +65,13 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        configureEdgeToEdge(getWindow());
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
         wallet = new Wallet(new PreferenceWalletStorage(this));
-        getWindow().setStatusBarColor(INK);
-        getWindow().setNavigationBarColor(INK);
-        getWindow().getDecorView().setSystemUiVisibility(0);
         game = new ArrowGameView(this, this, wallet);
         root = new FrameLayout(this);
+        root.setBackgroundColor(INK);
+        applySystemBarInsets(root);
         FrameLayout.LayoutParams gameParams = new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
         root.addView(game, gameParams);
@@ -77,6 +82,7 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
             FrameLayout.LayoutParams.MATCH_PARENT, dp(60), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
         root.addView(resultBannerSlot, resultSlotParams);
         setContentView(root);
+        installBackHandler();
         game.postDelayed(() -> {
             if (isFinishing() || isDestroyed()) return;
             showHome();
@@ -189,6 +195,40 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     @Override public void openSettings() { hideResultBanner(); showMenu(false); }
     @Override public void openHome() { hideResultBanner(); showHome(); }
 
+    private void configureEdgeToEdge(android.view.Window window) {
+        WindowCompat.enableEdgeToEdge(window);
+        WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightStatusBars(false);
+        WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightNavigationBars(false);
+    }
+
+    private void applySystemBarInsets(View target) {
+        ViewCompat.setOnApplyWindowInsetsListener(target, (view, windowInsets) -> {
+            Insets safe = windowInsets.getInsets(
+                WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
+            return windowInsets;
+        });
+        target.post(() -> ViewCompat.requestApplyInsets(target));
+    }
+
+    private void installBackHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override public void handleOnBackPressed() {
+                if (reminder != null && reminder.isShowing()) {
+                    reminder.dismiss();
+                    return;
+                }
+                if (menu != null && menu.isShowing()) {
+                    menu.dismiss();
+                    return;
+                }
+                if (game != null && game.handleBack()) return;
+                setEnabled(false);
+                getOnBackPressedDispatcher().onBackPressed();
+            }
+        });
+    }
+
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }
 
     private GradientDrawable background(int color, int radius, int strokeColor) {
@@ -281,8 +321,9 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         menu.show();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
-            menu.getWindow().setStatusBarColor(INK);menu.getWindow().setNavigationBarColor(INK);
+            configureEdgeToEdge(menu.getWindow());
             menu.getWindow().setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT,android.view.WindowManager.LayoutParams.MATCH_PARENT);
+            applySystemBarInsets(scroll);
         }
     }
 
@@ -523,7 +564,7 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         reminder=new AlertDialog.Builder(this).setView(body).create();reminder.setCanceledOnTouchOutside(false);
         reminder.setOnDismissListener(d->{if(!showingAd&&(menu==null||!menu.isShowing()))game.setPaused(false);});
         game.setPaused(true);reminder.show();
-        if(reminder.getWindow()!=null){reminder.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);reminder.getWindow().setStatusBarColor(INK);}
+        if(reminder.getWindow()!=null)reminder.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
 
     private void showMenu(boolean store) {
@@ -688,8 +729,6 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
         menu.show();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
-            menu.getWindow().setStatusBarColor(INK);
-            menu.getWindow().setNavigationBarColor(INK);
         }
     }
 
@@ -781,5 +820,4 @@ public class MainActivity extends Activity implements ArrowGameView.Host {
     @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(resultBanner!=null)resultBanner.pause();}
     @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(resultBanner!=null)resultBanner.resume();}
     @Override protected void onDestroy(){destroyBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
-    @Override public void onBackPressed(){if(reminder!=null&&reminder.isShowing())reminder.dismiss();else if(menu!=null&&menu.isShowing())menu.dismiss();else if(game.handleBack()){}else super.onBackPressed();}
 }
