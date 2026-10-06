@@ -1,6 +1,11 @@
 name: Arrow Escape 1.0.5 Signed Play Release
 
 on:
+  push:
+    branches:
+      - build/arrow-escape-1.0.5
+    paths:
+      - .github/workflows/aab-1.0.1.yml
   workflow_dispatch:
 
 permissions:
