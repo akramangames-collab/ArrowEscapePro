@@ -18,8 +18,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.0.4"
+        versionCode = 7
+        versionName = "1.0.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -64,6 +64,16 @@ android {
 }
 
 dependencies {
+    // Keep AndroidX on current stable releases so Play SDK Index does not resolve
+    // older transitive Activity/Fragment versions from advertising dependencies.
+    implementation("androidx.activity:activity:1.13.0")
+    implementation("androidx.core:core:1.19.1")
+    constraints {
+        implementation("androidx.fragment:fragment:1.9.1") {
+            because("Use the current stable Fragment SDK when it is pulled transitively")
+        }
+    }
+
     implementation("com.google.android.gms:play-services-ads:25.4.0")
     implementation("com.google.android.ump:user-messaging-platform:3.2.0")
     androidTestImplementation("androidx.test:runner:1.6.2")
