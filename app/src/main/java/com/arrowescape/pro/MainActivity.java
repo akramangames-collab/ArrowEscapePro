@@ -47,6 +47,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private Button watchButton;
     private AlertDialog reminder;
     private int storeTab = 0, achievementTab = 0;
+    private int currentNav = 0; // 0 Home · 1 Levels · 2 Daily · 3 Store · 4 Me
     private boolean adsStarted, loadingReward, loadingInterstitial, showingAd, pausedForAd;
     private long rewardedLoadedAt, interstitialLoadedAt;
     private int completedSinceAd;
@@ -56,15 +57,17 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private boolean dailyReminderScheduled;
     private final Runnable dailyReminderTask = this::tryShowDailyChallengeReminder;
 
-    private final int INK = 0xFF050B1E;
-    private final int PANEL = 0xFF0D1E40;
-    private final int PANEL_2 = 0xFF102A59;
-    private final int CYAN = 0xFF17C7FF;
-    private final int PURPLE = 0xFF8B5CFF;
-    private final int TEXT = 0xFFF1F7FF;
-    private final int MUTED = 0xFF9CB3D5;
+    private final int INK = 0xFF020817;
+    private final int PANEL = 0xFF08162E;
+    private final int PANEL_2 = 0xFF10264A;
+    private final int CYAN = 0xFF22D3EE;
+    private final int BLUE = 0xFF2F8DF3;
+    private final int PURPLE = 0xFF8B5CF6;
+    private final int TEXT = 0xFFF8FBFF;
+    private final int MUTED = 0xFF8FA7C8;
     private final int GOLD = 0xFFFFC83D;
-    private final int GREEN = 0xFF32D49B;
+    private final int GREEN = 0xFF34D399;
+    private final int RED = 0xFFFF5C78;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -264,6 +267,14 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if (strokeColor != 0) bg.setStroke(dp(1), strokeColor);
         return bg;
     }
+    private GradientDrawable gradient(int startColor,int endColor,int radius,int strokeColor) {
+        GradientDrawable bg=new GradientDrawable(
+            GradientDrawable.Orientation.TL_BR,
+            new int[]{startColor,endColor});
+        bg.setCornerRadius(dp(radius));
+        if(strokeColor!=0)bg.setStroke(dp(1),strokeColor);
+        return bg;
+    }
     private TextView text(String value, int size, int color) {
         TextView v = new TextView(this);
         v.setText(value); v.setTextColor(color); v.setTextSize(size);
@@ -271,45 +282,50 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         return v;
     }
     private TextView section(String value) {
-        TextView v=text(value,12,CYAN);
+        TextView v=text(value,11,CYAN);
         v.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        v.setLetterSpacing(.10f);
+        v.setLetterSpacing(.14f);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);
-        lp.setMargins(0,dp(18),0,dp(6));v.setLayoutParams(lp);
+        lp.setMargins(dp(2),dp(20),0,dp(7));v.setLayoutParams(lp);
         return v;
     }
     private Button button(String label, Runnable action, boolean primary) {
         Button b = new Button(this);
-        b.setText(label); b.setAllCaps(false); b.setTextSize(14);
+        b.setText(label); b.setAllCaps(false); b.setTextSize(15);
         b.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
-        b.setTextColor(primary ? INK : TEXT);
-        b.setBackground(background(primary ? CYAN : PANEL_2,16,primary ? 0 : 0xFF244E87));
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(50));
-        lp.setMargins(0,dp(6),0,dp(4)); b.setLayoutParams(lp);
+        b.setLetterSpacing(.01f);
+        b.setTextColor(primary ? 0xFF00131D : TEXT);
+        b.setBackground(primary
+            ? gradient(0xFF27D8EE,0xFF2F8DF3,18,0)
+            : gradient(0xFF10264A,0xFF0B1B37,18,0xFF24518A));
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(54));
+        lp.setMargins(0,dp(7),0,dp(5)); b.setLayoutParams(lp);
         b.setOnClickListener(v -> action.run()); return b;
     }
     private LinearLayout panel() {
         LinearLayout p=new LinearLayout(this);p.setOrientation(LinearLayout.VERTICAL);
-        p.setPadding(dp(16),dp(14),dp(16),dp(14));
-        p.setBackground(background(PANEL,18,0xFF1E467C));
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(6),0,dp(7));p.setLayoutParams(lp);
+        p.setPadding(dp(16),dp(15),dp(16),dp(15));
+        p.setBackground(gradient(0xFF0D2142,0xFF07152C,20,0xFF1E4F87));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(7),0,dp(8));p.setLayoutParams(lp);
         return p;
     }
     private void addProduct(LinearLayout body,String iconText,String name,String feature,String status,String actionLabel,Runnable action,boolean selected) {
         LinearLayout card=panel();
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
-        TextView icon=text(iconText,26,selected?CYAN:PURPLE);
-        icon.setGravity(Gravity.CENTER);icon.setBackground(background(0xFF0A1733,14,selected?CYAN:0xFF2C4E83));
-        row.addView(icon,new LinearLayout.LayoutParams(dp(52),dp(52)));
+        TextView icon=text(iconText,27,selected?CYAN:PURPLE);
+        icon.setGravity(Gravity.CENTER);icon.setBackground(gradient(0xFF102A55,0xFF07172F,15,selected?CYAN:0xFF2C4E83));
+        row.addView(icon,new LinearLayout.LayoutParams(dp(58),dp(58)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(8),0);
         TextView title=text(name,16,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(title);
         copy.addView(text(feature,12,MUTED));
         TextView state=text(status,11,selected?GREEN:GOLD);state.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(state);
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
-        card.addView(row);
-        Button buy=button(actionLabel,action,selected);
-        LinearLayout.LayoutParams blp=(LinearLayout.LayoutParams)buy.getLayoutParams();blp.height=dp(44);blp.topMargin=dp(10);buy.setLayoutParams(blp);
-        card.addView(buy);body.addView(card);
+        Button buy=new Button(this);buy.setAllCaps(false);buy.setText(actionLabel);buy.setTextSize(12);buy.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        buy.setTextColor(selected?INK:TEXT);
+        buy.setBackground(selected?gradient(CYAN,BLUE,14,0):gradient(PURPLE,0xFF5C38D8,14,0));
+        buy.setOnClickListener(v->action.run());
+        row.addView(buy,new LinearLayout.LayoutParams(dp(96),dp(42)));
+        card.addView(row);body.addView(card);
     }
     private void updateBalance() { if (menuBalance != null) menuBalance.setText("COINS  " + wallet.balance()); }
 
@@ -323,19 +339,23 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         Button b=new Button(this);
         b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         b.setTextColor(TEXT);b.setGravity(Gravity.CENTER);
-        b.setBackground(background(PANEL,18,accent));
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(112),1f);lp.setMargins(dp(5),dp(6),dp(5),dp(6));b.setLayoutParams(lp);
+        b.setBackground(gradient(0xFF0C2142,0xFF08162E,20,accent));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(118),1f);lp.setMargins(dp(5),dp(6),dp(5),dp(6));b.setLayoutParams(lp);
         b.setOnClickListener(v->action.run());return b;
     }
 
     private Button tabButton(String label, boolean selected, Runnable action) {
         Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(12);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        b.setTextColor(selected?INK:TEXT);b.setBackground(background(selected?CYAN:PANEL_2,14,selected?0:0xFF244E87));
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(42),1f);lp.setMargins(dp(3),0,dp(3),0);b.setLayoutParams(lp);
+        b.setTextColor(selected?0xFF00131D:MUTED);
+        b.setBackground(selected?gradient(CYAN,BLUE,14,0):background(0xFF0A1934,14,0xFF193F70));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(44),1f);lp.setMargins(dp(3),0,dp(3),0);b.setLayoutParams(lp);
         b.setOnClickListener(v->action.run());return b;
     }
 
-    private void presentFullScreen(LinearLayout body) {
+    private void presentFullScreen(LinearLayout body) { presentFullScreen(body,currentNav); }
+
+    private void presentFullScreen(LinearLayout body,int nav) {
+        currentNav=nav;
         if(isDestroyed()||showingAd)return;
         if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();}
         destroyBanner();suspendGameBanner();menuBalance=null;rewardStatus=null;watchButton=null;
@@ -356,16 +376,23 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private LinearLayout premiumBody() {
         LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(18),dp(18),dp(18),dp(24));body.setBackgroundColor(INK);return body;
+        body.setPadding(dp(16),dp(16),dp(16),dp(22));
+        body.setBackground(gradient(0xFF020817,0xFF04112A,0,0));
+        return body;
     }
 
     private void addPremiumHeader(LinearLayout body,String title,String subtitle) {
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
         ImageView icon=new ImageView(this);icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
-        row.addView(icon,new LinearLayout.LayoutParams(dp(52),dp(52)));
+        row.addView(icon,new LinearLayout.LayoutParams(dp(58),dp(58)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        TextView t=text(title,23,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);copy.addView(text(subtitle,12,MUTED));
-        row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));body.addView(row);
+        TextView t=text(title,24,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);
+        TextView sub=text(subtitle,11,MUTED);sub.setLetterSpacing(.08f);copy.addView(sub);
+        row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
+        TextView coin=text("● "+wallet.balance(),13,GOLD);coin.setGravity(Gravity.CENTER);
+        coin.setTypeface(Typeface.DEFAULT,Typeface.BOLD);coin.setBackground(background(0xFF221B09,18,0xFF6E5512));
+        row.addView(coin,new LinearLayout.LayoutParams(dp(88),dp(40)));
+        body.addView(row);
     }
 
     private void showHome() {
