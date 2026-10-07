@@ -417,6 +417,8 @@ public class ArrowGameView extends View {
         return SPECIAL_SHAPES[index-36];
     }
     public String currentShapeName(){return shapeNameForLevel(currentLevelNumber());}
+    public int currentChapterNumber(){return chapterNumber(currentLevelNumber());}
+    public String currentChapterName(){return chapterName(currentLevelNumber());}
     private boolean alphanumericShape(String token){return token.length()==1&&Character.isLetterOrDigit(token.charAt(0));}
     private float clamp01(float v){return Math.max(0f,Math.min(1f,v));}
 
@@ -1029,9 +1031,29 @@ public class ArrowGameView extends View {
         label(c,"NEXT ›",next.centerX(),next.centerY()+dp(5),14,levelPage<9?NAVY:Color.rgb(69,87,116),true);
     }
 
-    private void drawBack(Canvas c,float x,float y){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(3.5f));paint.setStrokeCap(Paint.Cap.ROUND);paint.setColor(BLUE);Path p=new Path();p.moveTo(x+dp(8),y-dp(13));p.lineTo(x-dp(5),y);p.lineTo(x+dp(8),y+dp(13));c.drawPath(p,paint);paint.setStyle(Paint.Style.FILL);}
+    private void drawBack(Canvas c,float x,float y){
+        RectF r=new RectF(x-dp(21),y-dp(21),x+dp(21),y+dp(21));
+        paint.setColor(Color.argb(210,8,28,58));c.drawRoundRect(r,dp(15),dp(15),paint);
+        strokeRound(c,r,Color.rgb(31,83,133),dp(1));
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(3));paint.setStrokeCap(Paint.Cap.ROUND);paint.setColor(BLUE);
+        Path p=new Path();p.moveTo(x+dp(6),y-dp(10));p.lineTo(x-dp(5),y);p.lineTo(x+dp(6),y+dp(10));c.drawPath(p,paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
 
-    private void drawGear(Canvas c,float x,float y){paint.setColor(BLUE);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(3));c.drawCircle(x,y,dp(10),paint);c.drawCircle(x,y,dp(4),paint);for(int i=0;i<8;i++){double a=i*Math.PI/4;float x1=(float)(x+Math.cos(a)*dp(12)),y1=(float)(y+Math.sin(a)*dp(12));float x2=(float)(x+Math.cos(a)*dp(16)),y2=(float)(y+Math.sin(a)*dp(16));c.drawLine(x1,y1,x2,y2,paint);}paint.setStyle(Paint.Style.FILL);}
+    private void drawGear(Canvas c,float x,float y){
+        RectF r=new RectF(x-dp(21),y-dp(21),x+dp(21),y+dp(21));
+        paint.setColor(Color.argb(220,8,28,58));c.drawRoundRect(r,dp(15),dp(15),paint);
+        strokeRound(c,r,Color.rgb(31,83,133),dp(1));
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeWidth(dp(2.2f));paint.setColor(BLUE);
+        c.drawCircle(x,y,dp(7.5f),paint);c.drawCircle(x,y,dp(2.8f),paint);
+        for(int i=0;i<8;i++){
+            double a=i*Math.PI/4;
+            float x1=(float)(x+Math.cos(a)*dp(9.2f)),y1=(float)(y+Math.sin(a)*dp(9.2f));
+            float x2=(float)(x+Math.cos(a)*dp(12.2f)),y2=(float)(y+Math.sin(a)*dp(12.2f));
+            c.drawLine(x1,y1,x2,y2,paint);
+        }
+        paint.setStyle(Paint.Style.FILL);
+    }
 
     private void drawHeart(Canvas c,float x,float y,float s,int color){Path p=new Path();p.moveTo(x,y+s*.9f);p.cubicTo(x-s*1.25f,y+s*.1f,x-s*1.15f,y-s*.75f,x-s*.55f,y-s*.85f);p.cubicTo(x-s*.1f,y-s*.95f,x,y-s*.55f,x,y-s*.35f);p.cubicTo(x,y-s*.55f,x+s*.1f,y-s*.95f,x+s*.55f,y-s*.85f);p.cubicTo(x+s*1.15f,y-s*.75f,x+s*1.25f,y+s*.1f,x,y+s*.9f);p.close();paint.setColor(color);c.drawPath(p,paint);}
 
