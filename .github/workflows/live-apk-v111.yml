@@ -54,6 +54,9 @@ jobs:
           test -s "$APK"
           mkdir -p dist
           cp "$APK" dist/ArrowEscape-v1.1.1-LIVE-RELEASE-UNSIGNED.apk
+          cp /usr/local/lib/android/sdk/build-tools/36.0.0/lib/apksigner.jar dist/apksigner.jar
+          cp /usr/local/lib/android/sdk/build-tools/36.0.0/zipalign dist/zipalign
+          chmod +x dist/zipalign
           sha256sum dist/ArrowEscape-v1.1.1-LIVE-RELEASE-UNSIGNED.apk > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
