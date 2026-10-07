@@ -66,6 +66,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
         configureEdgeToEdge(getWindow());
+        configureFamiliesAdPolicy();
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
         wallet = new Wallet(new PreferenceWalletStorage(this));
         game = new ArrowGameView(this, this, wallet);
@@ -93,6 +94,20 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, error -> startAdsIfAllowed()),
             error -> startAdsIfAllowed());
         startAdsIfAllowed();
+    }
+
+    /**
+     * Families-policy safety net applied before the Google Mobile Ads SDK is initialized.
+     * Keep every ad request child-directed and cap creative maturity at G so banners,
+     * interstitials and rewarded ads cannot request content above the app audience rating.
+     */
+    private void configureFamiliesAdPolicy() {
+        RequestConfiguration configuration = new RequestConfiguration.Builder()
+            .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
+            .setTagForChildDirectedTreatment(RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
+            .setTagForUnderAgeOfConsent(RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE)
+            .build();
+        MobileAds.setRequestConfiguration(configuration);
     }
 
     private void startAdsIfAllowed() {
