@@ -1,0 +1,89 @@
+name: Arrow Escape 1.1.1 Live Release APK
+
+on:
+  push:
+    branches:
+      - live-apk-v111
+    paths:
+      - .github/workflows/live-apk-v111.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Require production signing secrets
+        env:
+          KEYSTORE_B64: ${{ secrets.ARROW_RELEASE_KEYSTORE_B64 }}
+          STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE_B64"
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_PASSWORD"
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK 36
+        run: |
+          SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36.1" "build-tools;36.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Restore production upload keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ARROW_RELEASE_KEYSTORE_B64 }}
+        run: |
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/arrow-release.jks"
+          test -s "$RUNNER_TEMP/arrow-release.jks"
+          chmod 600 "$RUNNER_TEMP/arrow-release.jks"
+
+      - name: Verify live release configuration
+        run: |
+          grep -q 'versionCode = 13' app/build.gradle.kts
+          grep -q 'versionName = "1.1.1"' app/build.gradle.kts
+          grep -q 'ca-app-pub-2475015099415787~6197424406' app/build.gradle.kts
+          grep -q 'ca-app-pub-2475015099415787/6590130477' app/build.gradle.kts
+          grep -q 'ca-app-pub-2475015099415787/3782285105' app/build.gradle.kts
+          grep -q 'ca-app-pub-2475015099415787/2469203439' app/build.gradle.kts
+          grep -q 'MAX_AD_CONTENT_RATING_G' app/src/main/java/com/arrowescape/pro/MainActivity.java
+
+      - name: Build signed live release APK
+        env:
+          ARROW_RELEASE_STORE_FILE: ${{ runner.temp }}/arrow-release.jks
+          ARROW_RELEASE_STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
+          ARROW_RELEASE_KEY_ALIAS: arrowescape-upload
+          ARROW_RELEASE_KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
+        run: gradle :app:assembleRelease --stacktrace
+
+      - name: Verify APK signing and package
+        run: |
+          APK="app/build/outputs/apk/release/app-release.apk"
+          EXPECTED_UPLOAD_SHA256="C0:F5:B8:4B:37:5B:47:75:BC:C6:7C:37:E0:57:A2:6C:B3:D6:54:FE:79:38:D4:8B:65:8E:B4:23:E4:41:42:9F"
+          test -s "$APK"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/apksigner verify --verbose --print-certs "$APK" | tee /tmp/apk-signing.txt
+          grep -Fq "$EXPECTED_UPLOAD_SHA256" /tmp/apk-signing.txt
+          mkdir -p dist
+          cp "$APK" dist/ArrowEscape-v1.1.1-LIVE-RELEASE.apk
+          sha256sum dist/ArrowEscape-v1.1.1-LIVE-RELEASE.apk > dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArrowEscape-v1.1.1-LIVE-RELEASE
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
