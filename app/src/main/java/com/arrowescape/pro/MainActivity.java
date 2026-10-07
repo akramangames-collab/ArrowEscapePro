@@ -41,6 +41,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private AdView gameBanner;
     private AdView resultBanner;
     private FrameLayout root, gameBannerSlot, resultBannerSlot, menuBannerSlot;
+    private ScrollView activeMenuScroll;
+    private LinearLayout activeMenuNav;
     private boolean gameplayBannerRequested;
     private int gameBannerHeightPx, resultBannerHeightPx;
     private int bannerRetryCount;
@@ -55,7 +57,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private boolean adsStarted, loadingReward, loadingInterstitial, showingAd, pausedForAd;
     private long rewardedLoadedAt, interstitialLoadedAt;
     private int completedSinceAd;
-    private long lastInterstitialAt = SystemClock.elapsedRealtime();
+    private static final int INTERSTITIAL_EVERY_LEVELS = 2;
     private static final long DAILY_CHALLENGE_REMINDER_DELAY_MS = 150000L; // 2.5 minutes
     private static final long DAILY_CHALLENGE_REMINDER_RETRY_MS = 30000L;
     private boolean dailyReminderScheduled;
@@ -185,12 +187,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if (watchButton != null) watchButton.setText(rewardReady() ? "WATCH AD  ·  +75 COINS" : loadingReward ? "LOADING AD…" : "TRY REWARD AD");
         if (watchButton != null) watchButton.setEnabled(!loadingReward && !showingAd);
     }
-    @Override public void onLevelCompleted() { completedSinceAd++; showResultBanner(); }
+    @Override public void onLevelCompleted() { showResultBanner(); }
     @Override public void onContinueAfterWin(Runnable proceed) {
         hideResultBanner();
+        completedSinceAd++;
         long now = SystemClock.elapsedRealtime();
         if (interstitial != null && now - interstitialLoadedAt > 3300000L) interstitial = null;
-        if (completedSinceAd < 5 || now - lastInterstitialAt < 120000L || interstitial == null || showingAd || !canRequestAds()) {
+        if (completedSinceAd < INTERSTITIAL_EVERY_LEVELS || interstitial == null || showingAd || !canRequestAds()) {
             proceed.run(); enterGameplay(); loadInterstitial(); return;
         }
         InterstitialAd ad = interstitial; interstitial = null;
@@ -201,7 +204,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 if (handled) return; handled = true; showingAd = false;
                 if (!isDestroyed()) { game.setPaused(false); proceed.run(); enterGameplay(); loadInterstitial(); }
             }
-            @Override public void onAdShowedFullScreenContent() { completedSinceAd = 0; lastInterstitialAt = SystemClock.elapsedRealtime(); }
+            @Override public void onAdShowedFullScreenContent() { completedSinceAd = 0; }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
             @Override public void onAdFailedToShowFullScreenContent(AdError error) { finish(); }
         });
@@ -878,16 +881,37 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         int height=Math.max(dp(50),size.getHeightInPixels(this));
         android.view.ViewGroup.LayoutParams lp=slot.getLayoutParams();
         if(lp!=null){lp.height=height;slot.setLayoutParams(lp);}
-        slot.removeAllViews();slot.setVisibility(View.VISIBLE);
+        slot.removeAllViews();
+        // Keep the slot invisible until an actual creative is loaded. This prevents
+        // empty black ad rails on new/no-fill inventory.
+        slot.setVisibility(View.INVISIBLE);
         AdView ad=new AdView(this);
         ad.setAdSize(size);
         ad.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
         ad.setAdListener(new AdListener() {
             @Override public void onAdLoaded() {
                 bannerRetryCount=0;
+                slot.setVisibility(View.VISIBLE);
+                if(slot==gameBannerSlot){
+                    gameBannerHeightPx=height;
+                    updateGameBottomInset();
+                }else if(slot==resultBannerSlot){
+                    resultBannerHeightPx=height;
+                    updateGameBottomInset();
+                }else if(slot==menuBannerSlot){
+                    setMenuBannerSpace(height,true);
+                }
                 Log.d("ArrowAds","Banner loaded");
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
+                slot.setVisibility(View.INVISIBLE);
+                if(slot==gameBannerSlot){
+                    gameBannerHeightPx=0; updateGameBottomInset();
+                }else if(slot==resultBannerSlot){
+                    resultBannerHeightPx=0; updateGameBottomInset();
+                }else if(slot==menuBannerSlot){
+                    setMenuBannerSpace(0,false);
+                }
                 Log.w("ArrowAds","Banner failed code="+error.getCode()+" domain="+error.getDomain()+" message="+error.getMessage());
                 if (bannerRetryCount >= MAX_BANNER_RETRIES || isDestroyed()) return;
                 bannerRetryCount++;
@@ -931,10 +955,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(resultBannerSlot!=null&&resultBannerSlot.getVisibility()==View.VISIBLE)return;
         if(gameBanner!=null)return;
         gameBanner=createAdaptiveBanner(gameBannerSlot,0);
-        if(gameBanner!=null){
-            gameBannerHeightPx=Math.max(dp(50),gameBanner.getAdSize().getHeightInPixels(this));
-            updateGameBottomInset();
-        }
     }
 
     private void suspendGameBanner() {
@@ -951,43 +971,63 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private FrameLayout menuShell(ScrollView scroll) {
         FrameLayout shell=new FrameLayout(this);
         shell.setBackgroundColor(INK);
+        activeMenuScroll=scroll;
 
         FrameLayout.LayoutParams scrollParams=new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,FrameLayout.LayoutParams.MATCH_PARENT);
-        // Fixed navigation + ad rail. Content never hides behind either.
-        scrollParams.bottomMargin=dp(128);
+        // No blank ad rail before an ad actually loads.
+        scrollParams.bottomMargin=dp(68);
         shell.addView(scroll,scrollParams);
 
         LinearLayout nav=new LinearLayout(this);nav.setOrientation(LinearLayout.HORIZONTAL);nav.setGravity(Gravity.CENTER);
-        nav.setPadding(dp(6),dp(5),dp(6),dp(5));
+        nav.setPadding(dp(6),dp(4),dp(6),dp(4));
         nav.setBackground(gradient(0xFF07162F,0xFF040D20,0,0xFF15345E));
         nav.addView(navButton("⌂\nHome",0));
         nav.addView(navButton("▦\nLevels",1));
         nav.addView(navButton("★\nDaily",2));
         nav.addView(navButton("🛒\nStore",3));
         nav.addView(navButton("●\nMe",4));
+        activeMenuNav=nav;
         FrameLayout.LayoutParams navParams=new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,dp(60),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-        navParams.bottomMargin=dp(68);
+            FrameLayout.LayoutParams.MATCH_PARENT,dp(68),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        navParams.bottomMargin=0;
         shell.addView(nav,navParams);
 
         menuBannerSlot=new FrameLayout(this);
         menuBannerSlot.setBackgroundColor(INK);
+        menuBannerSlot.setVisibility(View.INVISIBLE);
         FrameLayout.LayoutParams adParams=new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,dp(68),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
         shell.addView(menuBannerSlot,adParams);
         return shell;
     }
 
-    private Button navButton(String label,int index) {
+    private TextView navButton(String label,int index) {
         boolean selected=currentNav==index;
-        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(10);
-        b.setGravity(Gravity.CENTER);b.setTypeface(Typeface.DEFAULT,selected?Typeface.BOLD:Typeface.NORMAL);
-        b.setTextColor(selected?CYAN:MUTED);
+        TextView b=text(label,11,selected?CYAN:MUTED);
+        b.setPadding(0,0,0,0);
+        b.setGravity(Gravity.CENTER);
+        b.setTypeface(Typeface.DEFAULT,selected?Typeface.BOLD:Typeface.NORMAL);
         b.setBackground(selected?background(0xFF102A52,15,0xFF1F5C96):background(0x00000000,15,0));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,-1,1f);lp.setMargins(dp(2),0,dp(2),0);b.setLayoutParams(lp);
         b.setOnClickListener(v->openNav(index));
         return b;
+    }
+
+    private void setMenuBannerSpace(int adHeight,boolean visible) {
+        if(activeMenuNav==null||activeMenuScroll==null)return;
+        int safeHeight=visible?Math.max(dp(50),adHeight):0;
+        if(activeMenuNav.getLayoutParams() instanceof FrameLayout.LayoutParams){
+            FrameLayout.LayoutParams navParams=(FrameLayout.LayoutParams)activeMenuNav.getLayoutParams();
+            navParams.bottomMargin=safeHeight;
+            navParams.height=dp(68);
+            activeMenuNav.setLayoutParams(navParams);
+        }
+        if(activeMenuScroll.getLayoutParams() instanceof FrameLayout.LayoutParams){
+            FrameLayout.LayoutParams scrollParams=(FrameLayout.LayoutParams)activeMenuScroll.getLayoutParams();
+            scrollParams.bottomMargin=dp(68)+safeHeight;
+            activeMenuScroll.setLayoutParams(scrollParams);
+        }
     }
 
     private void openNav(int index) {
@@ -1008,14 +1048,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(menuBannerSlot==null||menu==null||!menu.isShowing()||banner!=null)return;
         if(!canRequestAds()){
             menuBannerSlot.setVisibility(View.INVISIBLE);
+            setMenuBannerSpace(0,false);
             return;
         }
-        menuBannerSlot.setVisibility(View.VISIBLE);
         banner=createAdaptiveBanner(menuBannerSlot,24);
     }
 
     private void clearMenuBannerSlot() {
         if(menuBannerSlot!=null){menuBannerSlot.removeAllViews();menuBannerSlot=null;}
+        activeMenuScroll=null;activeMenuNav=null;
     }
 
     private void showResultBanner() {
@@ -1024,10 +1065,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             hideResultBanner();
             suspendGameBanner();
             resultBanner=createAdaptiveBanner(resultBannerSlot,0);
-            if(resultBanner!=null){
-                resultBannerHeightPx=Math.max(dp(50),resultBanner.getAdSize().getHeightInPixels(this));
-                updateGameBottomInset();
-            }
         });
     }
 
