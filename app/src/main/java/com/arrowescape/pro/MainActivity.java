@@ -677,6 +677,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void showMenu(boolean store) {
+        currentNav=store?3:4;
         if (isDestroyed() || showingAd) return;
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
         destroyBanner(); suspendGameBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
@@ -909,9 +910,22 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
         FrameLayout.LayoutParams scrollParams=new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,FrameLayout.LayoutParams.MATCH_PARENT);
-        // Reserve real space for the ad so the banner never covers buttons or cards.
-        scrollParams.bottomMargin=dp(68);
+        // Fixed navigation + ad rail. Content never hides behind either.
+        scrollParams.bottomMargin=dp(128);
         shell.addView(scroll,scrollParams);
+
+        LinearLayout nav=new LinearLayout(this);nav.setOrientation(LinearLayout.HORIZONTAL);nav.setGravity(Gravity.CENTER);
+        nav.setPadding(dp(6),dp(5),dp(6),dp(5));
+        nav.setBackground(gradient(0xFF07162F,0xFF040D20,0,0xFF15345E));
+        nav.addView(navButton("⌂\nHome",0));
+        nav.addView(navButton("▦\nLevels",1));
+        nav.addView(navButton("★\nDaily",2));
+        nav.addView(navButton("🛒\nStore",3));
+        nav.addView(navButton("●\nMe",4));
+        FrameLayout.LayoutParams navParams=new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,dp(60),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        navParams.bottomMargin=dp(68);
+        shell.addView(nav,navParams);
 
         menuBannerSlot=new FrameLayout(this);
         menuBannerSlot.setBackgroundColor(INK);
@@ -919,6 +933,31 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             FrameLayout.LayoutParams.MATCH_PARENT,dp(68),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
         shell.addView(menuBannerSlot,adParams);
         return shell;
+    }
+
+    private Button navButton(String label,int index) {
+        boolean selected=currentNav==index;
+        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(10);
+        b.setGravity(Gravity.CENTER);b.setTypeface(Typeface.DEFAULT,selected?Typeface.BOLD:Typeface.NORMAL);
+        b.setTextColor(selected?CYAN:MUTED);
+        b.setBackground(selected?background(0xFF102A52,15,0xFF1F5C96):background(0x00000000,15,0));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,-1,1f);lp.setMargins(dp(2),0,dp(2),0);b.setLayoutParams(lp);
+        b.setOnClickListener(v->openNav(index));
+        return b;
+    }
+
+    private void openNav(int index) {
+        if(index==currentNav && index!=1)return;
+        if(index==0){showHome();return;}
+        if(index==1){
+            currentNav=1;
+            scheduleDailyChallengeReminder();
+            if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();}
+            game.setPaused(false);game.openLevels();enterGameplay();return;
+        }
+        if(index==2){showDailyChallengePanel();return;}
+        if(index==3){showPremiumStore();return;}
+        showProfile();
     }
 
     private void showVisibleMenuBanner() {
