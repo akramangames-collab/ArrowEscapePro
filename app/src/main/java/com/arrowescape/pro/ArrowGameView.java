@@ -46,13 +46,13 @@ public class ArrowGameView extends View {
 
     private static final int MAX_LEVEL = 200;
     private static final String LEVEL_PACK_VERSION = "v24-daily-separate-1";
-    private static final int NAVY = Color.rgb(239, 247, 255);
-    private static final int BLUE = Color.rgb(23, 199, 255);
-    private static final int PALE = Color.rgb(13, 30, 64);
-    private static final int DOT = Color.rgb(35, 63, 110);
-    private static final int RED = Color.rgb(255, 82, 112);
-    private static final int LOST_HEART = Color.rgb(55, 76, 112);
-    private static final int TEXT = Color.rgb(190, 211, 239);
+    private static final int NAVY = Color.rgb(248, 251, 255);
+    private static final int BLUE = Color.rgb(34, 211, 238);
+    private static final int PALE = Color.rgb(10, 28, 58);
+    private static final int DOT = Color.rgb(27, 58, 96);
+    private static final int RED = Color.rgb(255, 92, 120);
+    private static final int LOST_HEART = Color.rgb(52, 72, 108);
+    private static final int TEXT = Color.rgb(151, 177, 214);
     private static final int SUPER_HARD = Color.rgb(255, 92, 118);
     private static final int BOSS_GOLD = Color.rgb(255, 200, 61);
     private static final int DAILY_PURPLE = Color.rgb(177, 114, 255);
@@ -294,9 +294,12 @@ public class ArrowGameView extends View {
         float w = getWidth(), h = getHeight(), top = insetTop + dp(8);
         drawThemeAtmosphere(c,w,h);
         if(isBoss(level) && !challengeActive()) drawBossWorldBackdrop(c,w,h);
+        RectF headerCard=new RectF(dp(12),top+dp(2),w-dp(12),top+dp(112));
+        paint.setColor(Color.argb(188,7,20,44));c.drawRoundRect(headerCard,dp(22),dp(22),paint);
+        strokeRound(c,headerCard,Color.argb(210,31,83,133),dp(1));
         drawBack(c, dp(28), top + dp(30));
         String title = weeklyChallenge ? "Weekly Challenge" : dailyChallenge ? "Daily Challenge" : (isBoss(level) ? "Boss Level " + level : "Level " + level);
-        label(c, title, w/2, top + dp(29), 23, NAVY, true);
+        label(c, title, w/2, top + dp(29), 25, NAVY, true);
         int difficultyColor = challengeActive() ? DAILY_PURPLE : (isBoss(level) ? BOSS_GOLD : isSuperHard(level) ? SUPER_HARD : Color.rgb(100,116,139));
         String sub = weeklyChallenge
             ? "ELITE WEEKLY  ·  puzzle " + level
@@ -308,12 +311,13 @@ public class ArrowGameView extends View {
         drawFlowMeter(c,w/2,top+dp(65));
         drawGear(c, w-dp(31), top+dp(30));
         float statY = top + dp(84);
-        pill(c,new RectF(dp(16),statY-dp(21),dp(94),statY+dp(21)),PALE);
-        drawMiniArrow(c,dp(32),statY,dp(12),NAVY,-45);
+        RectF remainingCard=new RectF(dp(16),statY-dp(21),dp(94),statY+dp(21));
+        pill(c,remainingCard,PALE);strokeRound(c,remainingCard,Color.rgb(31,83,133),dp(1));
+        drawMiniArrow(c,dp(32),statY,dp(12),BLUE,-45);
         label(c,String.valueOf(remaining()),dp(65),statY+dp(6),18,NAVY,true);
         for(int i=0;i<3;i++) drawHeart(c,w/2-dp(30)+i*dp(30),statY,dp(11),i<hearts?RED:LOST_HEART);
         walletHit.set(w-dp(112),statY-dp(21),w-dp(16),statY+dp(21));
-        pill(c,walletHit,Color.rgb(55,43,14)); drawCoin(c,walletHit.left+dp(19),statY,dp(10));
+        pill(c,walletHit,Color.rgb(58,42,8));strokeRound(c,walletHit,Color.rgb(143,106,19),dp(1)); drawCoin(c,walletHit.left+dp(19),statY,dp(10));
         String amount = wallet.balance()>99999 ? (wallet.balance()/1000)+"k" : String.valueOf(wallet.balance());
         label(c,amount,walletHit.centerX()+dp(10),statY+dp(6),16,NAVY,true);
         float controlY=h-insetBottom-dp(58),gap=dp(10),controlW=(w-dp(32)-2*gap)/3;
@@ -333,14 +337,16 @@ public class ArrowGameView extends View {
         boardTop=boardViewportCenterY-boardH/2f+boardPanY;
         c.save();c.clipRect(boardViewportLeft,boardViewportTop,boardViewportRight,boardViewportBottom);drawDottedGrid(c);drawPieces(c,now);drawPathPreview(c);c.restore();
         label(c,"PINCH TO ZOOM  ·  "+Math.round(boardZoom*100f)+"%",w/2,areaBottom+dp(16),9,Color.rgb(102,145,194),false);
-        pill(c,hintHit,PALE);pill(c,eraseHit,PALE);pill(c,rewardHit,Color.rgb(55,43,14));
+        pill(c,hintHit,PALE);strokeRound(c,hintHit,Color.rgb(31,83,133),dp(1));
+        pill(c,eraseHit,PALE);strokeRound(c,eraseHit,Color.rgb(84,61,170),dp(1));
+        pill(c,rewardHit,Color.rgb(58,42,8));strokeRound(c,rewardHit,Color.rgb(143,106,19),dp(1));
         drawBulb(c,hintHit.centerX(),controlY-dp(8),dp(12));
         label(c,hints>0?"Hint · "+hints+" free":"Hint · 25 coins",hintHit.centerX(),controlY+dp(18),11,NAVY,true);
         drawEraser(c,eraseHit.centerX(),controlY-dp(8),dp(12));
         label(c,erasers>0?"Erase · "+erasers+" free":"Erase · watch ad",eraseHit.centerX(),controlY+dp(18),11,NAVY,true);
         drawCoin(c,rewardHit.centerX(),controlY-dp(8),dp(11));
         label(c,"Store",rewardHit.centerX(),controlY+dp(18),11,NAVY,true);
-        label(c,"THINK  ·  TAP  ·  ESCAPE",w/2,h-insetBottom-dp(10),9,Color.rgb(102,145,194),false);
+        label(c,"THINK  ·  TAP  ·  ESCAPE",w/2,h-insetBottom-dp(10),9,Color.rgb(96,132,184),false);
         if(tutorial)drawTutorial(c);else if(finished)drawWin(c);else if(failed)drawFail(c);else if(milestoneIntroUntil>now)drawMilestoneIntro(c);
     }
 
@@ -982,15 +988,19 @@ public class ArrowGameView extends View {
         c.drawColor(boardBackground());
         float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
         drawThemeAtmosphere(c,w,h);
-        label(c,"SELECT LEVEL",w/2,top+dp(31),25,NAVY,true);
+        RectF chapterCard=new RectF(dp(12),top,w-dp(12),top+dp(120));
+        paint.setColor(Color.argb(190,7,20,44));c.drawRoundRect(chapterCard,dp(22),dp(22),paint);
+        strokeRound(c,chapterCard,Color.argb(220,31,83,133),dp(1));
+        label(c,"SELECT LEVEL",w/2,top+dp(31),26,NAVY,true);
         int pageLevel=Math.min(MAX_LEVEL,levelPage*20+1);
         int pageChapter=chapterNumber(pageLevel);
-        label(c,"CH "+pageChapter+" · "+chapterName(pageLevel)+"   |   "+totalStars()+"/600★",w/2,top+dp(56),11,Color.rgb(142,177,218),false);
+        label(c,"CHAPTER "+pageChapter+"  ·  "+chapterName(pageLevel),w/2,top+dp(56),11,BLUE,true);
+        label(c,totalStars()+"/600 ★  ·  "+chapterTrophyTier(pageChapter),w/2,top+dp(78),10,Color.rgb(142,177,218),false);
         drawBack(c,dp(28),top+dp(28));
 
-        RectF range=new RectF(dp(18),top+dp(70),w-dp(18),top+dp(112));
-        pill(c,range,Color.rgb(10,24,54));
-        label(c,(levelPage*20+1)+"–"+Math.min(200,levelPage*20+20)+"  ·  "+chapterTrophyTier(pageChapter),range.centerX(),range.centerY()+dp(5),12,themeAccent(),true);
+        RectF range=new RectF(dp(28),top+dp(89),w-dp(28),top+dp(116));
+        pill(c,range,Color.rgb(11,32,65));
+        label(c,(levelPage*20+1)+"–"+Math.min(200,levelPage*20+20),range.centerX(),range.centerY()+dp(4),11,themeAccent(),true);
 
         int start=levelPage*20+1;
         float gap=dp(9),left=dp(18),bw=(w-left*2-gap*3)/4f,bh=dp(66),y0=top+dp(126);
@@ -999,10 +1009,10 @@ public class ArrowGameView extends View {
             int col=i%4,row=i/4;
             RectF r=new RectF(left+col*(bw+gap),y0+row*(bh+gap),left+col*(bw+gap)+bw,y0+row*(bh+gap)+bh);
             boolean open=lv<=maxUnlocked,milestone=isSuperHard(lv),boss=isBoss(lv),current=lv==level;
-            int cardColor=!open?Color.rgb(8,19,42):(current?Color.rgb(13,53,91):Color.rgb(10,29,61));
+            int cardColor=!open?Color.rgb(6,16,36):(current?Color.rgb(12,61,103):Color.rgb(8,27,56));
             paint.setColor(cardColor);c.drawRoundRect(r,dp(15),dp(15),paint);
             paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(current?2.2f:1.2f));
-            paint.setColor(!open?Color.rgb(25,46,76):(boss?BOSS_GOLD:milestone?SUPER_HARD:current?themeAccent():Color.rgb(31,72,116)));
+            paint.setColor(!open?Color.rgb(22,42,72):(boss?BOSS_GOLD:milestone?SUPER_HARD:current?BLUE:Color.rgb(29,72,119)));
             c.drawRoundRect(r,dp(15),dp(15),paint);paint.setStyle(Paint.Style.FILL);
             int stars=open?bestStars(lv):0;
             paint.setTextAlign(Paint.Align.CENTER);paint.setFakeBoldText(true);paint.setTextSize(dp(17));
@@ -1013,7 +1023,8 @@ public class ArrowGameView extends View {
         }
         float y=h-insetBottom-dp(72);
         RectF prev=new RectF(dp(22),y,w*.46f,y+dp(48)),next=new RectF(w*.54f,y,w-dp(22),y+dp(48));
-        pill(c,prev,Color.rgb(10,29,61));pill(c,next,Color.rgb(10,29,61));
+        pill(c,prev,Color.rgb(8,27,56));strokeRound(c,prev,Color.rgb(29,72,119),dp(1));
+        pill(c,next,Color.rgb(8,27,56));strokeRound(c,next,Color.rgb(29,72,119),dp(1));
         label(c,"‹ PREV",prev.centerX(),prev.centerY()+dp(5),14,levelPage>0?NAVY:Color.rgb(69,87,116),true);
         label(c,"NEXT ›",next.centerX(),next.centerY()+dp(5),14,levelPage<9?NAVY:Color.rgb(69,87,116),true);
     }
@@ -1025,6 +1036,7 @@ public class ArrowGameView extends View {
     private void drawHeart(Canvas c,float x,float y,float s,int color){Path p=new Path();p.moveTo(x,y+s*.9f);p.cubicTo(x-s*1.25f,y+s*.1f,x-s*1.15f,y-s*.75f,x-s*.55f,y-s*.85f);p.cubicTo(x-s*.1f,y-s*.95f,x,y-s*.55f,x,y-s*.35f);p.cubicTo(x,y-s*.55f,x+s*.1f,y-s*.95f,x+s*.55f,y-s*.85f);p.cubicTo(x+s*1.15f,y-s*.75f,x+s*1.25f,y+s*.1f,x,y+s*.9f);p.close();paint.setColor(color);c.drawPath(p,paint);}
 
     private void pill(Canvas c,RectF r,int color){paint.setColor(color);c.drawRoundRect(r,dp(16),dp(16),paint);}
+    private void strokeRound(Canvas c,RectF r,int color,float width){paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(width);paint.setColor(color);c.drawRoundRect(r,dp(16),dp(16),paint);paint.setStyle(Paint.Style.FILL);}
 
     private void drawRoundControl(Canvas c,float x,float y,float r){paint.setColor(Color.rgb(20,51,90));c.drawCircle(x,y,r+dp(3),paint);paint.setColor(Color.rgb(10,29,61));c.drawCircle(x,y,r,paint);}
 
