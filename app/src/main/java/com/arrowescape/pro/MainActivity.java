@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -42,6 +43,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private FrameLayout root, gameBannerSlot, resultBannerSlot, menuBannerSlot;
     private boolean gameplayBannerRequested;
     private int gameBannerHeightPx, resultBannerHeightPx;
+    private int bannerRetryCount;
+    private static final int MAX_BANNER_RETRIES = 3;
+    private static final long BANNER_RETRY_DELAY_MS = 60000L;
     private AlertDialog menu;
     private TextView menuBalance, rewardStatus;
     private Button watchButton;
@@ -101,11 +105,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             showHome();
         }, 450L);
         consent = UserMessagingPlatform.getConsentInformation(this);
-        ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();
-        consent.requestConsentInfoUpdate(this, parameters,
-            () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, error -> startAdsIfAllowed()),
-            error -> startAdsIfAllowed());
-        startAdsIfAllowed();
+        requestConsentAndStartAds();
     }
 
     /**
@@ -117,9 +117,28 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         RequestConfiguration configuration = new RequestConfiguration.Builder()
             .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
             .setTagForChildDirectedTreatment(RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
-            .setTagForUnderAgeOfConsent(RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE)
             .build();
         MobileAds.setRequestConfiguration(configuration);
+    }
+
+    private void requestConsentAndStartAds() {
+        if (isDestroyed()) return;
+        ConsentRequestParameters parameters = new ConsentRequestParameters.Builder().build();
+        consent.requestConsentInfoUpdate(this, parameters,
+            () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, error -> {
+                if (error != null) Log.w("ArrowAds","Consent form: "+error.getMessage());
+                startAdsIfAllowed();
+            }),
+            error -> {
+                Log.w("ArrowAds","Consent update failed: "+error.getMessage());
+                startAdsIfAllowed();
+                if (!adsStarted && game != null) {
+                    game.postDelayed(() -> {
+                        if (!adsStarted && !isDestroyed()) requestConsentAndStartAds();
+                    }, 30000L);
+                }
+            });
+        startAdsIfAllowed();
     }
 
     private void startAdsIfAllowed() {
@@ -863,6 +882,30 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         AdView ad=new AdView(this);
         ad.setAdSize(size);
         ad.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+        ad.setAdListener(new AdListener() {
+            @Override public void onAdLoaded() {
+                bannerRetryCount=0;
+                Log.d("ArrowAds","Banner loaded");
+            }
+            @Override public void onAdFailedToLoad(LoadAdError error) {
+                Log.w("ArrowAds","Banner failed code="+error.getCode()+" domain="+error.getDomain()+" message="+error.getMessage());
+                if (bannerRetryCount >= MAX_BANNER_RETRIES || isDestroyed()) return;
+                bannerRetryCount++;
+                slot.postDelayed(() -> {
+                    if (isDestroyed() || !canRequestAds()) return;
+                    if (slot == gameBannerSlot) {
+                        if (gameBanner != null) { gameBanner.destroy(); gameBanner=null; }
+                        showGameBanner();
+                    } else if (slot == resultBannerSlot) {
+                        if (resultBanner != null) { resultBanner.destroy(); resultBanner=null; }
+                        showResultBanner();
+                    } else if (slot == menuBannerSlot) {
+                        if (banner != null) { banner.destroy(); banner=null; }
+                        showVisibleMenuBanner();
+                    }
+                }, BANNER_RETRY_DELAY_MS);
+            }
+        });
         slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));
         ad.loadAd(new AdRequest.Builder().build());
         return ad;
