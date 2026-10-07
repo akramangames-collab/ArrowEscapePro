@@ -597,7 +597,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void showMenu(boolean store) {
         if (isDestroyed() || showingAd) return;
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
-        destroyBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
+        destroyBanner(); suspendGameBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
         game.setPaused(true);
 
         LinearLayout body = new LinearLayout(this);
@@ -750,7 +750,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(INK);scroll.addView(body);
         menu=new AlertDialog.Builder(this).setView(scroll).create();
-        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd)game.setPaused(false);game.invalidate();});
+        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
         menu.show();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
@@ -884,7 +884,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dialog.show();if(dialog.getWindow()!=null)dialog.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
-    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(resultBanner!=null)resultBanner.pause();}
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(resultBanner!=null)resultBanner.resume();}
+    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(gameBanner!=null)gameBanner.pause();if(resultBanner!=null)resultBanner.pause();}
+    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(gameBanner!=null)gameBanner.resume();if(resultBanner!=null)resultBanner.resume();if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();}
     @Override protected void onDestroy(){destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }
