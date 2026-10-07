@@ -39,7 +39,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private AdView banner;
     private AdView gameBanner;
     private AdView resultBanner;
-    private FrameLayout root, gameBannerSlot, resultBannerSlot;
+    private FrameLayout root, gameBannerSlot, resultBannerSlot, menuBannerSlot;
     private boolean gameplayBannerRequested;
     private int gameBannerHeightPx, resultBannerHeightPx;
     private AlertDialog menu;
@@ -126,6 +126,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             if (isDestroyed()) return;
             loadInterstitial(); loadRewarded();
             if (gameplayBannerRequested && (menu == null || !menu.isShowing())) showGameBanner();
+            else showVisibleMenuBanner();
         }));
     }
     private boolean canRequestAds() { return adsStarted && consent != null && consent.canRequestAds() && !isDestroyed(); }
@@ -339,16 +340,17 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();}
         destroyBanner();suspendGameBanner();menuBalance=null;rewardStatus=null;watchButton=null;
         game.setPaused(true);
-        addMenuBanner(body);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);
-        menu=new AlertDialog.Builder(this).setView(scroll).create();
-        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
+        FrameLayout shell=menuShell(scroll);
+        menu=new AlertDialog.Builder(this).setView(shell).create();
+        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
         menu.show();
+        showVisibleMenuBanner();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
             configureEdgeToEdge(menu.getWindow());
             menu.getWindow().setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT,android.view.WindowManager.LayoutParams.MATCH_PARENT);
-            applySystemBarInsets(scroll);
+            applySystemBarInsets(shell);
         }
     }
 
@@ -743,15 +745,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
         body.addView(button(store?"BACK TO PUZZLE":"⌂  BACK TO HOME",()->{if(store)menu.dismiss();else showHome();},true));
 
-        FrameLayout bannerSlot=new FrameLayout(this);
-        LinearLayout.LayoutParams slotParams=new LinearLayout.LayoutParams(-1,dp(60));slotParams.topMargin=dp(16);body.addView(bannerSlot,slotParams);
-        if(canRequestAds()) banner=createAdaptiveBanner(bannerSlot,36);
-        else bannerSlot.setVisibility(View.GONE);
-
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(INK);scroll.addView(body);
-        menu=new AlertDialog.Builder(this).setView(scroll).create();
-        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
+        FrameLayout shell=menuShell(scroll);
+        menu=new AlertDialog.Builder(this).setView(shell).create();
+        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
         menu.show();
+        showVisibleMenuBanner();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
         }
@@ -824,13 +823,36 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         suspendGameBanner();
     }
 
-    private void addMenuBanner(LinearLayout body) {
-        FrameLayout slot=new FrameLayout(this);
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(60));
-        lp.topMargin=dp(16);
-        body.addView(slot,lp);
-        if(!canRequestAds()){slot.setVisibility(View.GONE);return;}
-        banner=createAdaptiveBanner(slot,36);
+    private FrameLayout menuShell(ScrollView scroll) {
+        FrameLayout shell=new FrameLayout(this);
+        shell.setBackgroundColor(INK);
+
+        FrameLayout.LayoutParams scrollParams=new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,FrameLayout.LayoutParams.MATCH_PARENT);
+        // Reserve real space for the ad so the banner never covers buttons or cards.
+        scrollParams.bottomMargin=dp(68);
+        shell.addView(scroll,scrollParams);
+
+        menuBannerSlot=new FrameLayout(this);
+        menuBannerSlot.setBackgroundColor(INK);
+        FrameLayout.LayoutParams adParams=new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,dp(68),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
+        shell.addView(menuBannerSlot,adParams);
+        return shell;
+    }
+
+    private void showVisibleMenuBanner() {
+        if(menuBannerSlot==null||menu==null||!menu.isShowing()||banner!=null)return;
+        if(!canRequestAds()){
+            menuBannerSlot.setVisibility(View.INVISIBLE);
+            return;
+        }
+        menuBannerSlot.setVisibility(View.VISIBLE);
+        banner=createAdaptiveBanner(menuBannerSlot,24);
+    }
+
+    private void clearMenuBannerSlot() {
+        if(menuBannerSlot!=null){menuBannerSlot.removeAllViews();menuBannerSlot=null;}
     }
 
     private void showResultBanner() {
@@ -885,6 +907,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(gameBanner!=null)gameBanner.pause();if(resultBanner!=null)resultBanner.pause();}
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(gameBanner!=null)gameBanner.resume();if(resultBanner!=null)resultBanner.resume();if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();}
+    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(gameBanner!=null)gameBanner.resume();if(resultBanner!=null)resultBanner.resume();if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
     @Override protected void onDestroy(){destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }
