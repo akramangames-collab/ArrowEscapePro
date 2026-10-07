@@ -18,6 +18,7 @@ import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.WindowInsets;
 
@@ -95,6 +96,14 @@ public class ArrowGameView extends View {
     private int levelPage = 0;
 
     private float boardLeft, boardTop, cell, boardW, boardH;
+    private float boardZoom = 1f, boardPanX = 0f, boardPanY = 0f;
+    private float boardViewportLeft, boardViewportTop, boardViewportRight, boardViewportBottom;
+    private float boardViewportCenterX, boardViewportCenterY;
+    private boolean zoomGestureActive;
+    private float lastZoomFocusX, lastZoomFocusY;
+    private final ScaleGestureDetector zoomDetector;
+    private static final float MIN_BOARD_ZOOM = 1f;
+    private static final float MAX_BOARD_ZOOM = 2.35f;
     private static final int SHAPE_MASK_ROWS = 121;
     private int shapeMaskLevel = -1;
     private final ArrayList<float[]> shapeMaskIntervals = new ArrayList<>();
@@ -130,6 +139,48 @@ public class ArrowGameView extends View {
         super(context);
         this.host = host;
         this.wallet = wallet;
+        zoomDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() {
+            @Override public boolean onScaleBegin(ScaleGestureDetector detector) {
+                zoomGestureActive = true;
+                pressPiece = null;
+                previewPiece = null;
+                longPressPreview = false;
+                lastZoomFocusX = detector.getFocusX();
+                lastZoomFocusY = detector.getFocusY();
+                return true;
+            }
+
+            @Override public boolean onScale(ScaleGestureDetector detector) {
+                float focusX = detector.getFocusX();
+                float focusY = detector.getFocusY();
+
+                // Two-finger movement pans the enlarged board.
+                boardPanX += focusX - lastZoomFocusX;
+                boardPanY += focusY - lastZoomFocusY;
+
+                float previous = boardZoom;
+                float requested = previous * detector.getScaleFactor();
+                boardZoom = Math.max(MIN_BOARD_ZOOM, Math.min(MAX_BOARD_ZOOM, requested));
+                float ratio = previous <= 0f ? 1f : boardZoom / previous;
+
+                // Keep the puzzle point under the user's fingers visually anchored while zooming.
+                boardPanX = focusX - boardViewportCenterX
+                    - (focusX - boardViewportCenterX - boardPanX) * ratio;
+                boardPanY = focusY - boardViewportCenterY
+                    - (focusY - boardViewportCenterY - boardPanY) * ratio;
+
+                if (boardZoom <= MIN_BOARD_ZOOM + .01f) {
+                    boardZoom = MIN_BOARD_ZOOM;
+                    boardPanX = 0f;
+                    boardPanY = 0f;
+                }
+                lastZoomFocusX = focusX;
+                lastZoomFocusY = focusY;
+                clampBoardPan();
+                invalidate();
+                return true;
+            }
+        });
         settings = context.getSharedPreferences("arrow_escape_pro", Context.MODE_PRIVATE);
         prefs = context.getSharedPreferences("arrow_puzzle_faithful", Context.MODE_PRIVATE);
         maxUnlocked = Math.max(1, prefs.getInt("maxUnlocked", 1));
@@ -271,9 +322,17 @@ public class ArrowGameView extends View {
         rewardHit.set(eraseHit.right+gap,hintHit.top,w-dp(16),hintHit.bottom);
         float areaTop=statY+dp(40), areaBottom=hintHit.top-dp(23);
         float availW=w-dp(30),availH=Math.max(dp(80),areaBottom-areaTop);
-        cell=Math.min(availW/(gridW+2f),availH/(gridH+2f));
-        boardW=gridW*cell;boardH=gridH*cell;boardLeft=(w-boardW)/2;boardTop=areaTop+(availH-boardH)/2;
-        c.save();c.clipRect(dp(8),areaTop,w-dp(8),areaBottom);drawDottedGrid(c);drawPieces(c,now);drawPathPreview(c);c.restore();
+        float fitCell=Math.min(availW/(gridW+2f),availH/(gridH+2f));
+        boardViewportLeft=dp(8);boardViewportTop=areaTop;boardViewportRight=w-dp(8);boardViewportBottom=areaBottom;
+        boardViewportCenterX=(boardViewportLeft+boardViewportRight)/2f;
+        boardViewportCenterY=(boardViewportTop+boardViewportBottom)/2f;
+        cell=fitCell*boardZoom;
+        boardW=gridW*cell;boardH=gridH*cell;
+        clampBoardPan();
+        boardLeft=boardViewportCenterX-boardW/2f+boardPanX;
+        boardTop=boardViewportCenterY-boardH/2f+boardPanY;
+        c.save();c.clipRect(boardViewportLeft,boardViewportTop,boardViewportRight,boardViewportBottom);drawDottedGrid(c);drawPieces(c,now);drawPathPreview(c);c.restore();
+        label(c,"PINCH TO ZOOM  ·  "+Math.round(boardZoom*100f)+"%",w/2,areaBottom+dp(16),9,Color.rgb(102,145,194),false);
         pill(c,hintHit,PALE);pill(c,eraseHit,PALE);pill(c,rewardHit,Color.rgb(55,43,14));
         drawBulb(c,hintHit.centerX(),controlY-dp(8),dp(12));
         label(c,hints>0?"Hint · "+hints+" free":"Hint · 25 coins",hintHit.centerX(),controlY+dp(18),11,NAVY,true);
@@ -977,8 +1036,36 @@ public class ArrowGameView extends View {
 
     private void drawToast(Canvas c,String msg){paint.setTextSize(dp(14));paint.setTextAlign(Paint.Align.CENTER);float tw=paint.measureText(msg);RectF r=new RectF((getWidth()-tw)/2-dp(18),insetTop+dp(130),(getWidth()+tw)/2+dp(18),insetTop+dp(172));paint.setColor(Color.argb(225,31,38,50));c.drawRoundRect(r,dp(20),dp(20),paint);paint.setColor(Color.WHITE);c.drawText(msg,r.centerX(),r.centerY()+dp(5),paint);}
 
+    private void clampBoardPan() {
+        if (boardZoom <= MIN_BOARD_ZOOM + .01f) {
+            boardPanX=0f;boardPanY=0f;return;
+        }
+        float viewportW=Math.max(1f,boardViewportRight-boardViewportLeft);
+        float viewportH=Math.max(1f,boardViewportBottom-boardViewportTop);
+        float maxX=Math.max(0f,(boardW-viewportW)/2f+dp(20));
+        float maxY=Math.max(0f,(boardH-viewportH)/2f+dp(20));
+        boardPanX=Math.max(-maxX,Math.min(maxX,boardPanX));
+        boardPanY=Math.max(-maxY,Math.min(maxY,boardPanY));
+    }
+
     @Override public boolean onTouchEvent(MotionEvent e) {
         if(paused)return true;
+
+        zoomDetector.onTouchEvent(e);
+        int action=e.getActionMasked();
+        if(action==MotionEvent.ACTION_POINTER_DOWN || e.getPointerCount()>1 || zoomDetector.isInProgress()){
+            zoomGestureActive=true;
+            pressPiece=null;previewPiece=null;longPressPreview=false;
+            invalidate();
+            return true;
+        }
+        // Once a pinch starts, consume the rest of that gesture so lifting the
+        // final finger can never be mistaken for an arrow tap.
+        if(zoomGestureActive){
+            if(action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL)zoomGestureActive=false;
+            return true;
+        }
+
         float x=e.getX(),y=e.getY();
         if(e.getAction()==MotionEvent.ACTION_DOWN){
             pressPiece=(screen==Screen.PLAY&&!tutorial&&!finished&&!failed)?findPieceAt(x,y):null;

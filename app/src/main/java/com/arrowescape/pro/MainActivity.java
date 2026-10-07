@@ -37,8 +37,11 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private RewardedAd rewarded;
     private ConsentInformation consent;
     private AdView banner;
+    private AdView gameBanner;
     private AdView resultBanner;
-    private FrameLayout root, resultBannerSlot;
+    private FrameLayout root, gameBannerSlot, resultBannerSlot;
+    private boolean gameplayBannerRequested;
+    private int gameBannerHeightPx, resultBannerHeightPx;
     private AlertDialog menu;
     private TextView menuBalance, rewardStatus;
     private Button watchButton;
@@ -76,6 +79,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         FrameLayout.LayoutParams gameParams = new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
         root.addView(game, gameParams);
+        gameBannerSlot = new FrameLayout(this);
+        gameBannerSlot.setBackgroundColor(INK);
+        gameBannerSlot.setVisibility(View.GONE);
+        FrameLayout.LayoutParams gameBannerParams = new FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT, dp(60), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
+        root.addView(gameBannerSlot, gameBannerParams);
         resultBannerSlot = new FrameLayout(this);
         resultBannerSlot.setBackgroundColor(INK);
         resultBannerSlot.setVisibility(View.GONE);
@@ -116,6 +125,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         MobileAds.initialize(this, status -> runOnUiThread(() -> {
             if (isDestroyed()) return;
             loadInterstitial(); loadRewarded();
+            if (gameplayBannerRequested && (menu == null || !menu.isShowing())) showGameBanner();
         }));
     }
     private boolean canRequestAds() { return adsStarted && consent != null && consent.canRequestAds() && !isDestroyed(); }
@@ -158,7 +168,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         long now = SystemClock.elapsedRealtime();
         if (interstitial != null && now - interstitialLoadedAt > 3300000L) interstitial = null;
         if (completedSinceAd < 5 || now - lastInterstitialAt < 120000L || interstitial == null || showingAd || !canRequestAds()) {
-            proceed.run(); loadInterstitial(); return;
+            proceed.run(); enterGameplay(); loadInterstitial(); return;
         }
         InterstitialAd ad = interstitial; interstitial = null;
         showingAd = true; game.setPaused(true);
@@ -166,7 +176,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             boolean handled;
             private void finish() {
                 if (handled) return; handled = true; showingAd = false;
-                if (!isDestroyed()) { game.setPaused(false); proceed.run(); loadInterstitial(); }
+                if (!isDestroyed()) { game.setPaused(false); proceed.run(); enterGameplay(); loadInterstitial(); }
             }
             @Override public void onAdShowedFullScreenContent() { completedSinceAd = 0; lastInterstitialAt = SystemClock.elapsedRealtime(); }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
@@ -208,7 +218,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     @Override public void openWallet() { hideResultBanner(); showPremiumStore(); }
     @Override public void openSettings() { hideResultBanner(); showMenu(false); }
-    @Override public void openHome() { hideResultBanner(); showHome(); }
+    @Override public void openHome() { hideResultBanner(); stopGameplayBanner(); showHome(); }
 
     private void configureEdgeToEdge(android.view.Window window) {
         WindowCompat.enableEdgeToEdge(window);
@@ -327,12 +337,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void presentFullScreen(LinearLayout body) {
         if(isDestroyed()||showingAd)return;
         if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();}
-        destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;
+        destroyBanner();suspendGameBanner();menuBalance=null;rewardStatus=null;watchButton=null;
         game.setPaused(true);
         addMenuBanner(body);
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);
         menu=new AlertDialog.Builder(this).setView(scroll).create();
-        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd)game.setPaused(false);game.invalidate();});
+        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
         menu.show();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
@@ -357,6 +367,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void showHome() {
+        stopGameplayBanner();
         LinearLayout body=premiumBody();
         addPremiumHeader(body,"ARROW ESCAPE PRO","THINK  ·  PLAN  ·  SLIDE  ·  ESCAPE");
 
@@ -372,10 +383,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout hero=panel();
         TextView levelTitle=text("Continue Level "+game.currentLevelNumber(),20,TEXT);levelTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(levelTitle);
         hero.addView(text(game.currentShapeName()+" world  ·  "+game.progressSummary(),12,MUTED));
-        hero.addView(button("▶  PLAY",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();},true));body.addView(hero);
+        hero.addView(button("▶  PLAY",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();enterGameplay();},true));body.addView(hero);
 
         LinearLayout row1=new LinearLayout(this);row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.addView(tileButton("▥\nLEVELS\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();}));
+        row1.addView(tileButton("▥\nLEVELS\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();enterGameplay();}));
         row1.addView(tileButton("▣\nDAILY #"+game.dailyPuzzleNumber()+"\n200 COINS",PURPLE,()->showDailyChallengePanel()));body.addView(row1);
 
         LinearLayout row2=new LinearLayout(this);row2.setOrientation(LinearLayout.HORIZONTAL);
@@ -530,7 +541,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
         amount.setGravity(Gravity.CENTER);amount.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(amount);
         reward.addView(text("Resets in "+challengeResetText(),12,MUTED));body.addView(reward);
-        body.addView(button("▶  PLAY DAILY #"+game.dailyPuzzleNumber(),()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();},true));
+        body.addView(button("▶  PLAY DAILY #"+game.dailyPuzzleNumber(),()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();enterGameplay();},true));
         body.addView(text("Daily Challenge is separate from campaign progress. Use Back/Home at any time to return to Continue Level "+game.currentLevelNumber()+".",12,CYAN));
         body.addView(text("The Daily Challenge always uses the full-clearance rule, including self-tail blocking. One coin reward per day.",12,MUTED));
         body.addView(button("⌂  Back to Home",this::showHome,false));presentFullScreen(body);
@@ -586,7 +597,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void showMenu(boolean store) {
         if (isDestroyed() || showingAd) return;
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
-        destroyBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
+        destroyBanner(); suspendGameBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
         game.setPaused(true);
 
         LinearLayout body = new LinearLayout(this);
@@ -733,15 +744,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         body.addView(button(store?"BACK TO PUZZLE":"⌂  BACK TO HOME",()->{if(store)menu.dismiss();else showHome();},true));
 
         FrameLayout bannerSlot=new FrameLayout(this);
-        LinearLayout.LayoutParams slotParams=new LinearLayout.LayoutParams(-1,dp(66));slotParams.topMargin=dp(16);body.addView(bannerSlot,slotParams);
-        if(canRequestAds()){
-            banner=new AdView(this);banner.setAdSize(AdSize.BANNER);banner.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
-            FrameLayout.LayoutParams bannerParams=new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER);bannerSlot.addView(banner,bannerParams);banner.loadAd(new AdRequest.Builder().build());
-        } else bannerSlot.setVisibility(View.GONE);
+        LinearLayout.LayoutParams slotParams=new LinearLayout.LayoutParams(-1,dp(60));slotParams.topMargin=dp(16);body.addView(bannerSlot,slotParams);
+        if(canRequestAds()) banner=createAdaptiveBanner(bannerSlot,36);
+        else bannerSlot.setVisibility(View.GONE);
 
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(INK);scroll.addView(body);
         menu=new AlertDialog.Builder(this).setView(scroll).create();
-        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd)game.setPaused(false);game.invalidate();});
+        menu.setOnDismissListener(d->{destroyBanner();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
         menu.show();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
@@ -756,50 +765,92 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         hall.show();if(hall.getWindow()!=null)hall.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
 
+    private AdSize adaptiveBannerSize(int horizontalMarginDp) {
+        android.util.DisplayMetrics metrics=getResources().getDisplayMetrics();
+        int widthPx=Math.max(dp(200),metrics.widthPixels-dp(horizontalMarginDp));
+        int widthDp=Math.max(200,Math.round(widthPx/metrics.density));
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this,widthDp);
+    }
+
+    private AdView createAdaptiveBanner(FrameLayout slot,int horizontalMarginDp) {
+        if(!canRequestAds()||slot==null)return null;
+        AdSize size=adaptiveBannerSize(horizontalMarginDp);
+        int height=Math.max(dp(50),size.getHeightInPixels(this));
+        android.view.ViewGroup.LayoutParams lp=slot.getLayoutParams();
+        if(lp!=null){lp.height=height;slot.setLayoutParams(lp);}
+        slot.removeAllViews();slot.setVisibility(View.VISIBLE);
+        AdView ad=new AdView(this);
+        ad.setAdSize(size);
+        ad.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+        slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));
+        ad.loadAd(new AdRequest.Builder().build());
+        return ad;
+    }
+
+    private void updateGameBottomInset() {
+        if(game==null||!(game.getLayoutParams() instanceof FrameLayout.LayoutParams))return;
+        int inset=0;
+        if(resultBannerSlot!=null&&resultBannerSlot.getVisibility()==View.VISIBLE)inset=resultBannerHeightPx;
+        else if(gameBannerSlot!=null&&gameBannerSlot.getVisibility()==View.VISIBLE)inset=gameBannerHeightPx;
+        FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)game.getLayoutParams();
+        if(lp.bottomMargin!=inset){lp.bottomMargin=inset;game.setLayoutParams(lp);}
+    }
+
+    private void enterGameplay() {
+        gameplayBannerRequested=true;
+        showGameBanner();
+    }
+
+    private void showGameBanner() {
+        if(!gameplayBannerRequested||!canRequestAds()||showingAd||isFinishing()||isDestroyed())return;
+        if(menu!=null&&menu.isShowing())return;
+        if(resultBannerSlot!=null&&resultBannerSlot.getVisibility()==View.VISIBLE)return;
+        if(gameBanner!=null)return;
+        gameBanner=createAdaptiveBanner(gameBannerSlot,0);
+        if(gameBanner!=null){
+            gameBannerHeightPx=Math.max(dp(50),gameBanner.getAdSize().getHeightInPixels(this));
+            updateGameBottomInset();
+        }
+    }
+
+    private void suspendGameBanner() {
+        if(gameBanner!=null){gameBanner.destroy();gameBanner=null;}
+        if(gameBannerSlot!=null){gameBannerSlot.removeAllViews();gameBannerSlot.setVisibility(View.GONE);}
+        gameBannerHeightPx=0;updateGameBottomInset();
+    }
+
+    private void stopGameplayBanner() {
+        gameplayBannerRequested=false;
+        suspendGameBanner();
+    }
+
     private void addMenuBanner(LinearLayout body) {
-        FrameLayout slot = new FrameLayout(this);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(66));
-        lp.topMargin = dp(16);
-        body.addView(slot, lp);
-        if (!canRequestAds()) { slot.setVisibility(View.GONE); return; }
-        banner = new AdView(this);
-        banner.setAdSize(AdSize.BANNER);
-        banner.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
-        slot.addView(banner, new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER));
-        banner.loadAd(new AdRequest.Builder().build());
+        FrameLayout slot=new FrameLayout(this);
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,dp(60));
+        lp.topMargin=dp(16);
+        body.addView(slot,lp);
+        if(!canRequestAds()){slot.setVisibility(View.GONE);return;}
+        banner=createAdaptiveBanner(slot,36);
     }
 
     private void showResultBanner() {
         runOnUiThread(() -> {
-            if (resultBannerSlot == null || !canRequestAds() || isFinishing() || isDestroyed()) return;
+            if(resultBannerSlot==null||!canRequestAds()||isFinishing()||isDestroyed())return;
             hideResultBanner();
-            FrameLayout.LayoutParams gameParams = (FrameLayout.LayoutParams) game.getLayoutParams();
-            gameParams.bottomMargin = dp(60);
-            game.setLayoutParams(gameParams);
-            resultBanner = new AdView(this);
-            resultBanner.setAdSize(AdSize.BANNER);
-            resultBanner.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
-            FrameLayout.LayoutParams adParams = new FrameLayout.LayoutParams(-2, -2, Gravity.CENTER);
-            resultBannerSlot.removeAllViews();
-            resultBannerSlot.addView(resultBanner, adParams);
-            resultBannerSlot.setVisibility(View.VISIBLE);
-            resultBanner.loadAd(new AdRequest.Builder().build());
+            suspendGameBanner();
+            resultBanner=createAdaptiveBanner(resultBannerSlot,0);
+            if(resultBanner!=null){
+                resultBannerHeightPx=Math.max(dp(50),resultBanner.getAdSize().getHeightInPixels(this));
+                updateGameBottomInset();
+            }
         });
     }
 
     private void hideResultBanner() {
-        if (resultBanner != null) { resultBanner.destroy(); resultBanner = null; }
-        if (resultBannerSlot != null) {
-            resultBannerSlot.removeAllViews();
-            resultBannerSlot.setVisibility(View.GONE);
-        }
-        if (game != null && game.getLayoutParams() instanceof FrameLayout.LayoutParams) {
-            FrameLayout.LayoutParams gameParams = (FrameLayout.LayoutParams) game.getLayoutParams();
-            if (gameParams.bottomMargin != 0) {
-                gameParams.bottomMargin = 0;
-                game.setLayoutParams(gameParams);
-            }
-        }
+        if(resultBanner!=null){resultBanner.destroy();resultBanner=null;}
+        if(resultBannerSlot!=null){resultBannerSlot.removeAllViews();resultBannerSlot.setVisibility(View.GONE);}
+        resultBannerHeightPx=0;
+        updateGameBottomInset();
     }
 
     private void destroyBanner() { if(banner!=null){banner.destroy();banner=null;} }
@@ -833,7 +884,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dialog.show();if(dialog.getWindow()!=null)dialog.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
-    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(resultBanner!=null)resultBanner.pause();}
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(resultBanner!=null)resultBanner.resume();}
-    @Override protected void onDestroy(){destroyBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
+    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(gameBanner!=null)gameBanner.pause();if(resultBanner!=null)resultBanner.pause();}
+    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(gameBanner!=null)gameBanner.resume();if(resultBanner!=null)resultBanner.resume();if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();}
+    @Override protected void onDestroy(){destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }
