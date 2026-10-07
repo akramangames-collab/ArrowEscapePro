@@ -51,9 +51,14 @@ public class V24DailyChallengeIsolationTest {
             g.startDailyChallenge();
             int n=g.dailyPuzzleNumber();
             assertTrue(n>=1&&n<=366);
+            assertEquals("Home must keep showing the normal campaign level while Daily Challenge is active",37,g.currentLevelNumber());
             assertEquals("Daily play must not overwrite the campaign checkpoint",37,c.getSharedPreferences("arrow_puzzle_faithful",0).getInt("lastLevel",-1));
             g.restartCurrentLevel();
             assertEquals(37,c.getSharedPreferences("arrow_puzzle_faithful",0).getInt("lastLevel",-1));
+            g.openPlay();
+            assertEquals("Home PLAY must leave Daily Challenge and reopen the campaign",37,g.currentLevelNumber());
+            assertEquals(37,c.getSharedPreferences("arrow_puzzle_faithful",0).getInt("lastLevel",-1));
+            g.startDailyChallenge();
             g.handleBack();
             assertEquals("Leaving Daily Challenge returns to the campaign level",37,g.currentLevelNumber());
         } finally { g.release(); }

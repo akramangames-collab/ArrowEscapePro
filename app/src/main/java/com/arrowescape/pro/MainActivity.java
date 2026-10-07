@@ -366,7 +366,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
         long day=System.currentTimeMillis()/Wallet.DAY_MS;
         if(wallet.canRewardDailyChallenge(day)){
-            body.addView(button("🏆  DAILY CHALLENGE IS LIVE  ·  WIN 200 COINS",()->showDailyChallengePanel(),false));
+            body.addView(button("🏆  DAILY CHALLENGE #"+game.dailyPuzzleNumber()+" IS LIVE  ·  WIN 200 COINS",()->showDailyChallengePanel(),false));
         }
 
         LinearLayout hero=panel();
@@ -376,7 +376,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
         LinearLayout row1=new LinearLayout(this);row1.setOrientation(LinearLayout.HORIZONTAL);
         row1.addView(tileButton("▥\nLEVELS\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();}));
-        row1.addView(tileButton("▣\nDAILY CHALLENGE\n200 COINS",PURPLE,()->showDailyChallengePanel()));body.addView(row1);
+        row1.addView(tileButton("▣\nDAILY #"+game.dailyPuzzleNumber()+"\n200 COINS",PURPLE,()->showDailyChallengePanel()));body.addView(row1);
 
         LinearLayout row2=new LinearLayout(this);row2.setOrientation(LinearLayout.HORIZONTAL);
         row2.addView(tileButton("🏆\nACHIEVEMENTS\nTRACK PROGRESS",GOLD,()->showAchievements()));
@@ -523,14 +523,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
-        TextView crown=text("♛  DAILY CHALLENGE",24,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
+        TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),24,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
         TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
         hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 200 campaign levels",13,MUTED));
         body.addView(hero);
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
         amount.setGravity(Gravity.CENTER);amount.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(amount);
         reward.addView(text("Resets in "+challengeResetText(),12,MUTED));body.addView(reward);
-        body.addView(button("▶  PLAY DAILY CHALLENGE",()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();},true));
+        body.addView(button("▶  PLAY DAILY #"+game.dailyPuzzleNumber(),()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();},true));
+        body.addView(text("Daily Challenge is separate from campaign progress. Use Back/Home at any time to return to Continue Level "+game.currentLevelNumber()+".",12,CYAN));
         body.addView(text("The Daily Challenge always uses the full-clearance rule, including self-tail blocking. One coin reward per day.",12,MUTED));
         body.addView(button("⌂  Back to Home",this::showHome,false));presentFullScreen(body);
     }
