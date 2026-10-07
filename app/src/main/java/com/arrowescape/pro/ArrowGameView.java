@@ -351,7 +351,7 @@ public class ArrowGameView extends View {
         if(index<36)return String.valueOf((char)('0'+index-26));
         return SPECIAL_SHAPES[index-36];
     }
-    public String currentShapeName(){return shapeNameForLevel(level);}
+    public String currentShapeName(){return shapeNameForLevel(currentLevelNumber());}
     private boolean alphanumericShape(String token){return token.length()==1&&Character.isLetterOrDigit(token.charAt(0));}
     private float clamp01(float v){return Math.max(0f,Math.min(1f,v));}
 
@@ -1023,7 +1023,7 @@ public class ArrowGameView extends View {
             return true;
         }
         float top=insetTop+dp(8);
-        if(x<dp(65)&&y<top+dp(60)){host.openHome();return true;}
+        if(x<dp(65)&&y<top+dp(60)){if(challengeActive())leaveChallenge();else host.openHome();return true;}
         if(x>getWidth()-dp(65)&&y<top+dp(60)){host.openSettings();return true;}
         if(walletHit.contains(x,y)||rewardHit.contains(x,y)){host.openWallet();return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
@@ -1088,7 +1088,12 @@ public class ArrowGameView extends View {
         long week=(System.currentTimeMillis()/Wallet.DAY_MS)/7L;
         return prefs.getLong("weekly_challenge_star_week",-1L)==week?prefs.getInt("weekly_challenge_best_stars",0):0;
     }
-    private void leaveChallenge(){int back=normalLevelBeforeChallenge;dailyChallenge=false;weeklyChallenge=false;challengeDay=-1L;challengeWeek=-1L;startLevel(back);host.openHome();}
+    private void exitChallengeToCampaign(){
+        int back=Math.max(1,Math.min(MAX_LEVEL,normalLevelBeforeChallenge));
+        dailyChallenge=false;weeklyChallenge=false;challengeDay=-1L;challengeWeek=-1L;
+        startLevel(back);
+    }
+    private void leaveChallenge(){exitChallengeToCampaign();host.openHome();}
 
     private boolean handleLevelsTouch(float x,float y) {
         float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
@@ -1850,9 +1855,18 @@ public class ArrowGameView extends View {
     public void restartCurrentLevel(){if(challengeActive())setupLevel(level,false);else startLevel(level);}
     public void showTutorialAgain(){screen=Screen.PLAY;tutorial=true;invalidate();}
     private void showLevelSelect(){screen=Screen.LEVELS;levelPage=(level-1)/20;saveProgress();invalidate();}
-    public void openLevels(){showLevelSelect();}
-    public void openPlay(){screen=Screen.PLAY;invalidate();}
-    public int currentLevelNumber(){return level;}
+    public void openLevels(){
+        if(challengeActive())exitChallengeToCampaign();
+        showLevelSelect();
+    }
+    public void openPlay(){
+        // The Home screen PLAY button always means the normal 1–200 campaign.
+        // Daily/weekly challenges have their own entry points and must never trap
+        // the player in the internal difficulty-profile level used by a challenge.
+        if(challengeActive())exitChallengeToCampaign();
+        screen=Screen.PLAY;invalidate();
+    }
+    public int currentLevelNumber(){return challengeActive()?Math.max(1,Math.min(MAX_LEVEL,normalLevelBeforeChallenge)):level;}
     public int dailyPuzzleNumber(){return dailyChallengeNumberForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
     public int totalStarCount(){return totalStars();}
     public int completedLevelCount(){return completedLevels();}
