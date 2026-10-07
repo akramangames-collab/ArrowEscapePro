@@ -327,7 +327,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         row.addView(buy,new LinearLayout.LayoutParams(dp(96),dp(42)));
         card.addView(row);body.addView(card);
     }
-    private void updateBalance() { if (menuBalance != null) menuBalance.setText("COINS  " + wallet.balance()); }
+    private void updateBalance() { if (menuBalance != null) menuBalance.setText("● " + wallet.balance()); }
 
     private void refreshStore() {
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
@@ -365,6 +365,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         menu=new AlertDialog.Builder(this).setView(shell).create();
         menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
         menu.show();
+        scroll.post(() -> scroll.scrollTo(0,0));
         showVisibleMenuBanner();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
@@ -384,14 +385,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void addPremiumHeader(LinearLayout body,String title,String subtitle) {
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
         ImageView icon=new ImageView(this);icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
-        row.addView(icon,new LinearLayout.LayoutParams(dp(58),dp(58)));
-        LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        TextView t=text(title,24,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);
-        TextView sub=text(subtitle,11,MUTED);sub.setLetterSpacing(.08f);copy.addView(sub);
+        row.addView(icon,new LinearLayout.LayoutParams(dp(48),dp(48)));
+        LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(10),0,0,0);
+        TextView t=text(title,21,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);
+        TextView sub=text(subtitle,10,MUTED);sub.setLetterSpacing(.06f);copy.addView(sub);
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
-        TextView coin=text("● "+wallet.balance(),13,GOLD);coin.setGravity(Gravity.CENTER);
-        coin.setTypeface(Typeface.DEFAULT,Typeface.BOLD);coin.setBackground(background(0xFF221B09,18,0xFF6E5512));
-        row.addView(coin,new LinearLayout.LayoutParams(dp(88),dp(40)));
+        TextView coin=text("● "+wallet.balance(),12,GOLD);coin.setGravity(Gravity.CENTER);
+        coin.setTypeface(Typeface.DEFAULT,Typeface.BOLD);coin.setBackground(background(0xFF221B09,17,0xFF6E5512));
+        menuBalance=coin;
+        row.addView(coin,new LinearLayout.LayoutParams(dp(76),dp(38)));
         body.addView(row);
     }
 
@@ -405,7 +407,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         hero.setBackground(gradient(0xFF103A67,0xFF08182F,22,CYAN));
         TextView kicker=text("CONTINUE YOUR ESCAPE",11,CYAN);kicker.setTypeface(Typeface.DEFAULT,Typeface.BOLD);kicker.setLetterSpacing(.12f);hero.addView(kicker);
         TextView levelTitle=text("Level "+game.currentLevelNumber(),28,TEXT);levelTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(levelTitle);
-        hero.addView(text(game.currentShapeName()+" world  ·  "+game.progressSummary(),12,MUTED));
+        hero.addView(text("Chapter "+game.currentChapterNumber()+"  ·  "+game.currentChapterName()+"  ·  "+game.progressSummary(),12,MUTED));
         hero.addView(button("▶  PLAY NOW",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();enterGameplay();},true));
         body.addView(hero);
 
@@ -435,8 +437,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void showPremiumStore() {
         LinearLayout body=premiumBody();
         addPremiumHeader(body,"STORE","Arrows, themes and rewards in one premium space");
-        menuBalance=text("COINS  "+wallet.balance(),17,GOLD);menuBalance.setGravity(Gravity.CENTER);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
-        menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));body.addView(menuBalance);
 
         LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
         tabs.addView(tabButton("Arrow Garage",storeTab==0,()->{storeTab=0;showPremiumStore();}));
@@ -568,7 +568,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
-        TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),24,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
+        TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
         TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
         hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 200 campaign levels",13,MUTED));
         body.addView(hero);
@@ -831,6 +831,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         menu=new AlertDialog.Builder(this).setView(shell).create();
         menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
         menu.show();
+        scroll.post(() -> scroll.scrollTo(0,0));
         showVisibleMenuBanner();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
