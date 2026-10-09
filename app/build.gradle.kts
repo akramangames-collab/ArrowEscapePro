@@ -22,8 +22,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.1.5"
+        versionCode = 18
+        versionName = "1.1.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -40,6 +40,7 @@ android {
         getByName("debug") {
             applicationIdSuffix = ".debug"
             manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-3940256099942544~3347511713"
+            buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-3940256099942544~3347511713\"")
             buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
             buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-3940256099942544/1033173712\"")
             buildConfigField("String", "ADMOB_REWARDED_ID", "\"ca-app-pub-3940256099942544/5224354917\"")
@@ -56,6 +57,7 @@ android {
             )
             if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
             manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2475015099415787~6197424406"
+            buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-2475015099415787~6197424406\"")
             buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-2475015099415787/6590130477\"")
             buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-2475015099415787/3782285105\"")
             buildConfigField("String", "ADMOB_REWARDED_ID", "\"ca-app-pub-2475015099415787/2469203439\"")
@@ -84,9 +86,14 @@ dependencies {
         }
     }
 
-    implementation("com.google.android.gms:play-services-ads:25.5.0")
+    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.5.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
-    implementation("com.google.android.play:hsdp:2.1.0")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
+}
+
+// Prevent UMP or another transitive dependency from bringing the legacy GMA SDK back.
+configurations.configureEach {
+    exclude(group = "com.google.android.gms", module = "play-services-ads")
+    exclude(group = "com.google.android.gms", module = "play-services-ads-lite")
 }
