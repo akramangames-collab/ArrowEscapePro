@@ -943,7 +943,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 }else if(slot==menuBannerSlot){
                     setMenuBannerSpace(0,false);
                 }
-                Log.w("ArrowAds","Banner failed code="+error.getCode()+" domain="+error.getDomain()+" message="+error.getMessage());
+                Log.w("ArrowAds","Banner failed code="+error.getCode()+" message="+error.getMessage());
                 if (bannerRetryCount >= MAX_BANNER_RETRIES || isDestroyed()) return;
                 bannerRetryCount++;
                 slot.postDelayed(() -> {
