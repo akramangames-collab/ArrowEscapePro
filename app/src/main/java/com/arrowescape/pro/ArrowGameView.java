@@ -973,16 +973,15 @@ public class ArrowGameView extends View {
     }
 
     private void drawFail(Canvas c) {
-        RectF r=modal(c,365);
+        RectF r=modal(c,304);
         label(c,"A fresh way out",r.centerX(),r.top+dp(43),25,NAVY,true);
         label(c,"No hearts left. Your coins are safe.",r.centerX(),r.top+dp(78),14,TEXT,false);
         primaryHit.set(r.left+dp(20),r.top+dp(104),r.right-dp(20),r.top+dp(154));
         secondaryHit.set(r.left+dp(20),r.top+dp(165),r.right-dp(20),r.top+dp(215));
-        tertiaryHit.set(r.left+dp(20),r.top+dp(226),r.right-dp(20),r.top+dp(276));
-        action(c,primaryHit,"Restart level",BLUE,Color.WHITE);
-        action(c,secondaryHit,"Watch ad · revive",PALE,NAVY);
-        action(c,tertiaryHit,"Continue · 60 coins",Color.rgb(86,62,19),Color.rgb(255,223,130));
-        walletHit.set(r.left+dp(20),r.top+dp(291),r.right-dp(20),r.bottom-dp(8));
+        tertiaryHit.setEmpty();
+        action(c,primaryHit,"Restart level",PALE,NAVY);
+        action(c,secondaryHit,"Watch ad · revive",BLUE,Color.WHITE);
+        walletHit.set(r.left+dp(20),r.top+dp(230),r.right-dp(20),r.bottom-dp(8));
         label(c,"Wallet: "+wallet.balance()+"  ·  Open Store",r.centerX(),walletHit.centerY()+dp(5),13,NAVY,false);
     }
 
@@ -1139,7 +1138,6 @@ public class ArrowGameView extends View {
         if(failed){
             if(primaryHit.contains(x,y))restartCurrentLevel();
             else if(secondaryHit.contains(x,y))host.requestRewardedRevive();
-            else if(tertiaryHit.contains(x,y)){if(!buyContinue())host.openWallet();}
             else if(walletHit.contains(x,y))host.openWallet();
             return true;
         }
