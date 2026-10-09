@@ -1,4 +1,4 @@
-name: Arrow Escape 1.1.5 Signed Play Release
+name: Arrow Escape 1.1.5 Play AAB Build
 
 on:
   workflow_dispatch:
@@ -14,9 +14,9 @@ permissions:
   contents: read
 
 jobs:
-  signed-aab:
+  build-aab:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5
 
@@ -44,14 +44,8 @@ jobs:
           bash scripts/test-wallet.sh
           python3 scripts/verify-ui-ux.py
 
-      - name: Build release AAB for local Play signing
-        run: gradle :app:lintRelease :app:bundleRelease --stacktrace
-
-      - name: Verify bundle and metadata
+      - name: Verify Play recommendation fixes
         run: |
-          AAB="app/build/outputs/bundle/release/app-release.aab"
-          test -s "$AAB"
-          unzip -t "$AAB" >/dev/null
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
@@ -67,13 +61,22 @@ jobs:
           ! grep -R -E 'BitmapFactory\.decodeStream|URLConnection\.getInputStream|java\.net\.URLConnection' app/src/main/java
           ! grep -R -E 'setStatusBarColor\(|setNavigationBarColor\(|setSystemUiVisibility\(' app/src/main/java
           ! grep -R 'android:screenOrientation=' app/src/main/AndroidManifest.xml
+
+      - name: Build lint and release bundle
+        run: gradle :app:lintRelease :app:bundleRelease --stacktrace
+
+      - name: Package unsigned AAB for local upload-key signing
+        run: |
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -s "$AAB"
+          unzip -t "$AAB" >/dev/null
           mkdir -p dist
-          cp "$AAB" dist/ArrowEscape-v1.1.5-v17-UNSIGNED.aab
-          sha256sum dist/ArrowEscape-v1.1.5-v17-UNSIGNED.aab > dist/SHA256SUMS.txt
+          cp "$AAB" dist/Arrow-Escape-1.1.5-v17-UNSIGNED.aab
+          sha256sum dist/Arrow-Escape-1.1.5-v17-UNSIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.1.5-v17-UNSIGNED-FOR-LOCAL-SIGNING
+          name: Arrow-Escape-1.1.5-v17-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 7
