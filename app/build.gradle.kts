@@ -73,7 +73,7 @@ dependencies {
     // Keep AndroidX on current stable releases so Play SDK Index does not resolve
     // older transitive Activity/Fragment versions from advertising dependencies.
     implementation("androidx.activity:activity:1.13.0")
-    implementation("androidx.core:core:1.19.1")
+    implementation("androidx.core:core:1.18.0")
     implementation("androidx.browser:browser:1.10.0")
     implementation("androidx.webkit:webkit:1.17.0")
     // GMA 25.5.0 still declares older WorkManager/Room transitively. Force current
