@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - play-warnings-v18
+      - main
     paths:
       - app/**
       - scripts/**
