@@ -45,7 +45,7 @@ public class ArrowGameView extends View {
     }
 
     private static final int MAX_LEVEL = 200;
-    private static final String LEVEL_PACK_VERSION = "v24-daily-separate-1";
+    private static final String LEVEL_PACK_VERSION = "v25-daily-polish-1";
     private static final int NAVY = Color.rgb(248, 251, 255);
     private static final int BLUE = Color.rgb(34, 211, 238);
     private static final int PALE = Color.rgb(10, 28, 58);
@@ -1430,9 +1430,134 @@ public class ArrowGameView extends View {
         try {
             packedLevels=packedDailyChallenges;
             generateLevel(dailyChallengeIndex(day)+1);
+            polishDailyChallengeLayout(day);
         } finally {
             packedLevels=normalPack;
         }
+    }
+
+    /**
+     * Daily puzzles are deliberately difficult, but the original 62–70 arrow pack
+     * could spread a dependency chain across a very large board. On phones this
+     * made arrows tiny and the board look like disconnected random islands.
+     *
+     * Keep a long contiguous dependency window, choose the visually densest window,
+     * then crop away unused space. The underlying blocker order is preserved, so the
+     * challenge stays strategic while every arrow is substantially easier to read.
+     */
+    private void polishDailyChallengeLayout(long day){
+        if(pieces.size()<36)return;
+
+        HashMap<Integer,ArrayList<Piece>> blockersById=new HashMap<>();
+        for(Piece p:pieces)blockersById.put(p.id,physicalBlockers(p));
+
+        HashSet<Integer> pending=new HashSet<>();
+        for(Piece p:pieces)pending.add(p.id);
+        HashMap<Integer,Integer> depth=new HashMap<>();
+        HashMap<Integer,Integer> parent=new HashMap<>();
+
+        while(!pending.isEmpty()){
+            ArrayList<Integer> ready=new ArrayList<>();
+            for(int id:pending){
+                boolean blocked=false;
+                ArrayList<Piece> blockers=blockersById.get(id);
+                if(blockers!=null)for(Piece blocker:blockers){
+                    if(pending.contains(blocker.id)){blocked=true;break;}
+                }
+                if(!blocked)ready.add(id);
+            }
+            if(ready.isEmpty())return; // Defensive: never reshape a cyclic/corrupt pack.
+
+            for(int id:ready){
+                int bestDepth=0,bestParent=-1;
+                ArrayList<Piece> blockers=blockersById.get(id);
+                if(blockers!=null)for(Piece blocker:blockers){
+                    int d=depth.containsKey(blocker.id)?depth.get(blocker.id):0;
+                    if(d>bestDepth){bestDepth=d;bestParent=blocker.id;}
+                }
+                depth.put(id,bestDepth+1);
+                parent.put(id,bestParent);
+            }
+            pending.removeAll(ready);
+        }
+
+        int deepest=-1,maxDepth=0;
+        for(Piece p:pieces){
+            int d=depth.containsKey(p.id)?depth.get(p.id):0;
+            if(d>maxDepth){maxDepth=d;deepest=p.id;}
+        }
+        if(deepest<0)return;
+
+        ArrayList<Integer> chain=new ArrayList<>();
+        int cursor=deepest;
+        while(cursor>=0){
+            chain.add(cursor);
+            cursor=parent.containsKey(cursor)?parent.get(cursor):-1;
+        }
+        Collections.reverse(chain);
+
+        int target=46+Math.floorMod(dailyChallengeIndex(day),4)*2; // 46/48/50/52 readable arrows.
+        int keepCount=Math.min(target,chain.size());
+        if(keepCount<36)return;
+
+        // Pick the compact contiguous section of the dependency chain. A phone board
+        // is taller than it is wide, so gently favour a ~0.78 width/height ratio.
+        int bestStart=0;
+        double bestScore=Double.MAX_VALUE;
+        for(int start=0;start+keepCount<=chain.size();start++){
+            int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,maxX=Integer.MIN_VALUE,maxY=Integer.MIN_VALUE;
+            int occupied=0;
+            for(int i=start;i<start+keepCount;i++){
+                Piece p=pieceById(chain.get(i));
+                if(p==null)continue;
+                occupied+=p.nodes.size();
+                for(long n:p.nodes){
+                    int x=nodeX(n),y=nodeY(n);
+                    minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+                    minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+                }
+            }
+            if(minX==Integer.MAX_VALUE)continue;
+            int bw=maxX-minX+3,bh=maxY-minY+3;
+            double density=occupied/(double)Math.max(1,bw*bh);
+            double aspect=bw/(double)Math.max(1,bh);
+            double aspectPenalty=Math.abs(Math.log(Math.max(0.05,aspect/0.78)));
+            double score=(bw*bh)*(1.0+0.35*aspectPenalty)/Math.max(0.18,density);
+            if(score<bestScore){bestScore=score;bestStart=start;}
+        }
+
+        HashSet<Integer> keepIds=new HashSet<>();
+        for(int i=bestStart;i<bestStart+keepCount;i++)keepIds.add(chain.get(i));
+
+        ArrayList<Piece> kept=new ArrayList<>();
+        int minX=Integer.MAX_VALUE,minY=Integer.MAX_VALUE,maxX=Integer.MIN_VALUE,maxY=Integer.MIN_VALUE;
+        for(int id:chain){
+            if(!keepIds.contains(id))continue;
+            Piece p=pieceById(id);
+            if(p==null)continue;
+            kept.add(p);
+            for(Point q:p.pts){
+                minX=Math.min(minX,q.x);maxX=Math.max(maxX,q.x);
+                minY=Math.min(minY,q.y);maxY=Math.max(maxY,q.y);
+            }
+        }
+        if(kept.size()<36||minX==Integer.MAX_VALUE)return;
+
+        int shiftX=minX-1,shiftY=minY-1;
+        for(Piece p:kept){
+            ArrayList<Point> shifted=new ArrayList<>();
+            for(Point q:p.pts)shifted.add(new Point(q.x-shiftX,q.y-shiftY));
+            p.pts=shifted;
+            p.removed=false;p.moving=false;p.moveT=0f;p.moveSteps=0;
+            p.specialType=0;p.prereqA=-1;p.prereqB=-1;p.specialTarget=-1;
+            rebuildOccupancy(p);
+        }
+
+        pieces.clear();
+        pieces.addAll(kept);
+        for(int i=0;i<pieces.size();i++)pieces.get(i).id=i;
+        gridW=Math.max(18,maxX-minX+2);
+        gridH=Math.max(22,maxY-minY+2);
     }
 
     private void generateLevel(int lv){
@@ -1647,6 +1772,9 @@ public class ArrowGameView extends View {
         targets.sort((a,b)->Integer.compare(a.id,b.id));
         int rotate = Math.floorMod(level * 17, Math.max(1, targets.size()));
         Collections.rotate(targets, rotate);
+        // Daily Challenge uses one rotating secondary mechanic instead of stacking
+        // every late-game mechanic at once. This keeps special icons readable.
+        int dailyMechanic=dailyChallenge?Math.floorMod(dailyChallengeNumberForDay(challengeDay),3):-1;
 
         // Chapter 3+: Key + Lock. The key is already a physical blocker.
         for (Piece target : targets) {
@@ -1663,7 +1791,7 @@ public class ArrowGameView extends View {
         }
 
         // Chapter 5+: Frozen arrow needs two blockers that already sit in its path.
-        if (level >= 81) {
+        if (level >= 81 && (!dailyChallenge || dailyMechanic==0)) {
             for (Piece target : targets) {
                 if (!specialFree(target)) continue;
                 ArrayList<Piece> blockers=physicalBlockers(target);
@@ -1679,7 +1807,7 @@ public class ArrowGameView extends View {
         }
 
         // Chapter 6+: Switch + Gate, also placed on an existing blocker edge.
-        if (level >= 121) {
+        if (level >= 121 && (!dailyChallenge || dailyMechanic==1)) {
             for (Piece target : targets) {
                 if (!specialFree(target)) continue;
                 ArrayList<Piece> blockers=physicalBlockers(target);
@@ -1695,7 +1823,7 @@ public class ArrowGameView extends View {
 
         // Chapter 7+: Linked pair. The source is an existing physical blocker,
         // so the link adds readable chain-order strategy without changing solvability.
-        if (level >= 161) {
+        if (level >= 161 && (!dailyChallenge || dailyMechanic==2)) {
             for (Piece target : targets) {
                 if (!specialFree(target)) continue;
                 ArrayList<Piece> blockers=physicalBlockers(target);
