@@ -22,8 +22,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.1.4"
+        versionCode = 17
+        versionName = "1.1.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -73,7 +73,9 @@ dependencies {
     // Keep AndroidX on current stable releases so Play SDK Index does not resolve
     // older transitive Activity/Fragment versions from advertising dependencies.
     implementation("androidx.activity:activity:1.13.0")
-    implementation("androidx.core:core:1.18.0")
+    implementation("androidx.core:core:1.19.1")
+    implementation("androidx.browser:browser:1.10.0")
+    implementation("androidx.webkit:webkit:1.17.0")
     // GMA 25.5.0 still declares older WorkManager/Room transitively. Force current
     // stable versions to avoid the old WorkDatabase/R8 startup path and Android 15 bugs.
     implementation("androidx.work:work-runtime:2.12.0")
