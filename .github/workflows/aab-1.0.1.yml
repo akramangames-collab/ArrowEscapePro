@@ -1,10 +1,10 @@
-name: Arrow Escape 1.1.5 Play AAB Build
+name: Arrow Escape 1.1.6 Play Warning Cleanup
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - play-warnings-v18
     paths:
       - app/**
       - scripts/**
@@ -49,14 +49,17 @@ jobs:
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 17' app/build.gradle.kts
-          grep -q 'versionName = "1.1.5"' app/build.gradle.kts
+          grep -q 'versionCode = 18' app/build.gradle.kts
+          grep -q 'versionName = "1.1.6"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
           grep -q 'androidx.core:core:1.18.0' app/build.gradle.kts
           grep -q 'androidx.fragment:fragment:1.9.1' app/build.gradle.kts
-          grep -q 'WindowCompat.setDecorFitsSystemWindows(window, false)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'WindowCompat.enableEdgeToEdge(window)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'ads-mobile-sdk:1.5.0' app/build.gradle.kts
+          ! grep -q 'play-services-ads:25.5.0' app/build.gradle.kts
+          ! grep -q 'com.google.android.play:hsdp' app/build.gradle.kts
           ! grep -R 'LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES' app/src/main/java app/src/main/res
           ! grep -R -E 'BitmapFactory\.decodeStream|URLConnection\.getInputStream|java\.net\.URLConnection' app/src/main/java
           ! grep -R -E 'setStatusBarColor\(|setNavigationBarColor\(|setSystemUiVisibility\(' app/src/main/java
@@ -71,12 +74,12 @@ jobs:
           test -s "$AAB"
           unzip -t "$AAB" >/dev/null
           mkdir -p dist
-          cp "$AAB" dist/Arrow-Escape-1.1.5-v17-UNSIGNED.aab
+          cp "$AAB" dist/Arrow-Escape-1.1.6-v18-UNSIGNED.aab
           sha256sum dist/Arrow-Escape-1.1.5-v17-UNSIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.1.5-v17-UNSIGNED-AAB
+          name: Arrow-Escape-1.1.6-v18-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 7
