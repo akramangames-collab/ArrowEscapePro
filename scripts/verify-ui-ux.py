@@ -61,7 +61,7 @@ require("@drawable/dialog_background" in styles, "Premium dialog background miss
 
 # Basic touch-target guard for reusable native controls. 48dp is Android's floor;
 # the product currently targets 50dp for primary/secondary actions.
-button_height = re.search(r"new LinearLayout\\.LayoutParams\\(-1,dp\\((\\d+)\\)\\)", main)
+button_height = re.search(r"new LinearLayout\.LayoutParams\(-1,dp\((\d+)\)\)", main)
 require(button_height is not None and int(button_height.group(1)) >= 48,
         "Reusable action button no longer guarantees a >=48dp touch target")
 
