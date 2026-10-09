@@ -24,9 +24,23 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.google.android.gms.ads.*;
-import com.google.android.gms.ads.interstitial.*;
-import com.google.android.gms.ads.rewarded.*;
+import com.google.android.libraries.ads.mobile.sdk.MobileAds;
+import com.google.android.libraries.ads.mobile.sdk.banner.AdSize;
+import com.google.android.libraries.ads.mobile.sdk.banner.AdView;
+import com.google.android.libraries.ads.mobile.sdk.banner.BannerAd;
+import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdEventCallback;
+import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRequest;
+import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback;
+import com.google.android.libraries.ads.mobile.sdk.common.AdRequest;
+import com.google.android.libraries.ads.mobile.sdk.common.AgeRestrictedTreatment;
+import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError;
+import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError;
+import com.google.android.libraries.ads.mobile.sdk.common.RequestConfiguration;
+import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig;
+import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAd;
+import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAdEventCallback;
+import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAd;
+import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdEventCallback;
 import com.google.android.ump.*;
 import java.util.UUID;
 
@@ -110,18 +124,17 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         requestConsentAndStartAds();
     }
 
+    private RequestConfiguration familiesAdConfiguration;
+
     /**
-     * Families-policy safety net applied before the Google Mobile Ads SDK is initialized.
-     * Keep every ad request child-directed and cap creative maturity at G so banners,
-     * interstitials and rewarded ads cannot request content above the app audience rating.
+     * Families-policy safety net supplied to the Next-Gen GMA SDK at initialization.
+     * Every ad request is child-directed and capped at G-rated creative.
      */
     private void configureFamiliesAdPolicy() {
-        RequestConfiguration configuration = MobileAds.getRequestConfiguration()
-            .toBuilder()
-            .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
+        familiesAdConfiguration = new RequestConfiguration.Builder()
+            .setMaxAdContentRating(RequestConfiguration.MaxAdContentRating.MAX_AD_CONTENT_RATING_G)
             .setAgeRestrictedTreatment(AgeRestrictedTreatment.CHILD)
             .build();
-        MobileAds.setRequestConfiguration(configuration);
     }
 
     private void requestConsentAndStartAds() {
@@ -147,18 +160,29 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void startAdsIfAllowed() {
         if (adsStarted || consent == null || !consent.canRequestAds() || isDestroyed()) return;
         adsStarted = true;
-        MobileAds.initialize(this, status -> runOnUiThread(() -> {
-            if (isDestroyed()) return;
-            loadInterstitial(); loadRewarded();
-            if (gameplayBannerRequested && (menu == null || !menu.isShowing())) showGameBanner();
-            else showVisibleMenuBanner();
-        }));
+        final android.content.Context appContext = getApplicationContext();
+        new Thread(() -> {
+            try {
+                InitializationConfig initConfig = new InitializationConfig.Builder(BuildConfig.ADMOB_APP_ID)
+                    .setRequestConfiguration(familiesAdConfiguration)
+                    .build();
+                MobileAds.initialize(appContext, initConfig, status -> runOnUiThread(() -> {
+                    if (isDestroyed()) return;
+                    loadInterstitial(); loadRewarded();
+                    if (gameplayBannerRequested && (menu == null || !menu.isShowing())) showGameBanner();
+                    else showVisibleMenuBanner();
+                }));
+            } catch (Throwable t) {
+                Log.e("ArrowAds","Next-Gen GMA init failed",t);
+                runOnUiThread(() -> adsStarted = false);
+            }
+        }, "ArrowAdsInit").start();
     }
     private boolean canRequestAds() { return adsStarted && consent != null && consent.canRequestAds() && !isDestroyed(); }
     private void loadInterstitial() {
         if (!canRequestAds() || loadingInterstitial || interstitial != null) return;
         loadingInterstitial = true;
-        InterstitialAd.load(this, BuildConfig.ADMOB_INTERSTITIAL_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
+        InterstitialAd.load(new AdRequest.Builder(BuildConfig.ADMOB_INTERSTITIAL_ID).build(), new AdLoadCallback<InterstitialAd>() {
             @Override public void onAdLoaded(InterstitialAd ad) {
                 loadingInterstitial = false;
                 if (!isDestroyed()) { interstitial = ad; interstitialLoadedAt = SystemClock.elapsedRealtime(); }
@@ -169,7 +193,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void loadRewarded() {
         if (!canRequestAds() || loadingReward || rewarded != null) return;
         loadingReward = true; updateRewardStatus();
-        RewardedAd.load(this, BuildConfig.ADMOB_REWARDED_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
+        RewardedAd.load(new AdRequest.Builder(BuildConfig.ADMOB_REWARDED_ID).build(), new AdLoadCallback<RewardedAd>() {
             @Override public void onAdLoaded(RewardedAd ad) {
                 loadingReward = false;
                 if (!isDestroyed()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); }
@@ -199,7 +223,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         }
         InterstitialAd ad = interstitial; interstitial = null;
         showingAd = true; game.setPaused(true);
-        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+        ad.setAdEventCallback(new InterstitialAdEventCallback() {
             boolean handled;
             private void finish() {
                 if (handled) return; handled = true; showingAd = false;
@@ -207,7 +231,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
             @Override public void onAdShowedFullScreenContent() { completedSinceAd = 0; }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
-            @Override public void onAdFailedToShowFullScreenContent(AdError error) { finish(); }
+            @Override public void onAdFailedToShowFullScreenContent(FullScreenContentError error) { finish(); }
         });
         ad.show(this);
     }
@@ -218,14 +242,14 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         }
         RewardedAd ad = rewarded; rewarded = null; showingAd = true;
         pausedForAd = menu != null && menu.isShowing(); game.setPaused(true);
-        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
+        ad.setAdEventCallback(new RewardedAdEventCallback() {
             boolean finished;
             private void finish() {
                 if (finished) return; finished = true; showingAd = false;
                 if (!isDestroyed()) { game.setPaused(pausedForAd && menu != null && menu.isShowing()); loadRewarded(); updateRewardStatus(); }
             }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
-            @Override public void onAdFailedToShowFullScreenContent(AdError error) { finish(); toast("Ad could not open. No reward was charged."); }
+            @Override public void onAdFailedToShowFullScreenContent(FullScreenContentError error) { finish(); toast("Ad could not open. No reward was charged."); }
         });
         final boolean[] granted = {false};
         ad.show(this, rewardItem -> {
@@ -248,9 +272,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     @Override public void openHome() { hideResultBanner(); stopGameplayBanner(); showHome(); }
 
     private void configureEdgeToEdge(android.view.Window window) {
-        // Android 15+ enforces edge-to-edge for targetSdk 35+. We opt in on
-        // older releases without the compatibility helper that Play flags.
-        WindowCompat.setDecorFitsSystemWindows(window, false);
+        // API 30+ uses the current WindowCompat helper. Keep the older fallback
+        // separate so R8 can strip API-28 cutout compatibility code from modern paths.
+        if (android.os.Build.VERSION.SDK_INT >= 30) WindowCompat.enableEdgeToEdge(window);
+        else WindowCompat.setDecorFitsSystemWindows(window, false);
         androidx.core.view.WindowInsetsControllerCompat controller =
             WindowCompat.getInsetsController(window, window.getDecorView());
         controller.setAppearanceLightStatusBars(false);
