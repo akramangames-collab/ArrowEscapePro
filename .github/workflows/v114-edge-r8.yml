@@ -40,6 +40,8 @@ jobs:
           grep -q 'versionCode = 16' app/build.gradle.kts
           grep -q 'versionName = "1.1.4"' app/build.gradle.kts
           grep -q 'play-services-ads:25.5.0' app/build.gradle.kts
+          grep -q 'work-runtime:2.12.0' app/build.gradle.kts
+          grep -q 'room-runtime:2.8.5' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
           grep -q 'WindowCompat.setDecorFitsSystemWindows(window, false)' app/src/main/java/com/arrowescape/pro/MainActivity.java
@@ -52,6 +54,8 @@ jobs:
           gradle :app:dependencies --configuration releaseRuntimeClasspath > dependency-tree.txt
           echo "=== WorkManager / Room / Play Core / Ads ==="
           grep -Ei 'work-runtime|room-runtime|play-core|play:|play-services-ads|fragment|activity|core:' dependency-tree.txt || true
+          grep -q 'androidx.work:work-runtime:2.12.0' dependency-tree.txt
+          grep -q 'androidx.room:room-runtime:2.8.5' dependency-tree.txt
 
       - name: Build lint, release APK and AAB with R8
         run: gradle :app:lintRelease :app:assembleRelease :app:bundleRelease --stacktrace
