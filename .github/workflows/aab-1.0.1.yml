@@ -75,7 +75,7 @@ jobs:
           unzip -t "$AAB" >/dev/null
           mkdir -p dist
           cp "$AAB" dist/Arrow-Escape-1.1.6-v18-UNSIGNED.aab
-          sha256sum dist/Arrow-Escape-1.1.5-v17-UNSIGNED.aab > dist/SHA256SUMS.txt
+          sha256sum dist/Arrow-Escape-1.1.6-v18-UNSIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
