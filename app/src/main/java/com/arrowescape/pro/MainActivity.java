@@ -19,6 +19,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.ComponentActivity;
+import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -76,6 +77,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private final int RED = 0xFFFF5C78;
 
     @Override public void onCreate(Bundle state) {
+        // Play Console recommends the AndroidX Activity helper so edge-to-edge
+        // behaves consistently on Android versions before API 35 as well.
+        EdgeToEdge.enable(this);
         super.onCreate(state);
         configureEdgeToEdge(getWindow());
         configureFamiliesAdPolicy();
