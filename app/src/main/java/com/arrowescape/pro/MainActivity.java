@@ -916,11 +916,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         // empty black ad rails on new/no-fill inventory.
         slot.setVisibility(View.INVISIBLE);
         AdView ad=new AdView(this);
-        ad.setAdSize(size);
-        ad.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
-        ad.setAdListener(new AdListener() {
-            @Override public void onAdLoaded() {
+        slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));
+        BannerAdRequest request=new BannerAdRequest.Builder(BuildConfig.ADMOB_BANNER_ID,size).build();
+        ad.loadAd(request,new AdLoadCallback<BannerAd>() {
+            @Override public void onAdLoaded(BannerAd loadedAd) {
                 bannerRetryCount=0;
+                loadedAd.setAdEventCallback(new BannerAdEventCallback() {});
                 slot.setVisibility(View.VISIBLE);
                 if(slot==gameBannerSlot){
                     gameBannerHeightPx=height;
@@ -960,8 +961,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 }, BANNER_RETRY_DELAY_MS);
             }
         });
-        slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));
-        ad.loadAd(new AdRequest.Builder().build());
         return ad;
     }
 
@@ -1136,7 +1135,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dialog.show();if(dialog.getWindow()!=null)dialog.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
-    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);if(banner!=null)banner.pause();if(gameBanner!=null)gameBanner.pause();if(resultBanner!=null)resultBanner.pause();}
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(banner!=null)banner.resume();if(gameBanner!=null)gameBanner.resume();if(resultBanner!=null)resultBanner.resume();if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
+    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);}
+    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
     @Override protected void onDestroy(){destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }
