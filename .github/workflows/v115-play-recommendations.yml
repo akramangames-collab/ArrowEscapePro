@@ -40,7 +40,7 @@ jobs:
           grep -q 'versionCode = 17' app/build.gradle.kts
           grep -q 'versionName = "1.1.5"' app/build.gradle.kts
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
-          grep -q 'androidx.core:core:1.19.1' app/build.gradle.kts
+          grep -q 'androidx.core:core:1.18.0' app/build.gradle.kts
           grep -q 'androidx.browser:browser:1.10.0' app/build.gradle.kts
           grep -q 'androidx.webkit:webkit:1.17.0' app/build.gradle.kts
           grep -q 'play-services-ads:25.5.0' app/build.gradle.kts
@@ -54,7 +54,7 @@ jobs:
         run: |
           gradle :app:dependencies --configuration releaseRuntimeClasspath > dependency-tree.txt
           grep -q 'androidx.activity:activity:1.13.0' dependency-tree.txt
-          grep -q 'androidx.core:core:1.19.1' dependency-tree.txt
+          grep -q 'androidx.core:core:1.18.0' dependency-tree.txt
           grep -q 'androidx.browser:browser:1.10.0' dependency-tree.txt
           grep -q 'androidx.webkit:webkit:1.17.0' dependency-tree.txt
           grep -q 'com.google.android.gms:play-services-ads:25.5.0' dependency-tree.txt
