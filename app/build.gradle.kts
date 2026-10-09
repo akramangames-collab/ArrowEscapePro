@@ -85,7 +85,8 @@ dependencies {
     }
 
     implementation("com.google.android.gms:play-services-ads:25.5.0")
-    implementation("com.google.android.ump:user-messaging-platform:3.2.0")
+    implementation("com.google.android.ump:user-messaging-platform:4.0.0")
+    implementation("com.google.android.play:hsdp:2.1.0")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
