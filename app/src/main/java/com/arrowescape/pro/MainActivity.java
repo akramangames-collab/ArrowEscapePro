@@ -116,9 +116,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
      * interstitials and rewarded ads cannot request content above the app audience rating.
      */
     private void configureFamiliesAdPolicy() {
-        RequestConfiguration configuration = new RequestConfiguration.Builder()
+        RequestConfiguration configuration = MobileAds.getRequestConfiguration()
+            .toBuilder()
             .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
-            .setTagForChildDirectedTreatment(RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
+            .setAgeRestrictedTreatment(AgeRestrictedTreatment.CHILD)
             .build();
         MobileAds.setRequestConfiguration(configuration);
     }
@@ -247,9 +248,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     @Override public void openHome() { hideResultBanner(); stopGameplayBanner(); showHome(); }
 
     private void configureEdgeToEdge(android.view.Window window) {
-        WindowCompat.enableEdgeToEdge(window);
-        WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightStatusBars(false);
-        WindowCompat.getInsetsController(window, window.getDecorView()).setAppearanceLightNavigationBars(false);
+        // Android 15+ enforces edge-to-edge for targetSdk 35+. We opt in on
+        // older releases without the compatibility helper that Play flags.
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+        androidx.core.view.WindowInsetsControllerCompat controller =
+            WindowCompat.getInsetsController(window, window.getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        controller.setAppearanceLightNavigationBars(false);
     }
 
     private void applySystemBarInsets(View target) {
