@@ -1,0 +1,105 @@
+name: Arrow Escape 1.1.5 Play Recommendations Build
+
+on:
+  push:
+    branches:
+      - play-recommendations-v115
+    paths:
+      - app/**
+      - .github/workflows/v115-play-recommendations.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK 36
+        run: |
+          SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36.1" "build-tools;36.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+
+      - name: Verify modernization contracts
+        run: |
+          grep -q 'versionCode = 17' app/build.gradle.kts
+          grep -q 'versionName = "1.1.5"' app/build.gradle.kts
+          grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
+          grep -q 'androidx.core:core:1.19.1' app/build.gradle.kts
+          grep -q 'androidx.browser:browser:1.10.0' app/build.gradle.kts
+          grep -q 'androidx.webkit:webkit:1.17.0' app/build.gradle.kts
+          grep -q 'play-services-ads:25.5.0' app/build.gradle.kts
+          grep -q 'EdgeToEdge.enable(this)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'WindowCompat.setDecorFitsSystemWindows(window, false)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'setAgeRestrictedTreatment(AgeRestrictedTreatment.CHILD)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'isMinifyEnabled = true' app/build.gradle.kts
+          grep -q 'isShrinkResources = true' app/build.gradle.kts
+
+      - name: Audit resolved release dependencies
+        run: |
+          gradle :app:dependencies --configuration releaseRuntimeClasspath > dependency-tree.txt
+          grep -q 'androidx.activity:activity:1.13.0' dependency-tree.txt
+          grep -q 'androidx.core:core:1.19.1' dependency-tree.txt
+          grep -q 'androidx.browser:browser:1.10.0' dependency-tree.txt
+          grep -q 'androidx.webkit:webkit:1.17.0' dependency-tree.txt
+          grep -q 'com.google.android.gms:play-services-ads:25.5.0' dependency-tree.txt
+          grep -q 'androidx.work:work-runtime:2.12.0' dependency-tree.txt
+          grep -q 'androidx.room:room-runtime:2.8.5' dependency-tree.txt
+
+      - name: Build lint, release APK and AAB
+        run: gradle :app:lintRelease :app:assembleRelease :app:bundleRelease --stacktrace
+
+      - name: Inspect merged manifest and bytecode warning sources
+        run: |
+          APK="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -1)"
+          test -s "$APK"
+          unzip -q "$APK" 'classes*.dex' -d dexscan
+          DEXDUMP="/usr/local/lib/android/sdk/build-tools/36.0.0/dexdump"
+          : > play-warning-scan.txt
+          for DEX in dexscan/classes*.dex; do
+            "$DEXDUMP" -d "$DEX" > "$DEX.txt"
+            echo "=== $DEX ===" >> play-warning-scan.txt
+            grep -n -B 18 -A 18 -E 'layoutInDisplayCutoutMode|decodeStream|getInputStream' "$DEX.txt" >> play-warning-scan.txt || true
+          done
+          find app/build/intermediates -path '*merged_manifest*' -o -path '*merged_manifests*' > manifest-paths.txt || true
+          grep -R -n -E 'offline|buffering|MobileAdsInitProvider|AdActivity|WebView' app/build/intermediates/merged_manifest app/build/intermediates/merged_manifests 2>/dev/null > merged-manifest-ads.txt || true
+
+      - name: Verify and package release outputs
+        run: |
+          APK="$(find app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -1)"
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          MAPPING="app/build/outputs/mapping/release/mapping.txt"
+          test -s "$APK"
+          test -s "$AAB"
+          test -s "$MAPPING"
+          unzip -t "$AAB" >/dev/null
+          mkdir -p dist
+          cp "$APK" dist/ArrowEscape-v1.1.5-RELEASE-UNSIGNED.apk
+          cp "$AAB" dist/ArrowEscape-v1.1.5-RELEASE-UNSIGNED.aab
+          cp "$MAPPING" dist/mapping.txt
+          cp dependency-tree.txt dist/dependency-tree.txt
+          cp play-warning-scan.txt dist/play-warning-scan.txt
+          cp merged-manifest-ads.txt dist/merged-manifest-ads.txt
+          sha256sum dist/ArrowEscape-* > dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArrowEscape-v1.1.5-Play-Recommendations
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
