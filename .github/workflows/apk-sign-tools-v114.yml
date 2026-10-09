@@ -1,0 +1,32 @@
+name: APK Sign Tools v1.1.4
+
+on:
+  push:
+    branches:
+      - apk-sign-tools-v114
+    paths:
+      - .github/workflows/apk-sign-tools-v114.yml
+
+permissions:
+  contents: read
+
+jobs:
+  tools:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Package preinstalled Android signing tools
+        run: |
+          TOOLS="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          test -f "$TOOLS/lib/apksigner.jar"
+          test -x "$TOOLS/zipalign"
+          mkdir -p dist
+          cp "$TOOLS/lib/apksigner.jar" dist/apksigner.jar
+          cp "$TOOLS/zipalign" dist/zipalign
+          chmod +x dist/zipalign
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Android-APK-Sign-Tools-v114
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
