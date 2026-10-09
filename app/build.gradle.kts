@@ -22,8 +22,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 15
-        versionName = "1.1.3"
+        versionCode = 16
+        versionName = "1.1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -46,12 +46,14 @@ android {
         }
         getByName("release") {
             isDebuggable = false
-            // Play code 5 crashed before MainActivity while WorkManager's WorkDatabase
-            // was being created from the R8-minified release. Keep release shrinking
-            // disabled for this production hotfix; re-enable only after a dedicated
-            // minified-release device test proves startup is safe.
-            isMinifyEnabled = false
-            isShrinkResources = false
+            // Play Console recommends R8 optimization. Current AndroidX/Google SDKs
+            // include consumer keep rules; app-specific rules live in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
             manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2475015099415787~6197424406"
             buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-2475015099415787/6590130477\"")
@@ -78,7 +80,7 @@ dependencies {
         }
     }
 
-    implementation("com.google.android.gms:play-services-ads:25.4.0")
+    implementation("com.google.android.gms:play-services-ads:25.5.0")
     implementation("com.google.android.ump:user-messaging-platform:3.2.0")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
