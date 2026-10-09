@@ -877,7 +877,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         android.util.DisplayMetrics metrics=getResources().getDisplayMetrics();
         int widthPx=Math.max(dp(200),metrics.widthPixels-dp(horizontalMarginDp));
         int widthDp=Math.max(200,Math.round(widthPx/metrics.density));
-        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this,widthDp);
+        return AdSize.getLargeAnchoredAdaptiveBannerAdSize(this,widthDp);
     }
 
     private AdView createAdaptiveBanner(FrameLayout slot,int horizontalMarginDp) {
