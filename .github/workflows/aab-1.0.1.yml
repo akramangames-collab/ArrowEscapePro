@@ -79,6 +79,7 @@ jobs:
           unzip -p "$AAB" BUNDLE-METADATA/com.android.tools/r8.json > /tmp/r8.json
           python3 -c "import json; r=json.load(open('/tmp/r8.json')); print('R8 stats:', r.get('stats',{})); o=r.get('options',{}); assert o.get('isObfuscationEnabled') is True and o.get('isOptimizationsEnabled') is True and o.get('isShrinkingEnabled') is True"
           mkdir -p dist
+          WINDOW_API_SCAN_OUT=dist/deprecated-window-api-inputs.json python3 scripts/scan-deprecated-window-apis.py
           cp "$AAB" dist/Arrow-Escape-1.1.9-v21-UNSIGNED.aab
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           cp app/build/outputs/mapping/release/configuration.txt dist/r8-configuration.txt
