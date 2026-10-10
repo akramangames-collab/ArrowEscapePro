@@ -100,8 +100,6 @@ dependencies {
     }
 
     implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.5.0")
-    // Override the SDK's older HSDP 2.0.1 transitive runtime with the current 2.1.0 release.
-    implementation("com.google.android.play:hsdp:2.2.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -111,4 +109,5 @@ dependencies {
 configurations.configureEach {
     exclude(group = "com.google.android.gms", module = "play-services-ads")
     exclude(group = "com.google.android.gms", module = "play-services-ads-lite")
+    exclude(group = "com.google.android.play", module = "hsdp")
 }
