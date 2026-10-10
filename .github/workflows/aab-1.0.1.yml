@@ -1,4 +1,4 @@
-name: Arrow Escape 1.1.9 Cutout Cleanup
+name: Arrow Escape 1.1.10 Play Cleanup
 
 on:
   workflow_dispatch:
@@ -49,10 +49,12 @@ jobs:
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 21' app/build.gradle.kts
-          grep -q 'versionName = "1.1.9"' app/build.gradle.kts
+          grep -q 'versionCode = 22' app/build.gradle.kts
+          grep -q 'versionName = "1.1.10"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
+          grep -q 'ignoreFrom("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk")' app/build.gradle.kts
+          grep -q '"ads-r8-functional-rules.pro"' app/build.gradle.kts
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
           grep -q 'androidx.core:core:1.18.0' app/build.gradle.kts
           grep -q 'androidx.fragment:fragment:1.9.1' app/build.gradle.kts
@@ -77,19 +79,20 @@ jobs:
           unzip -t "$AAB" >/dev/null
           unzip -p "$AAB" base/root/hsdp.properties | grep -q 'version=2.2.0'
           unzip -p "$AAB" BUNDLE-METADATA/com.android.tools/r8.json > /tmp/r8.json
-          python3 -c "import json; r=json.load(open('/tmp/r8.json')); print('R8 stats:', r.get('stats',{})); o=r.get('options',{}); assert o.get('isObfuscationEnabled') is True and o.get('isOptimizationsEnabled') is True and o.get('isShrinkingEnabled') is True"
+          python3 -c "import json; r=json.load(open('/tmp/r8.json')); print('R8 stats:', r.get('stats',{})); o=r.get('options',{}); s=r.get('stats',{}); assert o.get('isObfuscationEnabled') is True and o.get('isOptimizationsEnabled') is True and o.get('isShrinkingEnabled') is True; assert float(s.get('noObfuscationPercentage',100)) < 50, s"
+          ! grep -q 'Keep the names of already obfuscated Google Mobile Ads code' app/build/outputs/mapping/release/configuration.txt
           mkdir -p dist
           WINDOW_API_SCAN_OUT=dist/deprecated-window-api-inputs.json python3 scripts/scan-deprecated-window-apis.py
-          cp "$AAB" dist/Arrow-Escape-1.1.9-v21-UNSIGNED.aab
+          cp "$AAB" dist/Arrow-Escape-1.1.10-v22-UNSIGNED.aab
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           cp app/build/outputs/mapping/release/configuration.txt dist/r8-configuration.txt
           cp app/build/outputs/mapping/release/usage.txt dist/r8-usage.txt || true
           gradle :app:dependencies --configuration releaseRuntimeClasspath > dist/releaseRuntimeClasspath.txt
-          sha256sum dist/Arrow-Escape-1.1.9-v21-UNSIGNED.aab > dist/SHA256SUMS.txt
+          sha256sum dist/Arrow-Escape-1.1.10-v22-UNSIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.1.9-v21-UNSIGNED-AAB
+          name: Arrow-Escape-1.1.10-v22-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 7
