@@ -22,7 +22,6 @@ import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.google.android.libraries.ads.mobile.sdk.MobileAds;
 import com.google.android.libraries.ads.mobile.sdk.banner.AdSize;
@@ -91,7 +90,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        configureEdgeToEdge(getWindow());
         configureFamiliesAdPolicy();
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
         wallet = new Wallet(new PreferenceWalletStorage(this));
@@ -271,17 +269,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     @Override public void openSettings() { hideResultBanner(); showMenu(false); }
     @Override public void openHome() { hideResultBanner(); stopGameplayBanner(); showHome(); }
 
-    private void configureEdgeToEdge(android.view.Window window) {
-        // API 30+ uses the current WindowCompat helper. Keep the older fallback
-        // separate so R8 can strip API-28 cutout compatibility code from modern paths.
-        if (android.os.Build.VERSION.SDK_INT >= 30) WindowCompat.enableEdgeToEdge(window);
-        else WindowCompat.setDecorFitsSystemWindows(window, false);
-        androidx.core.view.WindowInsetsControllerCompat controller =
-            WindowCompat.getInsetsController(window, window.getDecorView());
-        controller.setAppearanceLightStatusBars(false);
-        controller.setAppearanceLightNavigationBars(false);
-    }
-
     private void applySystemBarInsets(View target) {
         ViewCompat.setOnApplyWindowInsetsListener(target, (view, windowInsets) -> {
             Insets safe = windowInsets.getInsets(
@@ -421,7 +408,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         showVisibleMenuBanner();
         if(menu.getWindow()!=null){
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
-            configureEdgeToEdge(menu.getWindow());
             menu.getWindow().setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT,android.view.WindowManager.LayoutParams.MATCH_PARENT);
             applySystemBarInsets(shell);
         }
