@@ -22,8 +22,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 19
-        versionName = "1.1.7"
+        versionCode = 20
+        versionName = "1.1.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -76,11 +76,16 @@ dependencies {
     // older transitive Activity/Fragment versions from advertising dependencies.
     implementation("androidx.activity:activity:1.13.0")
     implementation("androidx.core:core:1.18.0")
-    // GMA 25.5.0 still declares older WorkManager/Room transitively. Force current
-    // stable versions to avoid the old WorkDatabase/R8 startup path and Android 15 bugs.
-    implementation("androidx.work:work-runtime:2.12.0")
-    implementation("androidx.room:room-runtime:2.8.5")
+    // Do not force WorkManager/Room into the app. Keep only version constraints so
+    // they are upgraded if a dependency actually needs them, but omitted otherwise.
+    // This reduces unnecessary DEX/keep rules and improves R8 effectiveness.
     constraints {
+        implementation("androidx.work:work-runtime:2.12.0") {
+            because("Use current WorkManager only when transitively required")
+        }
+        implementation("androidx.room:room-runtime:2.8.5") {
+            because("Use current Room only when transitively required")
+        }
         implementation("androidx.fragment:fragment:1.9.1") {
             because("Use the current stable Fragment SDK when it is pulled transitively")
         }
