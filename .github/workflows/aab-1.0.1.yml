@@ -1,4 +1,4 @@
-name: Arrow Escape 1.1.10 Play Cleanup
+name: Arrow Escape 1.1.11 Play Cleanup
 
 on:
   workflow_dispatch:
@@ -49,8 +49,8 @@ jobs:
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 22' app/build.gradle.kts
-          grep -q 'versionName = "1.1.10"' app/build.gradle.kts
+          grep -q 'versionCode = 23' app/build.gradle.kts
+          grep -q 'versionName = "1.1.11"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
           grep -q 'ignoreFrom("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk")' app/build.gradle.kts
@@ -59,6 +59,8 @@ jobs:
           grep -q 'androidx.core:core:1.18.0' app/build.gradle.kts
           grep -q 'androidx.fragment:fragment:1.9.1' app/build.gradle.kts
           ! grep -R -E 'WindowCompat\.enableEdgeToEdge|WindowCompat\.setDecorFitsSystemWindows|setStatusBarColor\(|setNavigationBarColor\(' app/src/main/java
+          grep -q 'window.setDecorFitsSystemWindows(false)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS' app/src/main/java/com/arrowescape/pro/MainActivity.java
           grep -q 'ads-mobile-sdk:1.5.0' app/build.gradle.kts
           grep -q 'com.google.android.play:hsdp:2.2.0' app/build.gradle.kts
           ! grep -q 'implementation("androidx.work:work-runtime' app/build.gradle.kts
@@ -83,16 +85,16 @@ jobs:
           ! grep -q 'Keep the names of already obfuscated Google Mobile Ads code' app/build/outputs/mapping/release/configuration.txt
           mkdir -p dist
           WINDOW_API_SCAN_OUT=dist/deprecated-window-api-inputs.json python3 scripts/scan-deprecated-window-apis.py
-          cp "$AAB" dist/Arrow-Escape-1.1.10-v22-UNSIGNED.aab
+          cp "$AAB" dist/Arrow-Escape-1.1.11-v23-UNSIGNED.aab
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           cp app/build/outputs/mapping/release/configuration.txt dist/r8-configuration.txt
           cp app/build/outputs/mapping/release/usage.txt dist/r8-usage.txt || true
           gradle :app:dependencies --configuration releaseRuntimeClasspath > dist/releaseRuntimeClasspath.txt
-          sha256sum dist/Arrow-Escape-1.1.10-v22-UNSIGNED.aab > dist/SHA256SUMS.txt
+          sha256sum dist/Arrow-Escape-1.1.11-v23-UNSIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.1.10-v22-UNSIGNED-AAB
+          name: Arrow-Escape-1.1.11-v23-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 7
