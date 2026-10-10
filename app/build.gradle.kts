@@ -61,7 +61,7 @@ android {
                 // GMA 1.5.0 contains one broad rule that intentionally preserves the
                 // already-obfuscated ads_mobile_sdk.* names only for vendor debugging.
                 // Ignore the SDK consumer file and re-add every functional rule locally.
-                it.ignoreFrom("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk")
+                ignoreFrom("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk")
             }
             if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
             manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2475015099415787~6197424406"
