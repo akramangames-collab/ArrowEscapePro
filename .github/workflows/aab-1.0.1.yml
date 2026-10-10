@@ -80,6 +80,10 @@ jobs:
           python3 -c "import json; r=json.load(open('/tmp/r8.json')); print('R8 stats:', r.get('stats',{})); o=r.get('options',{}); assert o.get('isObfuscationEnabled') is True and o.get('isOptimizationsEnabled') is True and o.get('isShrinkingEnabled') is True"
           mkdir -p dist
           cp "$AAB" dist/Arrow-Escape-1.1.8-v20-UNSIGNED.aab
+          cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
+          cp app/build/outputs/mapping/release/configuration.txt dist/r8-configuration.txt
+          cp app/build/outputs/mapping/release/usage.txt dist/r8-usage.txt || true
+          gradle :app:dependencies --configuration releaseRuntimeClasspath > dist/releaseRuntimeClasspath.txt
           sha256sum dist/Arrow-Escape-1.1.8-v20-UNSIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
