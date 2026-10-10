@@ -22,8 +22,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 18
-        versionName = "1.1.6"
+        versionCode = 19
+        versionName = "1.1.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -87,6 +87,8 @@ dependencies {
     }
 
     implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.5.0")
+    // Override the SDK's older HSDP 2.0.1 transitive runtime with the current 2.1.0 release.
+    implementation("com.google.android.play:hsdp:2.1.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
