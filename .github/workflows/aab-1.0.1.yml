@@ -1,4 +1,4 @@
-name: Arrow Escape 1.1.7 Play Warning Cleanup
+name: Arrow Escape 1.1.8 R8 Cleanup
 
 on:
   workflow_dispatch:
@@ -49,8 +49,8 @@ jobs:
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 19' app/build.gradle.kts
-          grep -q 'versionName = "1.1.7"' app/build.gradle.kts
+          grep -q 'versionCode = 20' app/build.gradle.kts
+          grep -q 'versionName = "1.1.8"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
@@ -59,6 +59,8 @@ jobs:
           ! grep -R -E 'WindowCompat\.enableEdgeToEdge|WindowCompat\.setDecorFitsSystemWindows|setStatusBarColor\(|setNavigationBarColor\(' app/src/main/java
           grep -q 'ads-mobile-sdk:1.5.0' app/build.gradle.kts
           grep -q 'com.google.android.play:hsdp:2.1.0' app/build.gradle.kts
+          ! grep -q 'implementation("androidx.work:work-runtime' app/build.gradle.kts
+          ! grep -q 'implementation("androidx.room:room-runtime' app/build.gradle.kts
           ! grep -q 'play-services-ads:25.5.0' app/build.gradle.kts
           ! grep -q 'com.google.android.play:hsdp' app/build.gradle.kts
           ! grep -R 'LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES' app/src/main/java app/src/main/res
@@ -75,13 +77,24 @@ jobs:
           test -s "$AAB"
           unzip -t "$AAB" >/dev/null
           unzip -p "$AAB" base/root/hsdp.properties | grep -q 'version=2.1.0'
+          unzip -p "$AAB" BUNDLE-METADATA/com.android.tools/r8.json > /tmp/r8.json
+          python3 - <<'PY'
+import json
+with open('/tmp/r8.json') as f:
+    r=json.load(f)
+stats=r.get('stats',{})
+print('R8 stats:', stats)
+assert r.get('options',{}).get('isObfuscationEnabled') is True
+assert r.get('options',{}).get('isOptimizationsEnabled') is True
+assert r.get('options',{}).get('isShrinkingEnabled') is True
+PY
           mkdir -p dist
-          cp "$AAB" dist/Arrow-Escape-1.1.7-v19-UNSIGNED.aab
-          sha256sum dist/Arrow-Escape-1.1.7-v19-UNSIGNED.aab > dist/SHA256SUMS.txt
+          cp "$AAB" dist/Arrow-Escape-1.1.8-v20-UNSIGNED.aab
+          sha256sum dist/Arrow-Escape-1.1.8-v20-UNSIGNED.aab > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.1.7-v19-UNSIGNED-AAB
+          name: Arrow-Escape-1.1.8-v20-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 7
