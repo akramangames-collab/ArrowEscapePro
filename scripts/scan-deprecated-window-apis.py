@@ -3,6 +3,8 @@
 import io
 import json
 import os
+import subprocess
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -29,12 +31,27 @@ for aar in root.rglob("*.aar"):
                     parts = aar.parts
                     # Cache layout ends in group/artifact/version/hash/file.aar.
                     coord = "/".join(parts[-5:-2]) if len(parts) >= 5 else str(aar)
-                    hits.append({
+                    class_name = name[:-6].replace("/", ".")
+                    item = {
                         "coordinate": coord,
                         "aar": aar.name,
-                        "class": name[:-6].replace("/", "."),
+                        "class": class_name,
                         "references": found,
-                    })
+                    }
+                    if "layoutInDisplayCutoutMode" in found:
+                        try:
+                            with tempfile.NamedTemporaryFile(suffix=".jar") as tmp:
+                                tmp.write(jar_bytes)
+                                tmp.flush()
+                                p = subprocess.run(
+                                    ["javap", "-classpath", tmp.name, "-c", "-p", class_name],
+                                    text=True, capture_output=True, timeout=15
+                                )
+                                if p.returncode == 0:
+                                    item["javap"] = p.stdout
+                        except (OSError, subprocess.SubprocessError):
+                            pass
+                    hits.append(item)
     except (OSError, zipfile.BadZipFile, KeyError):
         pass
 
