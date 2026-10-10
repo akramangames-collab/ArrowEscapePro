@@ -90,6 +90,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        configurePlatformEdgeToEdge(getWindow());
         configureFamiliesAdPolicy();
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
         wallet = new Wallet(new PreferenceWalletStorage(this));
@@ -268,6 +269,29 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     @Override public void openWallet() { hideResultBanner(); showPremiumStore(); }
     @Override public void openSettings() { hideResultBanner(); showMenu(false); }
     @Override public void openHome() { hideResultBanner(); stopGameplayBanner(); showHome(); }
+
+    private void configurePlatformEdgeToEdge(android.view.Window window) {
+        // Use only non-deprecated platform APIs. Android 15+ enforces edge-to-edge,
+        // while this makes the intent explicit on API 30+ and uses the required
+        // ALWAYS cutout mode introduced in API 28.
+        if (android.os.Build.VERSION.SDK_INT >= 28) {
+            android.view.WindowManager.LayoutParams attrs = window.getAttributes();
+            attrs.layoutInDisplayCutoutMode =
+                android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+            window.setAttributes(attrs);
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            window.setDecorFitsSystemWindows(false);
+            android.view.WindowInsetsController controller = window.getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsAppearance(
+                    0,
+                    android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                        | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
+                );
+            }
+        }
+    }
 
     private void applySystemBarInsets(View target) {
         ViewCompat.setOnApplyWindowInsetsListener(target, (view, windowInsets) -> {
