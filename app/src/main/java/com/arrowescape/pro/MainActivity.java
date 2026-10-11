@@ -22,6 +22,7 @@ import androidx.activity.ComponentActivity;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import com.google.android.libraries.ads.mobile.sdk.MobileAds;
 import com.google.android.libraries.ads.mobile.sdk.banner.AdSize;
@@ -271,9 +272,11 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     @Override public void openHome() { hideResultBanner(); stopGameplayBanner(); showHome(); }
 
     private void configurePlatformEdgeToEdge(android.view.Window window) {
-        // Use only non-deprecated platform APIs. Android 15+ enforces edge-to-edge,
-        // while this makes the intent explicit on API 30+ and uses the required
-        // ALWAYS cutout mode introduced in API 28.
+        if (window == null) return;
+        // Use the AndroidX compatibility entry point so edge-to-edge is explicitly
+        // enabled on pre-Android-15 devices as well. This call does not require the
+        // deprecated status/navigation bar color APIs.
+        WindowCompat.setDecorFitsSystemWindows(window, false);
         if (android.os.Build.VERSION.SDK_INT >= 28) {
             android.view.WindowManager.LayoutParams attrs = window.getAttributes();
             attrs.layoutInDisplayCutoutMode =
@@ -281,7 +284,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             window.setAttributes(attrs);
         }
         if (android.os.Build.VERSION.SDK_INT >= 30) {
-            window.setDecorFitsSystemWindows(false);
             android.view.WindowInsetsController controller = window.getInsetsController();
             if (controller != null) {
                 controller.setSystemBarsAppearance(
@@ -290,33 +292,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                         | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS
                 );
             }
-        }
-    }
-
-    private void configureEdgeToEdgeCompat(android.view.Window window) {
-        if (window == null) return;
-        if (android.os.Build.VERSION.SDK_INT >= 30) {
-            window.setDecorFitsSystemWindows(false);
-            return;
-        }
-        try {
-            View decor = window.getDecorView();
-            String getName = new StringBuilder("getSystemUi").append("Visibility").toString();
-            String setName = new StringBuilder("setSystemUi").append("Visibility").toString();
-            java.lang.reflect.Method getter = View.class.getMethod(getName);
-            java.lang.reflect.Method setter = View.class.getMethod(setName, int.class);
-            Object current = getter.invoke(decor);
-            int flags = current instanceof Integer ? (Integer) current : 0;
-            setter.invoke(decor, flags | 0x00000100 | 0x00000200 | 0x00000400);
-
-            String statusName = new StringBuilder("setStatusBar").append("Color").toString();
-            String navName = new StringBuilder("setNavigationBar").append("Color").toString();
-            java.lang.reflect.Method status = android.view.Window.class.getMethod(statusName, int.class);
-            java.lang.reflect.Method nav = android.view.Window.class.getMethod(navName, int.class);
-            status.invoke(window, Color.TRANSPARENT);
-            nav.invoke(window, Color.TRANSPARENT);
-        } catch (ReflectiveOperationException ignored) {
-            // Edge-to-edge is system-enforced on Android 15+; older devices fall back safely.
         }
     }
 
@@ -458,7 +433,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         scroll.post(() -> scroll.scrollTo(0,0));
         showVisibleMenuBanner();
         if(menu.getWindow()!=null){
-            configureEdgeToEdgeCompat(menu.getWindow());
+            configurePlatformEdgeToEdge(menu.getWindow());
             menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
             menu.getWindow().setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT,android.view.WindowManager.LayoutParams.MATCH_PARENT);
             applySystemBarInsets(shell);
