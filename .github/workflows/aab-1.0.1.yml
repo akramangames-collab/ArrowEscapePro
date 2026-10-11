@@ -1,4 +1,4 @@
-name: Arrow Escape 1.1.12 Play Cleanup
+name: Arrow Escape 1.1.13 Play Cleanup
 
 on:
   workflow_dispatch:
@@ -49,8 +49,8 @@ jobs:
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 24' app/build.gradle.kts
-          grep -q 'versionName = "1.1.12"' app/build.gradle.kts
+          grep -q 'versionCode = 25' app/build.gradle.kts
+          grep -q 'versionName = "1.1.13"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
           grep -q 'ignoreFrom("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk")' app/build.gradle.kts
@@ -58,11 +58,14 @@ jobs:
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
           grep -q 'androidx.core:core:1.18.0' app/build.gradle.kts
           grep -q 'androidx.fragment:fragment:1.9.1' app/build.gradle.kts
-          ! grep -R -E 'WindowCompat\.enableEdgeToEdge|WindowCompat\.setDecorFitsSystemWindows|setStatusBarColor\(|setNavigationBarColor\(' app/src/main/java
+          ! grep -R -E 'WindowCompat\.enableEdgeToEdge|setStatusBarColor\(|setNavigationBarColor\(' app/src/main/java
           grep -q 'WindowCompat.setDecorFitsSystemWindows(window, false)' app/src/main/java/com/arrowescape/pro/MainActivity.java
           grep -q 'LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS' app/src/main/java/com/arrowescape/pro/MainActivity.java
           grep -q 'ads-mobile-sdk:1.5.0' app/build.gradle.kts
-          grep -q 'exclude(group = "com.google.android.play", module = "hsdp")' app/build.gradle.kts
+          grep -q 'com.google.android.play:hsdp:2.2.0' app/build.gradle.kts
+          grep -q 'com.google.android.play.core.hsdp.service.HsdpShimActivity' app/src/main/AndroidManifest.xml
+          grep -q 'tools:node="remove"' app/src/main/AndroidManifest.xml
+          grep -q -- '-checkdiscard class com.google.android.play.core.hsdp.service.HsdpShimActivity' app/proguard-rules.pro
           ! grep -q 'implementation("androidx.work:work-runtime' app/build.gradle.kts
           ! grep -q 'implementation("androidx.room:room-runtime' app/build.gradle.kts
           ! grep -q 'play-services-ads:25.5.0' app/build.gradle.kts
@@ -77,7 +80,7 @@ jobs:
       - name: Package unsigned AAB for local upload-key signing
         run: |
           RAW_AAB="app/build/outputs/bundle/release/app-release.aab"
-          OUT_AAB="dist/Arrow-Escape-1.1.12-v24-UNSIGNED.aab"
+          OUT_AAB="dist/Arrow-Escape-1.1.13-v25-UNSIGNED.aab"
           test -s "$RAW_AAB"
           unzip -t "$RAW_AAB" >/dev/null
           unzip -p "$RAW_AAB" BUNDLE-METADATA/com.android.tools/r8.json > /tmp/r8.json
@@ -85,13 +88,15 @@ jobs:
           ! grep -q 'Keep the names of already obfuscated Google Mobile Ads code' app/build/outputs/mapping/release/configuration.txt
           mkdir -p dist
           WINDOW_API_SCAN_OUT=dist/deprecated-window-api-inputs.json python3 scripts/scan-deprecated-window-apis.py
-          # Verify the resolved runtime graph and the final optimized DEX, not just source.
+          # Keep HSDP APIs required by GMA, but prove its deprecated shim Activity
+          # is absent from both the merged manifest and optimized code.
           gradle :app:dependencies --configuration releaseRuntimeClasspath > dist/releaseRuntimeClasspath.txt
-          ! grep -q 'com.google.android.play:hsdp' dist/releaseRuntimeClasspath.txt
+          grep -q 'com.google.android.play:hsdp:2.2.0' dist/releaseRuntimeClasspath.txt
+          unzip -p "$RAW_AAB" base/manifest/AndroidManifest.xml | strings > /tmp/manifest-strings.txt
+          ! grep -q 'com.google.android.play.core.hsdp.service.HsdpShimActivity' /tmp/manifest-strings.txt
+          ! grep -q '^com.google.android.play.core.hsdp.service.HsdpShimActivity ->' app/build/outputs/mapping/release/mapping.txt
           unzip -p "$RAW_AAB" base/dex/classes.dex > /tmp/classes.dex
-          ! strings /tmp/classes.dex | grep -q 'com/google/android/play/core/hsdp/service/HsdpShimActivity'
-          ! strings /tmp/classes.dex | grep -q 'setStatusBarColor'
-          ! strings /tmp/classes.dex | grep -q 'setNavigationBarColor'
+          ! strings /tmp/classes.dex | grep -q 'Lcom/google/android/play/core/hsdp/service/HsdpShimActivity;'
           cp "$RAW_AAB" "$OUT_AAB"
           unzip -t "$OUT_AAB" >/dev/null
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
@@ -101,7 +106,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.1.12-v24-UNSIGNED-AAB
+          name: Arrow-Escape-1.1.13-v25-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 7
