@@ -60,11 +60,7 @@
 -keep class androidx.webkit.WebViewCompat { public <methods>; }
 -keep class androidx.webkit.WebViewStartUpConfig { public *; }
 -keep class androidx.webkit.WebViewStartUpConfig$Builder { public *; }
-# Keep the callback API shape if it is actually used, but do not make every
-# callback implementation a shrinking root. AndroidX WebKit ships its own
-# consumer rules; this avoids retaining GMA's optional HSDP path solely through
-# a broad vendor keep rule.
--keep,allowshrinking,allowoptimization,allowobfuscation class androidx.webkit.WebViewCompat$WebViewStartUpCallback { public *; }
+-keep class androidx.webkit.WebViewCompat$WebViewStartUpCallback { public *; }
 -keep class androidx.webkit.WebViewStartUpResult { public <methods>; }
 -keep class androidx.webkit.StartUpLocation { public <methods>; }
 -keep class androidx.webkit.Profile { public <methods>; }
