@@ -22,8 +22,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 24
-        versionName = "1.1.12"
+        versionCode = 25
+        versionName = "1.1.13"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -99,12 +99,11 @@ dependencies {
         }
     }
 
-    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.5.0") {
-        // HSDP 2.2.0 still writes LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        // inside HsdpShimActivity, which Play flags on Android 15. It is not
-        // used directly by Arrow Escape, so keep it out of the packaged app.
-        exclude(group = "com.google.android.play", module = "hsdp")
-    }
+    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.5.0")
+    // Keep the HSDP API because GMA references it. We remove only its optional
+    // shim Activity entry point from the merged manifest; the SDK has an
+    // explicit fallback when that Activity is unavailable.
+    implementation("com.google.android.play:hsdp:2.2.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
