@@ -100,13 +100,13 @@ jobs:
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           cp app/build/outputs/mapping/release/configuration.txt dist/r8-configuration.txt
           cp app/build/outputs/mapping/release/usage.txt dist/r8-usage.txt || true
-          cat > dist/PLAY-WARNING-NOTE.txt <<'EOF'
-Arrow Escape app-owned code does not use SHORT_EDGES, deprecated status/navigation
-bar color APIs, or the legacy bitmap/network path. GMA Next-Gen 1.5.0 currently
-depends on Google Play HSDP 2.2.0; HsdpShimActivity in that Google dependency
-contains SHORT_EDGES. Removing or stubbing HSDP breaks GMA references, so the
-vendor dependency is intentionally left intact until Google publishes a fixed SDK.
-EOF
+          printf '%s\n' \
+            'Arrow Escape app-owned code does not use SHORT_EDGES, deprecated status/navigation' \
+            'bar color APIs, or the legacy bitmap/network path. GMA Next-Gen 1.5.0 currently' \
+            'depends on Google Play HSDP 2.2.0; HsdpShimActivity in that Google dependency' \
+            'contains SHORT_EDGES. Removing or stubbing HSDP breaks GMA references, so the' \
+            'vendor dependency is intentionally left intact until Google publishes a fixed SDK.' \
+            > dist/PLAY-WARNING-NOTE.txt
           sha256sum "$OUT_AAB" > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
