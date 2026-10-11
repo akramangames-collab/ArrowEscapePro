@@ -7,6 +7,6 @@
 # its current implementation uses the deprecated SHORT_EDGES cutout mode.
 # Fail the release if R8 cannot discard it; this prevents silently shipping the
 # same Play Console warning again.
-# Diagnostic: report why the shim survives shrinking. The release workflow
-# inspects the result before any candidate is handed to Play.
--whyareyoukeeping class com.google.android.play.core.hsdp.service.HsdpShimActivity
+# The optional HSDP shim activity is removed from the merged manifest because
+# its current implementation uses SHORT_EDGES. Fail release if it survives R8.
+-checkdiscard class com.google.android.play.core.hsdp.service.HsdpShimActivity
