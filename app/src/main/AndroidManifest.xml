@@ -17,6 +17,7 @@
              console configuration must never crash offline gameplay. -->
         <provider android:name="com.google.android.gms.games.provider.PlayGamesInitProvider"
             android:authorities="${applicationId}.playgamesinitprovider" tools:node="remove" />
+        <meta-data android:name="com.google.android.gms.games.SUPPRESS_GAME_PROFILE_CREATION" android:value="true" />
         <meta-data android:name="com.google.android.gms.games.APP_ID"
             android:value="@string/game_services_project_id" />
         <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="${ADMOB_APP_ID}" />

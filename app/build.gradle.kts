@@ -30,8 +30,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 33
-        versionName = "1.3.2"
+        versionCode = 34
+        versionName = "1.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resValue("string", "game_services_project_id", playGamesProjectId)
         buildConfigField("boolean", "PLAY_GAMES_CONFIGURED", (playGamesReady && !playGamesProjectId.isEmpty()).toString())
@@ -56,6 +56,9 @@ android {
             buildConfigField("String", "ADMOB_REWARDED_ID", "\"ca-app-pub-3940256099942544/5224354917\"")
         }
         getByName("release") {
+            // Client integration is enabled for the original linked game project.
+            // Console OAuth/tester/publication readiness is verified separately.
+            buildConfigField("boolean", "PLAY_GAMES_CONFIGURED", playGamesProjectId.isNotEmpty().toString())
             isDebuggable = false
             // Play Console recommends R8 optimization. Current AndroidX/Google SDKs
             // include consumer keep rules; app-specific rules live in proguard-rules.pro.
@@ -84,6 +87,7 @@ android {
     buildFeatures { buildConfig = true; resValues = true }
     testOptions { unitTests.isIncludeAndroidResources = true }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -91,6 +95,7 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("com.google.android.gms:play-services-games-v2:22.1.0")
     // Keep AndroidX on current stable releases so Play SDK Index does not resolve
     // older transitive Activity/Fragment versions from advertising dependencies.

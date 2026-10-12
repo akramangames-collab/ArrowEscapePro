@@ -10,7 +10,7 @@ import org.robolectric.annotation.GraphicsMode;
 import static org.robolectric.Shadows.shadowOf;
 import static org.junit.Assert.*;
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk={30,35,36},application=ArrowApplication.class)
+@Config(sdk={24,30,35,36},application=ArrowApplication.class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class StartupRuntimeTest {
  @Test public void coldLaunchAndDelayedHomeDoNotCrash(){
