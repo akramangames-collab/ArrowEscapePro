@@ -44,7 +44,7 @@ public class BannerLayoutRuntimeTest {
    View creative=new View(a);creative.setBackgroundColor(0xFFDFE9F7);slot.addView(creative,new FrameLayout.LayoutParams(-1,200));
    render(root,720,1560,"banner-safe-controls-phone");
    assertEquals(0,get(game,"insetTop"));assertEquals(0,get(game,"insetBottom"));
-   for(String name:new String[]{"hintHit","eraseHit","rewardHit"}){
+   for(String name:new String[]{"hintHit","eraseHit","bombHit","rewardHit"}){
     RectF hit=(RectF)get(game,name);assertTrue(name+" overlaps banner",game.getTop()+hit.bottom<=slot.getTop());
    }
    assertTrue("Game viewport overlaps banner",game.getBottom()<=slot.getTop());

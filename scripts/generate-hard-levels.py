@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build V17 mazes in solve order with a bounded dependency frontier.
+"""Build V32 mazes in solve order with a bounded dependency frontier.
 
 New arrows aim through earlier arrows, while their bodies may not cross any
 earlier escape ray. Dependencies therefore only point backwards: cycles are
@@ -80,15 +80,15 @@ def tier(level):
 
 
 def opening_target(level):
-    return (3, 2, 1, 1)[tier(level)]
+    return (2, 1, 1, 1)[tier(level)]
 
 
 def depth_target(level):
-    return (0.45, 0.60, 0.75, 0.90)[tier(level)]
+    return (0.65, 0.80, 0.87, 0.94)[tier(level)]
 
 
 def arrow_target(level):
-    return 24 + round((level-1)*0.18) + (0, 8, 18, 32)[tier(level)]
+    return 32 + round((level-1)*0.18) + (0, 8, 18, 32)[tier(level)]
 
 
 def attempt(level, w, h, seed):
@@ -177,7 +177,7 @@ def build_level(level):
     w = 24 + round(fraction*24) + (4 if tier(level) >= 2 else 0) + (6 if level in BOSSES else 0)
     h = w + 8
     for restart in range(160):
-        pieces = attempt(level, w, h, 28400000 + level*1009 + restart*7919)
+        pieces = attempt(level, w, h, 32400000 + level*1009 + restart*7919)
         if pieces is None:
             continue
         # Remove unused margins, then mirror to vary the opening location.
@@ -231,7 +231,7 @@ def main():
             assert path.read_text() == content, f'Generated asset drift: {path}'
         else:
             path.write_text(content)
-    print(f'Generated 400 constrained V17 mazes in {time.monotonic()-started:.1f}s; '
+    print(f'Generated 400 constrained V32 mazes in {time.monotonic()-started:.1f}s; '
           '6/12/30 difficulty cadence verified by the independent solver.', flush=True)
 
 

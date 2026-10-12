@@ -269,16 +269,40 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             if (!isDestroyed()) { game.invalidate(); updateBalance(); }
         });
     }
-    @Override public void openBoosters() {
-        LinearLayout body=premiumBody();addPremiumHeader(body,"BOOSTERS","Choose a tool, preview its target, then confirm. Cancel is free.");
-        body.addView(text("Every level can be solved without boosters. Using a booster counts as an assist for stars.",14,MUTED));
-        body.addView(button("PRECISE ERASER · select one arrow",()->{menu.dismiss();game.beginBooster(1);},false));
-        body.addView(button("AREA BOMB · radius 4 cells · "+ArrowGameView.BOMB_COST+" coins",()->{menu.dismiss();game.beginBooster(2);},true));
-        body.addView(button("ROW SWEEP · one row · "+ArrowGameView.ROW_COST+" coins",()->{menu.dismiss();game.beginBooster(3);},false));
-        body.addView(button("Back to puzzle",()->menu.dismiss(),false));
-        presentFullScreen(body);
+    private LinearLayout boosterCard(int kind,String title,String detail,String price,int accent){
+        LinearLayout card=new LinearLayout(this);card.setGravity(Gravity.CENTER_VERTICAL);card.setPadding(dp(12),dp(10),dp(12),dp(10));card.setBackground(gradient(0xFF142D49,0xFF0B1C32,18,accent));
+        ImageView icon=new ImageView(this);icon.setImageDrawable(new BoosterIcon(kind,accent));icon.setPadding(dp(7),dp(7),dp(7),dp(7));icon.setBackground(background(0xFF173954,15,accent));card.addView(icon,new LinearLayout.LayoutParams(dp(55),dp(55)));
+        LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(6),0);TextView name=text(title,16,TEXT);name.setTypeface(AppTypography.bold(this));copy.addView(name);copy.addView(text(detail,12,MUTED));card.addView(copy,new LinearLayout.LayoutParams(0,-2,1));
+        TextView cost=text(price,12,accent);cost.setTypeface(AppTypography.bold(this));cost.setGravity(Gravity.CENTER);card.addView(cost,new LinearLayout.LayoutParams(dp(60),dp(46)));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(5),0,dp(5));card.setLayoutParams(lp);card.setMinimumHeight(dp(80));card.setContentDescription(title+", "+detail+", "+price+". Preview before confirming.");card.setOnClickListener(v->{menu.dismiss();game.beginBooster(kind);});return card;
     }
-    @Override public void requestRewardedErase() { showRewarded(() -> game.grantEraser()); }
+    @Override public void openBoosters() {
+        if(menu!=null&&menu.isShowing())menu.dismiss();destroyBanner();clearMenuBannerSlot();game.setPaused(true);
+        LinearLayout body=panel();body.setTag("booster_sheet");body.setPadding(dp(18),dp(16),dp(18),dp(18));
+        LinearLayout heading=new LinearLayout(this);heading.setGravity(Gravity.CENTER_VERTICAL);TextView title=text("BOOSTERS",22,TEXT);title.setTypeface(AppTypography.bold(this));heading.addView(title,new LinearLayout.LayoutParams(0,-2,1));heading.addView(text("● "+wallet.balance(),15,GOLD));body.addView(heading);
+        body.addView(text("Choose a tool. Preview its target. Confirm.",13,MUTED));
+        body.addView(boosterCard(1,"Precise eraser","Remove one selected arrow","×"+game.boosterCount(1),0xFF67D8F6));
+        body.addView(boosterCard(2,"Area bomb","Limited area · 4-cell radius","×"+game.boosterCount(2),0xFFB295FF));
+        body.addView(boosterCard(3,"Row sweep","Clear arrows touching one row","×"+game.boosterCount(3),0xFF47E4D4));
+        body.addView(text("One saved booster is used only after confirmation. No coins.",12,MUTED));body.addView(button("Back to puzzle",()->menu.dismiss(),false));
+        menu=new AlertDialog.Builder(this).setView(body).create();menu.setOnDismissListener(d->{game.setPaused(false);game.invalidate();});menu.show();
+        if(menu.getWindow()!=null){menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));menu.getWindow().setGravity(Gravity.BOTTOM);menu.getWindow().setLayout(-1,-2);}
+    }
+    @Override public void shareChallenge(String text) {
+        android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND);
+        send.setType("text/plain");send.putExtra(android.content.Intent.EXTRA_TEXT,text);
+        try{startActivity(android.content.Intent.createChooser(send,"Challenge a friend"));}
+        catch(android.content.ActivityNotFoundException e){toast("No sharing app available");}
+    }
+    @Override public void requestRewardedErase() { requestRewardedBooster(1); }
+    @Override public void requestRewardedBooster(int kind) {
+        if(kind<0||kind>3)return;
+        String name=BoosterInventory.name(kind),receipt=UUID.randomUUID().toString();
+        new AlertDialog.Builder(this).setTitle("Get 1 "+name)
+            .setMessage("Complete one rewarded ad to save 1 "+name+". Use it once whenever you choose. No coins required.")
+            .setNegativeButton("Not now",null)
+            .setPositiveButton("Watch ad · +1 "+name,(d,w)->showRewarded(()->game.grantBooster(kind,receipt))).show();
+    }
     @Override public void requestRewardedRevive() { showRewarded(() -> game.grantRevive()); }
     @Override public void requestRewardedCoins() {
         String token = UUID.randomUUID().toString();
@@ -369,13 +393,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     private TextView text(String value, int size, int color) {
         TextView v = new TextView(this);
-        v.setText(value); v.setTextColor(color); v.setTextSize(size);
+        v.setText(value); v.setTextColor(color); v.setTextSize(size);v.setTypeface(AppTypography.regular(this));
         v.setPadding(0,dp(6),0,dp(6));
         return v;
     }
     private TextView section(String value) {
         TextView v=text(value,11,CYAN);
-        v.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        v.setTypeface(AppTypography.bold(this));
         v.setLetterSpacing(.14f);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);
         lp.setMargins(dp(2),dp(20),0,dp(7));v.setLayoutParams(lp);
@@ -384,12 +408,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private Button button(String label, Runnable action, boolean primary) {
         Button b = new Button(this);
         b.setText(label); b.setAllCaps(false); b.setTextSize(15);
-        b.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        b.setTypeface(AppTypography.bold(this));
         b.setLetterSpacing(.01f);
         b.setTextColor(primary ? 0xFF00131D : TEXT);
         b.setBackground(primary
-            ? gradient(0xFF27D8EE,0xFF2F8DF3,18,0)
-            : gradient(0xFF10264A,0xFF0B1B37,18,0xFF24518A));
+            ? gradient(0xFF21F1E7,0xFF05BDD6,26,0xFF57FFF6)
+            : gradient(0xFF122B48,0xFF091A31,20,0xFF2B5278));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(54));
         lp.setMargins(0,dp(7),0,dp(5)); b.setLayoutParams(lp);
         b.setElevation(dp(primary?5:2));
@@ -410,11 +434,11 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         icon.setGravity(Gravity.CENTER);icon.setBackground(gradient(0xFF102A55,0xFF07172F,15,selected?CYAN:0xFF2C4E83));
         row.addView(icon,new LinearLayout.LayoutParams(dp(58),dp(58)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(8),0);
-        TextView title=text(name,16,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(title);
+        TextView title=text(name,16,TEXT);title.setTypeface(AppTypography.bold(this));copy.addView(title);
         copy.addView(text(feature,12,MUTED));
-        TextView state=text(status,11,selected?GREEN:GOLD);state.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(state);
+        TextView state=text(status,11,selected?GREEN:GOLD);state.setTypeface(AppTypography.bold(this));copy.addView(state);
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
-        Button buy=new Button(this);buy.setAllCaps(false);buy.setText(actionLabel);buy.setTextSize(12);buy.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        Button buy=new Button(this);buy.setAllCaps(false);buy.setText(actionLabel);buy.setTextSize(12);buy.setTypeface(AppTypography.bold(this));
         buy.setTextColor(selected?INK:TEXT);
         buy.setBackground(selected?gradient(CYAN,BLUE,14,0):gradient(PURPLE,0xFF5C38D8,14,0));
         buy.setEnabled(!selected);buy.setOnClickListener(v->action.run());
@@ -444,7 +468,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private Button tileButton(String label, int accent, Runnable action) {
         Button b=new Button(this);
-        b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTypeface(AppTypography.bold(this));
         b.setTextColor(TEXT);b.setGravity(Gravity.CENTER);
         b.setBackground(gradient(0xFF0C2142,0xFF08162E,20,accent));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(118),1f);lp.setMargins(dp(5),dp(6),dp(5),dp(6));b.setLayoutParams(lp);
@@ -452,7 +476,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private Button tabButton(String label, boolean selected, Runnable action) {
-        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(12);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(12);b.setTypeface(AppTypography.bold(this));
         b.setTextColor(selected?0xFF00131D:MUTED);
         b.setBackground(selected?gradient(CYAN,BLUE,14,0):background(0xFF0A1934,14,0xFF193F70));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(44),1f);lp.setMargins(dp(3),0,dp(3),0);b.setLayoutParams(lp);
@@ -498,11 +522,11 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         TextView icon=text("‹",30,CYAN);icon.setGravity(Gravity.CENTER);icon.setContentDescription("Back to Route");icon.setBackground(background(0xFF10284A,14,0xFF245681));icon.setOnClickListener(v->{if(onboardingStep>=0)finishOnboarding();else showHome();});
         row.addView(icon,new LinearLayout.LayoutParams(dp(48),dp(48)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(10),0,0,0);
-        TextView t=text(title,19,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);
+        TextView t=text(title,19,TEXT);t.setTypeface(AppTypography.bold(this));copy.addView(t);
         TextView sub=text(subtitle,12,MUTED);sub.setLetterSpacing(.06f);copy.addView(sub);
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
         TextView coin=text("● "+wallet.balance(),12,GOLD);coin.setGravity(Gravity.CENTER);
-        coin.setTypeface(Typeface.DEFAULT,Typeface.BOLD);coin.setBackground(background(0xFF221B09,17,0xFF6E5512));
+        coin.setTypeface(AppTypography.bold(this));coin.setBackground(background(0xFF221B09,17,0xFF6E5512));
         menuBalance=coin;
         row.addView(coin,new LinearLayout.LayoutParams(dp(76),dp(38)));
         body.addView(row);
@@ -541,7 +565,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout body=premiumBody();
         Button skip=button("Skip tutorial  ›",this::finishOnboarding,false);LinearLayout.LayoutParams skipLp=new LinearLayout.LayoutParams(dp(150),dp(48));skipLp.gravity=Gravity.END;skip.setLayoutParams(skipLp);body.addView(skip);
         String[] titles={"WELCOME TO ARROW ESCAPE","YOUR ESCAPE TOOLS","LEARN TO ESCAPE"};
-        TextView title=text(titles[onboardingStep],26,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);body.addView(title);
+        TextView title=text(titles[onboardingStep],26,TEXT);title.setTypeface(AppTypography.bold(this));body.addView(title);
         body.addView(text("STEP "+(onboardingStep+1)+" OF 3",12,CYAN));
         if(onboardingStep==0){
             body.addView(text("Clear the arrows. Find your escape.",20,TEXT));
@@ -575,7 +599,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
         tabs.addView(tabButton("Arrows",storeTab==0,()->{storeTab=0;showPremiumStore();}));
         tabs.addView(tabButton("Themes",storeTab==1,()->{storeTab=1;showPremiumStore();}));
-        tabs.addView(tabButton("Coins",storeTab==2,()->{storeTab=2;showPremiumStore();}));
+        tabs.addView(tabButton("Rewards",storeTab==2,()->{storeTab=2;showPremiumStore();}));
         LinearLayout.LayoutParams tlp=new LinearLayout.LayoutParams(-1,dp(42));tlp.setMargins(0,dp(12),0,dp(8));tabs.setLayoutParams(tlp);body.addView(tabs);
         if(storeTab<2){
             LinearLayout hero=panel();
@@ -625,9 +649,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 },selected);
             }
         }else{
+            body.addView(section("YOUR BOOSTERS"));
+            for(int i=0;i<4;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
+            body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             LinearLayout reward=panel();
-            TextView big=text("Earn coins without paying",18,TEXT);big.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(big);
+            TextView big=text("Earn coins without paying",18,TEXT);big.setTypeface(AppTypography.bold(this));reward.addView(big);
             reward.addView(text("Play levels, build your daily streak, beat the Daily Challenge, or watch a rewarded ad.",12,MUTED));
             body.addView(reward);
             watchButton=button("▶  WATCH AD  ·  +75 COINS",()->{if(rewardReady())requestRewardedCoins();else loadRewarded();},true);
@@ -643,7 +670,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         TextView badge=text(icon,24,done?GREEN:PURPLE);badge.setGravity(Gravity.CENTER);badge.setBackground(background(0xFF0A1733,14,done?GREEN:0xFF2C4E83));
         row.addView(badge,new LinearLayout.LayoutParams(dp(48),dp(48)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        TextView title=text(name,15,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(title);copy.addView(text(goal,12,MUTED));
+        TextView title=text(name,15,TEXT);title.setTypeface(AppTypography.bold(this));copy.addView(title);copy.addView(text(goal,12,MUTED));
         copy.addView(text(progress,11,done?GREEN:CYAN));row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));card.addView(row);body.addView(card);
     }
 
@@ -675,7 +702,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         }else{
             long now=System.currentTimeMillis();int streak=wallet.streak();int next=wallet.nextDailyStreak(now);int reward=wallet.nextDailyReward(now);
             LinearLayout hero=panel();
-            TextView h=text("🔥  CURRENT STREAK  ·  "+streak+" DAYS",20,TEXT);h.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(h);
+            TextView h=text("🔥  CURRENT STREAK  ·  "+streak+" DAYS",20,TEXT);h.setTypeface(AppTypography.bold(this));hero.addView(h);
             hero.addView(text(wallet.canClaimDaily(now)?"Today's reward is ready: "+reward+" coins":"Today's streak reward is already claimed.",13,MUTED));body.addView(hero);
 
             HorizontalScrollView horizontal=new HorizontalScrollView(this);horizontal.setHorizontalScrollBarEnabled(false);
@@ -685,7 +712,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 dayCard.setPadding(dp(10),dp(10),dp(10),dp(10));
                 dayCard.setBackground(background((next==i+1&&wallet.canClaimDaily(now))?0xFF17385B:PANEL,15,(next==i+1&&wallet.canClaimDaily(now))?CYAN:0xFF244E87));
                 TextView d=text("DAY "+(i+1),11,MUTED);d.setGravity(Gravity.CENTER);dayCard.addView(d);
-                TextView c=text("● "+rewards[i],16,GOLD);c.setTypeface(Typeface.DEFAULT,Typeface.BOLD);c.setGravity(Gravity.CENTER);dayCard.addView(c);
+                TextView c=text("● "+rewards[i],16,GOLD);c.setTypeface(AppTypography.bold(this));c.setGravity(Gravity.CENTER);dayCard.addView(c);
                 LinearLayout.LayoutParams dlp=new LinearLayout.LayoutParams(dp(86),dp(76));dlp.setMargins(dp(4),0,dp(4),0);ladder.addView(dayCard,dlp);
             }
             horizontal.addView(ladder);body.addView(horizontal);
@@ -714,19 +741,19 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout preview=panel();preview.addView(new ArrowPreviewView(this,0,0),new LinearLayout.LayoutParams(-1,dp(120)));body.addView(preview);
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
-        TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
-        TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
+        TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(AppTypography.bold(this));hero.addView(crown);
+        TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(AppTypography.bold(this));hero.addView(hard);
         hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 400 campaign levels",13,MUTED));
         body.addView(hero);
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
-        amount.setGravity(Gravity.CENTER);amount.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(amount);
+        amount.setGravity(Gravity.CENTER);amount.setTypeface(AppTypography.bold(this));reward.addView(amount);
         reward.addView(text("Resets in "+challengeResetText(),12,MUTED));body.addView(reward);
         LinearLayout week=panel();
-        TextView streakTitle=text("🔥  CURRENT STREAK  ·  "+wallet.streak()+" DAYS",15,TEXT);streakTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);week.addView(streakTitle);
+        TextView streakTitle=text("🔥  CURRENT STREAK  ·  "+wallet.streak()+" DAYS",15,TEXT);streakTitle.setTypeface(AppTypography.bold(this));week.addView(streakTitle);
         LinearLayout dots=new LinearLayout(this);dots.setGravity(Gravity.CENTER);
         for(int i=1;i<=7;i++){
             TextView d=text(String.valueOf(i),12,i<=Math.min(7,wallet.streak())?INK:MUTED);
-            d.setGravity(Gravity.CENTER);d.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            d.setGravity(Gravity.CENTER);d.setTypeface(AppTypography.bold(this));
             d.setBackground(background(i<=Math.min(7,wallet.streak())?GOLD:0xFF0A1934,14,i<=Math.min(7,wallet.streak())?0:0xFF23466E));
             LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(38),1f);lp.setMargins(dp(3),dp(8),dp(3),0);dots.addView(d,lp);
         }
@@ -746,7 +773,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout identity=panel(),row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
         TextView avatar=text("➜",30,CYAN);avatar.setGravity(Gravity.CENTER);avatar.setBackground(gradient(0xFF153D70,0xFF0A1D3A,30,CYAN));row.addView(avatar,new LinearLayout.LayoutParams(dp(60),dp(60)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        playGamesPlayerLabel=text(playGamesName,20,TEXT);playGamesPlayerLabel.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(playGamesPlayerLabel);
+        playGamesPlayerLabel=text(playGamesName,20,TEXT);playGamesPlayerLabel.setTypeface(AppTypography.bold(this));copy.addView(playGamesPlayerLabel);
         copy.addView(text("Level "+game.currentLevelNumber()+" · "+game.totalStarCount()+" stars",13,MUTED));row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));identity.addView(row);body.addView(identity);
         LinearLayout account=panel();account.addView(text("GOOGLE PLAY GAMES",14,CYAN));
         playGamesStatusLabel=text(playGamesSignedIn?"Connected":"Optional · play without signing in",13,MUTED);account.addView(playGamesStatusLabel);
@@ -802,7 +829,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private LinearLayout profileStat(String value,String label) {
         LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setGravity(Gravity.CENTER);
         box.setBackground(gradient(0xFF0D2142,0xFF07152C,18,0xFF1E4F87));
-        TextView v=text(value,20,TEXT);v.setGravity(Gravity.CENTER);v.setTypeface(Typeface.DEFAULT,Typeface.BOLD);box.addView(v);
+        TextView v=text(value,20,TEXT);v.setGravity(Gravity.CENTER);v.setTypeface(AppTypography.bold(this));box.addView(v);
         TextView l=text(label,11,MUTED);l.setGravity(Gravity.CENTER);box.addView(l);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(78),1f);lp.setMargins(dp(4),dp(6),dp(4),dp(6));box.setLayoutParams(lp);
         return box;
@@ -842,9 +869,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
         LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(22),dp(20),dp(22),dp(20));body.setBackgroundColor(INK);
         TextView icon=text("♛",42,GOLD);icon.setGravity(Gravity.CENTER);body.addView(icon);
-        TextView title=text("Your Daily Challenge is ready!",22,TEXT);title.setGravity(Gravity.CENTER);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);body.addView(title);
+        TextView title=text("Your Daily Challenge is ready!",22,TEXT);title.setGravity(Gravity.CENTER);title.setTypeface(AppTypography.bold(this));body.addView(title);
         TextView copy=text("Complete today's SUPER HARD puzzle to earn 200 coins.",14,MUTED);copy.setGravity(Gravity.CENTER);body.addView(copy);
-        LinearLayout streak=panel();TextView st=text("🔥  Current streak: "+wallet.streak()+" days",16,TEXT);st.setTypeface(Typeface.DEFAULT,Typeface.BOLD);streak.addView(st);
+        LinearLayout streak=panel();TextView st=text("🔥  Current streak: "+wallet.streak()+" days",16,TEXT);st.setTypeface(AppTypography.bold(this));streak.addView(st);
         streak.addView(text("Today's streak reward: "+wallet.nextDailyReward(System.currentTimeMillis())+" coins",12,GOLD));body.addView(streak);
         body.addView(button("▶  PLAY NOW",()->{if(reminder!=null)reminder.dismiss();showDailyChallengePanel();},true));
         body.addView(button("Later",()->{if(reminder!=null)reminder.dismiss();},false));
@@ -871,20 +898,20 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         ImageView icon = new ImageView(this); icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
         brand.addView(icon,new LinearLayout.LayoutParams(dp(54),dp(54)));
         LinearLayout heading=new LinearLayout(this);heading.setOrientation(LinearLayout.VERTICAL);heading.setPadding(dp(12),0,0,0);
-        TextView title=text(store?"STORE":"SETTINGS",24,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);heading.addView(title);
+        TextView title=text(store?"STORE":"SETTINGS",24,TEXT);title.setTypeface(AppTypography.bold(this));heading.addView(title);
         heading.addView(text(store?"Upgrade your style. Keep gameplay fair.":"Game preferences & support",12,MUTED));
         brand.addView(heading,new LinearLayout.LayoutParams(0,-2,1f));
         body.addView(brand);
 
         if (store) {
-            menuBalance=text("COINS  "+wallet.balance(),18,GOLD);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            menuBalance=text("COINS  "+wallet.balance(),18,GOLD);menuBalance.setTypeface(AppTypography.bold(this));
             menuBalance.setGravity(Gravity.CENTER);
             menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));
             LinearLayout.LayoutParams balanceLp=new LinearLayout.LayoutParams(-1,dp(48));balanceLp.setMargins(0,dp(14),0,dp(6));menuBalance.setLayoutParams(balanceLp);
             body.addView(menuBalance);
 
             LinearLayout hero=panel();
-            TextView heroTitle=text("MAKE EVERY ESCAPE YOURS",18,TEXT);heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(heroTitle);
+            TextView heroTitle=text("MAKE EVERY ESCAPE YOURS",18,TEXT);heroTitle.setTypeface(AppTypography.bold(this));hero.addView(heroTitle);
             hero.addView(text("Buy visual upgrades with coins you earn by playing. Purchases stay unlocked.",13,MUTED));
             body.addView(hero);
 
@@ -942,6 +969,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 },selected);
             }
 
+            body.addView(section("YOUR BOOSTERS"));
+            for(int i=0;i<4;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
+            body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             final Button[] daily=new Button[1];
             daily[0]=button(wallet.canClaimDaily(System.currentTimeMillis())?"CLAIM DAILY  ·  +100 COINS":"DAILY REWARD CLAIMED",()->{
@@ -1159,7 +1189,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         b.setPadding(0,dp(3),0,dp(3));
         RouteNavIcon icon=new RouteNavIcon(index,selected?CYAN:MUTED);icon.setBounds(0,0,dp(23),dp(23));b.setCompoundDrawables(null,icon,null,null);b.setCompoundDrawablePadding(dp(3));
         b.setGravity(Gravity.CENTER);
-        b.setTypeface(Typeface.DEFAULT,selected?Typeface.BOLD:Typeface.NORMAL);
+        b.setTypeface(selected?AppTypography.bold(this):AppTypography.regular(this));
         b.setBackground(selected?background(0xFF102A52,15,0xFF1F5C96):background(0x00000000,15,0));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,-1,1f);lp.setMargins(dp(2),0,dp(2),0);b.setLayoutParams(lp);
         b.setOnClickListener(v->openNav(index));

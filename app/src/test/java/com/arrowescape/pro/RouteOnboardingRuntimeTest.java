@@ -68,7 +68,7 @@ public class RouteOnboardingRuntimeTest {
    MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});ArrowGameView game=(ArrowGameView)get(a,"game");game.openPlay();
    assertEquals(View.GONE,((View)get(a,"routeNav")).getVisibility());assertFalse((Boolean)get(a,"gameplayBannerRequested"));
    render((View)get(a,"root"),720,1560,"gameplay");set(game,"finished",true);set(game,"earnedStars",2);set(game,"winReward",25);
-   for(int[] size:new int[][]{{720,1560},{1280,800}}){render((View)get(a,"root"),size[0],size[1],"win-"+size[0]);for(String key:new String[]{"primaryHit","secondaryHit","tertiaryHit"}){RectF hit=(RectF)get(game,key);assertTrue(hit.top>=0);assertTrue(hit.bottom<=game.getHeight());}}
+   for(int[] size:new int[][]{{720,1560},{1280,800}}){render((View)get(a,"root"),size[0],size[1],"win-"+size[0]);for(String key:new String[]{"primaryHit","secondaryHit","tertiaryHit","shareHit"}){RectF hit=(RectF)get(game,key);assertTrue(hit.top>=0);assertTrue(hit.bottom<=game.getHeight());}}
    set(game,"finished",false);set(game,"failed",true);render((View)get(a,"root"),720,1560,"retry");RectF route=(RectF)get(game,"tertiaryHit");tap(game,route.centerX()/game.getWidth(),route.centerY()/game.getHeight());assertEquals("LEVELS",get(game,"screen").toString());
   }
  }

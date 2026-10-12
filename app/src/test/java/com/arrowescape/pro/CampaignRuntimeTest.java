@@ -74,18 +74,43 @@ public class CampaignRuntimeTest {
     @Test public void bombPreviewCancelEmptyTargetAndDoubleConfirmCannotSpendTwice()throws Exception{
         ArrowGameView g=game();try{
             render(g,1080,1920,null);Wallet w=(Wallet)get(g,"wallet");int coins=w.balance();
-            g.beginBooster(2);g.cancelBooster();assertEquals(coins,w.balance());
+            g.grantBooster(2,"test-bomb");g.beginBooster(2);g.cancelBooster();assertEquals(coins,w.balance());
             g.beginBooster(2);call(g,"confirmBooster",new Class[]{});assertEquals(coins,w.balance());
             ArrayList<Object> pieces=(ArrayList<Object>)get(g,"pieces");Object first=pieces.get(0);
             ArrayList<Point> pts=(ArrayList<Point>)get(first,"pts");Point p=pts.get(pts.size()-1);
-            float cell=(Float)get(g,"cell"),x=(Float)get(g,"boardLeft")+p.x*cell,y=(Float)get(g,"boardTop")+p.y*cell;
+            float cell=(Float)get(g,"cell"),x=(Float)get(g,"boardLeft")+p.x*cell,y=(Float)get(g,"boardTop")+p.y*cell*(Float)get(g,"boardStretchY");
             call(g,"selectBoosterTarget",new Class[]{float.class,float.class},x,y);
             ArrayList<?> targets=(ArrayList<?>)get(g,"boosterTargets");int count=targets.size();assertTrue(count>0);
             render(g,1080,1920,"area-bomb-preview");
-            call(g,"confirmBooster",new Class[]{});assertEquals(coins-60,w.balance());
+            call(g,"confirmBooster",new Class[]{});assertEquals(coins,w.balance());assertEquals(0,g.boosterCount(2));
             assertEquals(pieces.size()-count,call(g,"remaining",new Class[]{}));assertEquals(1,get(g,"assistsUsed"));
-            call(g,"confirmBooster",new Class[]{});assertEquals(coins-60,w.balance());
+            call(g,"confirmBooster",new Class[]{});assertEquals(coins,w.balance());assertEquals(0,g.boosterCount(2));
             g.saveProgress();g.release();g=game();assertEquals(pieces.size()-count,call(g,"remaining",new Class[]{}));
+        }finally{g.release();}
+    }
+    @SuppressWarnings("unchecked")
+    @Test public void completingExtremeLevelGrantsTwoBombsOnceAndRestoresResult()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},30);
+            for(Object piece:(ArrayList<Object>)get(g,"pieces"))set(piece,"removed",true);
+            call(g,"updateAnimations",new Class[]{float.class,long.class},.1f,10000L);
+            assertEquals(2,g.boosterCount(2));assertEquals(2,get(g,"winBoosterAmount"));
+            render(g,720,1560,"extreme-gift-result");assertTrue(g.challengeShareText().contains("Level 30"));
+            g.saveProgress();g.release();g=game();assertEquals(2,g.boosterCount(2));assertEquals(2,get(g,"winBoosterAmount"));
+            call(g,"startLevel",new Class[]{int.class},30);
+            for(Object piece:(ArrayList<Object>)get(g,"pieces"))set(piece,"removed",true);
+            call(g,"updateAnimations",new Class[]{float.class,long.class},.1f,10001L);
+            assertEquals(2,g.boosterCount(2));assertEquals(0,get(g,"winBoosterAmount"));
+        }finally{g.release();}
+    }
+    @Test public void allFourFrontToolsStayVisibleAndEnterPreviewWithoutSpendingCoins()throws Exception{
+        ArrowGameView g=game();try{
+            render(g,720,1280,"four-front-boosters");
+            String[] names={"hintHit","eraseHit","bombHit","rewardHit"};float previous=0;
+            for(int i=0;i<4;i++){RectF r=(RectF)get(g,names[i]);assertTrue(r.width()>=48);assertTrue(r.height()>=48);assertTrue(r.left>=previous);assertTrue(r.bottom<=1280);previous=r.right;g.grantBooster(i,"front-"+i);}
+            int coins=((Wallet)get(g,"wallet")).balance();
+            for(int mode=1;mode<=3;mode++){g.beginBooster(mode);assertEquals(mode,get(g,"boosterMode"));g.cancelBooster();assertEquals(1,g.boosterCount(mode));}
+            assertEquals(coins,((Wallet)get(g,"wallet")).balance());
         }finally{g.release();}
     }
     @SuppressWarnings("unchecked")
