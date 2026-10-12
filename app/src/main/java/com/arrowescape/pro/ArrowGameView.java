@@ -3,6 +3,8 @@ package com.arrowescape.pro;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -242,6 +244,7 @@ public class ArrowGameView extends View {
         } else {
             drawLevels(c);
         }
+        if (isShown() && !paused && (screen != Screen.PLAY || finished)) postInvalidateDelayed(33);
         if (toastUntil > now) drawToast(c, toast);
         if (previewPiece != null && previewPiece.removed) previewPiece = null;
         if (touchRippleUntil > now) {
@@ -314,12 +317,12 @@ public class ArrowGameView extends View {
         drawThemeAtmosphere(c,w,h);
         if(isBoss(level) && !challengeActive()) drawBossWorldBackdrop(c,w,h);
         RectF headerCard=new RectF(dp(12),top+dp(2),w-dp(12),top+dp(112));
-        paint.setColor(Color.argb(188,7,20,44));c.drawRoundRect(headerCard,dp(22),dp(22),paint);
+        paint.setShader(new LinearGradient(0,top,w,top+dp(112),0xEE233B68,0xEE25234F,Shader.TileMode.CLAMP));c.drawRoundRect(headerCard,dp(22),dp(22),paint);paint.setShader(null);
         strokeRound(c,headerCard,Color.argb(210,31,83,133),dp(1));
         drawBack(c, dp(28), top + dp(30));
         String title = weeklyChallenge ? "Weekly Challenge" : dailyChallenge ? "Daily Challenge" : (isBoss(level) ? "Extreme Level " + level : "Level " + level);
         label(c, title, w/2, top + dp(29), 25, NAVY, true);
-        int difficultyColor = challengeActive() ? DAILY_PURPLE : (isBoss(level) ? BOSS_GOLD : isSuperHard(level) ? SUPER_HARD : Color.rgb(100,116,139));
+        int difficultyColor = challengeActive() ? DAILY_PURPLE : (isBoss(level) ? BOSS_GOLD : isSuperHard(level) ? SUPER_HARD : Color.rgb(168,189,220));
         String sub = weeklyChallenge
             ? "ELITE WEEKLY  ·  puzzle " + level
             : dailyChallenge
@@ -356,9 +359,9 @@ public class ArrowGameView extends View {
         boardTop=boardViewportCenterY-boardH/2f+boardPanY;
         c.save();c.clipRect(boardViewportLeft,boardViewportTop,boardViewportRight,boardViewportBottom);drawDottedGrid(c);drawPieces(c,now);drawPathPreview(c);drawBoosterPreview(c,now);c.restore();
         if(boosterMode==0)label(c,"PINCH TO ZOOM  ·  "+Math.round(boardZoom*100f)+"%",w/2,areaBottom+dp(16),9,Color.rgb(102,145,194),false);
-        pill(c,hintHit,PALE);strokeRound(c,hintHit,Color.rgb(31,83,133),dp(1));
-        pill(c,eraseHit,PALE);strokeRound(c,eraseHit,Color.rgb(84,61,170),dp(1));
-        pill(c,rewardHit,Color.rgb(58,42,8));strokeRound(c,rewardHit,Color.rgb(143,106,19),dp(1));
+        polishedPill(c,hintHit,0xFF294D77,0xFF17304E);strokeRound(c,hintHit,0xFF5C92C9,dp(1));
+        polishedPill(c,eraseHit,0xFF674AA0,0xFF332B64);strokeRound(c,eraseHit,0xFFAD91EB,dp(1));
+        polishedPill(c,rewardHit,0xFF735623,0xFF3F321A);strokeRound(c,rewardHit,0xFFD9B65B,dp(1));
         drawBulb(c,hintHit.centerX(),controlY-dp(8),dp(12));
         label(c,hints>0?"Hint · "+hints+" free":"Hint · 25 coins",hintHit.centerX(),controlY+dp(18),11,NAVY,true);
         drawEraser(c,eraseHit.centerX(),controlY-dp(8),dp(12));
@@ -969,7 +972,8 @@ public class ArrowGameView extends View {
     private void drawSettings(Canvas c) { }
 
     private void drawWin(Canvas c) {
-        c.drawColor(Color.rgb(5,11,30));
+        drawScenicBackdrop(c);
+        drawCelebration(c);
         float w=getWidth(),h=getHeight();
         paint.setColor(Color.argb(18,255,255,255));
         c.drawCircle(w*.85f,h*.12f,dp(145),paint);c.drawCircle(w*.05f,h*.80f,dp(125),paint);
@@ -1026,8 +1030,40 @@ public class ArrowGameView extends View {
         mapScroll=Math.max(0,((currentLevelNumber()-1)%20)*dp(88)-Math.max(dp(80),getHeight()-insetTop-insetBottom-dp(210))*.45f);
         clampMapScroll();
     }
+    private void polishedPill(Canvas c,RectF r,int a,int b){
+        paint.setStyle(Paint.Style.FILL);paint.setShader(new LinearGradient(r.left,r.top,r.right,r.bottom,a,b,Shader.TileMode.CLAMP));
+        c.drawRoundRect(r,dp(16),dp(16),paint);paint.setShader(null);
+    }
+
+    private void drawScenicBackdrop(Canvas c) {
+        float w=getWidth(),h=getHeight();
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShader(new LinearGradient(0,0,w,h,new int[]{0xFF182D55,0xFF24335D,0xFF123D4B},null,Shader.TileMode.CLAMP));
+        c.drawRect(0,0,w,h,paint);paint.setShader(null);
+        // Distant ridges and drifting fireflies give depth without obscuring the trail.
+        for(int layer=0;layer<3;layer++){
+            Path ridge=new Path();ridge.moveTo(0,h);ridge.lineTo(0,h*(.38f+layer*.2f));
+            for(int i=0;i<=8;i++){float x=w*i/8f,y=h*(.42f+layer*.19f)+(float)Math.sin(i*1.7+levelPage)*dp(35);ridge.lineTo(x,y);}
+            ridge.lineTo(w,h);ridge.close();paint.setColor(new int[]{0x553A5382,0x66306073,0x77234555}[layer]);c.drawPath(ridge,paint);
+        }
+        double time=SystemClock.elapsedRealtime()/3000.0;
+        for(int i=0;i<22;i++){
+            float x=(i*73%101)/101f*w+(float)Math.sin(time+i)*dp(5),y=(i*43%97)/97f*h;
+            paint.setColor(Color.argb((int)(35+30*(1+Math.sin(time+i))*.5),160,246,223));c.drawCircle(x,y,dp(i%4==0?2:1),paint);
+        }
+    }
+
+    private void drawCelebration(Canvas c) {
+        float w=getWidth(),h=getHeight();long now=SystemClock.elapsedRealtime();
+        int[] colors={0xFFFFCF62,0xFF6AECD2,0xFFFF8EA8,0xFFAB9AFF};
+        for(int i=0;i<32;i++){
+            float t=((now+i*193)%4200)/4200f,x=(i*67%103)/103f*w+(float)Math.sin(t*6+i)*dp(12),y=t*h;
+            paint.setColor(colors[i%4]);c.save();c.rotate(t*270+i*31,x,y);c.drawRoundRect(new RectF(x-dp(2),y-dp(4),x+dp(2),y+dp(4)),dp(1),dp(1),paint);c.restore();
+        }
+    }
+
     private void drawLevels(Canvas c) {
-        c.drawColor(boardBackground());
+        drawScenicBackdrop(c);
         float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
         drawThemeAtmosphere(c,w,h);
         mapViewportTop=top+dp(112);
@@ -1042,8 +1078,9 @@ public class ArrowGameView extends View {
             trail.cubicTo(px,py+dp(44),nx,ny-dp(44),nx,ny);
         }
         paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(dp(13));paint.setColor(Color.rgb(17,39,67));c.drawPath(trail,paint);
-        paint.setStrokeWidth(dp(3));paint.setColor(Color.rgb(37,89,124));c.drawPath(trail,paint);
+        paint.setStrokeWidth(dp(18));paint.setColor(0xFF192E5C);c.drawPath(trail,paint);
+        paint.setStrokeWidth(dp(10));paint.setShader(new LinearGradient(0,mapViewportTop,w,mapViewportBottom,new int[]{0xFF56E5D3,0xFF7289FF,0xFFDA98FF},null,Shader.TileMode.CLAMP));c.drawPath(trail,paint);paint.setShader(null);
+        paint.setStrokeWidth(dp(2));paint.setColor(0x88E1F6FF);c.drawPath(trail,paint);
         paint.setStyle(Paint.Style.FILL);
         for(int i=0;i<20;i++) {
             int lv=start+i;float x=mapNodeX(i),y=mapNodeY(i);
@@ -1053,10 +1090,11 @@ public class ArrowGameView extends View {
             boolean open=lv<=maxUnlocked,current=lv==currentLevelNumber(),done=bestStars(lv)>0;
             int accent=CampaignRules.tier(lv)==3?Color.rgb(255,99,104):CampaignRules.tier(lv)==2?SUPER_HARD:CampaignRules.tier(lv)==1?BOSS_GOLD:BLUE;
             if(isBoss(lv))accent=BOSS_GOLD;
-            if(current){paint.setColor(Color.argb(45,23,199,255));c.drawCircle(x,y,dp(35),paint);}
+            if(current){float pulse=(float)(.5+.5*Math.sin(SystemClock.elapsedRealtime()/550.0));paint.setColor(Color.argb((int)(35+25*pulse),74,237,218));c.drawCircle(x,y,dp(34+4*pulse),paint);}
             paint.setColor(Color.rgb(3,10,25));c.drawCircle(x,y+dp(4),dp(27),paint);
-            paint.setColor(!open?Color.rgb(15,29,47):done?Color.rgb(13,73,77):Color.rgb(15,43,72));
-            c.drawCircle(x,y,dp(27),paint);
+            paint.setShader(new LinearGradient(x-dp(20),y-dp(27),x+dp(20),y+dp(27),!open?new int[]{0xFF243255,0xFF141E37}:done?new int[]{0xFF33CBA9,0xFF137E97}:new int[]{accent,0xFF5D48B9},null,Shader.TileMode.CLAMP));
+            c.drawCircle(x,y,dp(27),paint);paint.setShader(null);
+            paint.setColor(open?0x44FFFFFF:0x155B86BE);c.drawOval(new RectF(x-dp(19),y-dp(21),x+dp(14),y-dp(8)),paint);
             paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(current?3:2));
             paint.setColor(open?accent:Color.rgb(44,58,78));c.drawCircle(x,y,dp(27),paint);paint.setStyle(Paint.Style.FILL);
             label(c,String.valueOf(lv),x,y+dp(6),18,open?Color.WHITE:MUTED,true);
@@ -1066,10 +1104,10 @@ public class ArrowGameView extends View {
         }
         c.restore();
         RectF header=new RectF(dp(12),top,w-dp(12),top+dp(106));
-        paint.setColor(Color.rgb(7,20,44));c.drawRoundRect(header,dp(22),dp(22),paint);
+        paint.setShader(new LinearGradient(0,top,w,top+dp(106),0xEE213D70,0xEE28234F,Shader.TileMode.CLAMP));c.drawRoundRect(header,dp(22),dp(22),paint);paint.setShader(null);
         strokeRound(c,header,Color.rgb(31,83,133),dp(1));
         drawBack(c,dp(38),top+dp(28));
-        label(c,"ESCAPE TRAIL",w/2,top+dp(31),23,NAVY,true);
+        label(c,"ESCAPE TRAIL",w/2+dp(10),top+dp(31),21,NAVY,true);
         label(c,chapterName(start)+"  ·  "+start+"–"+(start+19),w/2,top+dp(56),12,BLUE,true);
         label(c,"400 LEVELS  ·  "+totalStars()+" / 1200 ★",w/2,top+dp(78),11,BLUE,true);
         label(c,"Hard: 6th · Super: 12th · Extreme: 30th",w/2,top+dp(96),9,MUTED,false);

@@ -4,8 +4,8 @@ Current release-hardening line for the Android arrow puzzle game.
 
 ## Current build
 
-- Version: `1.2.1`
-- Version code: `29`
+- Version: `1.2.2`
+- Version code: `30`
 - Package: `com.arrowescape.pro`
 - Minimum SDK: `24`
 - Compile SDK: `36`
@@ -108,3 +108,7 @@ Creates the window decor before accessing its insets controller. The Android
 startup crash was reproduced by launching the full MainActivity; a full activity
 cold-launch test (Java 21 required by the API 36 test runtime) now covers API 30, 35 and 36 through the delayed Home screen.
 This fixes an initialization ordering error; it does not hide startup exceptions.
+
+## v30 visual and layout update
+
+The escape trail now uses colourful gradient paths, dimensional level markers, soft landscape ridges and gentle firefly/current-level animations. Buttons respond to presses and wins celebrate with confetti. Original quiet offline music has a separate Settings toggle and pauses in the background or during full-screen ads. Banners occupy measured layout rows above system navigation, preserving game controls and menu navigation. Details: `play-store/V30-UI-AND-AUDIO.md`.
