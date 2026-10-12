@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
+import android.graphics.DashPathEffect;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -44,6 +45,8 @@ public class ArrowGameView extends View {
         void openWallet();
         void openSettings();
         default void openHome() {}
+        default void onRouteOpened() {}
+        default void onGameplayStarted() {}
         void onContinueAfterWin(Runnable proceed);
     }
 
@@ -244,10 +247,10 @@ public class ArrowGameView extends View {
         } else {
             drawLevels(c);
         }
-        if (isShown() && !paused && (screen != Screen.PLAY || finished)) postInvalidateDelayed(33);
+        if (isShown() && !paused && !settings.getBoolean("reduce_motion",false) && (screen != Screen.PLAY || finished)) postInvalidateDelayed(33);
         if (toastUntil > now) drawToast(c, toast);
         if (previewPiece != null && previewPiece.removed) previewPiece = null;
-        if (touchRippleUntil > now) {
+        if (touchRippleUntil > now && !settings.getBoolean("reduce_motion",false)) {
             float t = 1f - (touchRippleUntil - now) / 360f;
             paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(dp(2));
@@ -330,7 +333,7 @@ public class ArrowGameView extends View {
             : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + difficulty();
         if (!challengeActive() && combo >= 2) sub += " · STREAK x" + combo;
         label(c, sub, w/2, top + dp(49), 11, difficultyColor, challengeActive() || isSuperHard(level) || combo >= 3);
-        drawFlowMeter(c,w/2,top+dp(65));
+        if(combo>=2)label(c,"FLOW ×"+combo,w/2,top+dp(65),10,BLUE,true);
         drawGear(c, w-dp(31), top+dp(30));
         float statY = top + dp(84);
         RectF remainingCard=new RectF(dp(16),statY-dp(21),dp(94),statY+dp(21));
@@ -346,7 +349,7 @@ public class ArrowGameView extends View {
         hintHit.set(dp(16),controlY-dp(28),dp(16)+controlW,controlY+dp(28));
         eraseHit.set(hintHit.right+gap,hintHit.top,hintHit.right+gap+controlW,hintHit.bottom);
         rewardHit.set(eraseHit.right+gap,hintHit.top,w-dp(16),hintHit.bottom);
-        float areaTop=statY+dp(40), areaBottom=hintHit.top-dp(23);
+        float areaTop=statY+dp(80), areaBottom=hintHit.top-dp(23);
         float availW=w-dp(30),availH=Math.max(dp(80),areaBottom-areaTop);
         float fitCell=Math.min(availW/(gridW+2f),availH/(gridH+2f));
         boardViewportLeft=dp(8);boardViewportTop=areaTop;boardViewportRight=w-dp(8);boardViewportBottom=areaBottom;
@@ -366,8 +369,8 @@ public class ArrowGameView extends View {
         label(c,hints>0?"Hint · "+hints+" free":"Hint · 25 coins",hintHit.centerX(),controlY+dp(18),11,NAVY,true);
         drawEraser(c,eraseHit.centerX(),controlY-dp(8),dp(12));
         label(c,"Boosters",eraseHit.centerX(),controlY+dp(18),11,NAVY,true);
-        drawCoin(c,rewardHit.centerX(),controlY-dp(8),dp(11));
-        label(c,"Store",rewardHit.centerX(),controlY+dp(18),11,NAVY,true);
+        drawMiniArrow(c,rewardHit.centerX(),controlY-dp(8),dp(13),BLUE,0);
+        label(c,"Sweep · "+ROW_COST,rewardHit.centerX(),controlY+dp(18),11,NAVY,true);
         label(c,"THINK  ·  TAP  ·  ESCAPE",w/2,h-insetBottom-dp(10),9,Color.rgb(96,132,184),false);
         if(boosterMode!=0&&!finished&&!failed){
             pill(c,hintHit,Color.rgb(12,61,103));pill(c,eraseHit,Color.rgb(15,73,64));pill(c,rewardHit,Color.rgb(58,42,8));
@@ -767,7 +770,7 @@ public class ArrowGameView extends View {
     }
 
     private void drawPieces(Canvas c,long now) {
-        float stroke=Math.max(dp(2.0f),cell*arrowStroke());
+        float stroke=Math.max(dp(2.4f),cell*arrowStroke());
         for(Piece p:pieces){
             if(p.removed)continue;
             float shake=p.flashUntil>now?(float)Math.sin(now*.085)*dp(3.5f):0f;
@@ -972,62 +975,40 @@ public class ArrowGameView extends View {
     private void drawSettings(Canvas c) { }
 
     private void drawWin(Canvas c) {
-        drawScenicBackdrop(c);
-        drawCelebration(c);
-        float w=getWidth(),h=getHeight();
-        paint.setColor(Color.argb(18,255,255,255));
-        c.drawCircle(w*.85f,h*.12f,dp(145),paint);c.drawCircle(w*.05f,h*.80f,dp(125),paint);
-        float top=Math.max(insetTop+dp(18),(h-dp(520))/2);
-        String headline=weeklyChallenge?"Weekly challenge cleared!":dailyChallenge?"Daily challenge cleared!":(level==MAX_LEVEL?"All 400 mazes cleared!":isBoss(level)?"Extreme level cleared!":"Maze escaped!");
-        label(c,headline,w/2,top+dp(32),26,Color.WHITE,true);
-        label(c,weeklyChallenge?"Elite puzzle of the week complete":dailyChallenge?"Puzzle of the day complete":"Level "+level+" complete",w/2,top+dp(61),16,Color.rgb(176,206,246),false);
-        label(c,starString(earnedStars),w/2,top+dp(108),31,Color.rgb(255,204,57),true);
-        label(c,earnedStars==3?"Perfect clear":earnedStars==2?"Strong clear":"Cleared",w/2,top+dp(136),13,Color.rgb(205,220,242),false);
-        RectF card=new RectF(dp(26),top+dp(166),w-dp(26),top+dp(326));pill(c,card,Color.rgb(12,27,58));
-        label(c,winReward>0?"+"+winReward+" coins":"Reward already claimed",w/2,card.top+dp(38),26,NAVY,true);
-        String rewardLine;
-        if(weeklyChallenge) rewardLine="Weekly challenge · "+(earnedStars==3?"+350":earnedStars==2?"+300":"+250");
-        else if(dailyChallenge) rewardLine="Daily challenge · +200 coins · once per day";
-        else if(isBoss(level)) rewardLine="Clear +15 · Star bonus · Extreme +150";
-        else if(isSuperHard(level)) rewardLine="Clear +15 · Star bonus · Super Hard +75";
-        else if(CampaignRules.tier(level)==1) rewardLine="Clear +15 · Star bonus · Hard +35";
-        else rewardLine="Clear +15 · 2★ +5 · 3★ +10";
-        label(c,rewardLine,w/2,card.top+dp(72),13,TEXT,false);
-        label(c,challengeActive()?"Replay during this challenge window to improve your stars":(earnedStars==3?"Best rating saved":"Replay later to earn 3★"),w/2,card.top+dp(101),13,Color.rgb(151,179,216),false);
-        label(c,"Wallet: "+wallet.balance()+" coins",w/2,card.top+dp(132),13,NAVY,true);
-        primaryHit.set(dp(26),top+dp(347),w-dp(26),top+dp(399));
-        secondaryHit.set(dp(26),top+dp(411),w-dp(26),top+dp(461));
-        tertiaryHit.set(dp(26),top+dp(466),w-dp(26),top+dp(504));
-        action(c,primaryHit,challengeActive()?"Back to Home":(level<MAX_LEVEL?"Next level":"View all levels"),BLUE,Color.WHITE);
-        action(c,secondaryHit,"Watch ad · +75 coins",Color.rgb(255,202,69),Color.rgb(27,31,43));
-        label(c,challengeActive()?"Replay challenge":"Level select",w/2,tertiaryHit.centerY()+dp(5),13,Color.WHITE,false);
+        drawScenicBackdrop(c);if(!settings.getBoolean("reduce_motion",false))drawCelebration(c);
+        float w=getWidth(),h=getHeight(),top=insetTop+dp(18),bottom=h-insetBottom;
+        label(c,"LEVEL COMPLETE",w/2,top+dp(24),24,NAVY,true);
+        label(c,challengeActive()?"Challenge cleared":"Level "+level+" cleared",w/2,top+dp(52),14,MUTED,false);
+        label(c,starString(earnedStars),w/2,top+dp(97),34,BOSS_GOLD,true);
+        primaryHit.set(dp(24),bottom-dp(168),w-dp(24),bottom-dp(118));
+        secondaryHit.set(dp(24),bottom-dp(106),w-dp(24),bottom-dp(56));
+        tertiaryHit.set(dp(24),bottom-dp(48),w-dp(24),bottom-dp(4));
+        RectF card=new RectF(dp(24),top+dp(120),w-dp(24),Math.min(top+dp(250),primaryHit.top-dp(12)));
+        if(card.height()>=dp(60)){polishedPill(c,card,0xFF142C4B,0xFF0A1A31);strokeRound(c,card,0xFF2A5678,dp(1));label(c,winReward>0?"+"+winReward+" COINS":"REWARD ALREADY CLAIMED",w/2,card.top+dp(29),20,BOSS_GOLD,true);label(c,"Wallet: "+wallet.balance()+" coins",w/2,card.top+dp(53),13,MUTED,false);if(dailyChallenge&&card.height()>=dp(92))label(c,"Daily challenge · +200 coins · once per day",w/2,card.top+dp(82),12,MUTED,false);}
+        action(c,primaryHit,challengeActive()?"Back to Route":level<MAX_LEVEL?"NEXT LEVEL  ›":"ALL LEVELS",BLUE,0xFF001822);
+        action(c,secondaryHit,"▶  WATCH AD · +75 COINS",BOSS_GOLD,0xFF221700);
+        label(c,challengeActive()?"Replay challenge":"Back to Route",w/2,tertiaryHit.centerY()+dp(5),14,NAVY,false);
     }
 
     private void drawFail(Canvas c) {
-        RectF r=modal(c,304);
-        label(c,"A fresh way out",r.centerX(),r.top+dp(43),25,NAVY,true);
-        label(c,"No hearts left. Your coins are safe.",r.centerX(),r.top+dp(78),14,TEXT,false);
-        primaryHit.set(r.left+dp(20),r.top+dp(104),r.right-dp(20),r.top+dp(154));
-        secondaryHit.set(r.left+dp(20),r.top+dp(165),r.right-dp(20),r.top+dp(215));
-        tertiaryHit.setEmpty();
-        action(c,primaryHit,"Restart level",PALE,NAVY);
-        action(c,secondaryHit,"Watch ad · revive",BLUE,Color.WHITE);
-        walletHit.set(r.left+dp(20),r.top+dp(230),r.right-dp(20),r.bottom-dp(8));
-        label(c,"Wallet: "+wallet.balance()+"  ·  Open Store",r.centerX(),walletHit.centerY()+dp(5),13,NAVY,false);
+        drawScenicBackdrop(c);float w=getWidth(),h=getHeight(),top=insetTop+dp(18),bottom=h-insetBottom;
+        label(c,"TRY AGAIN",w/2,top+dp(28),27,NAVY,true);
+        label(c,"Your coins are safe. Find a fresh way out.",w/2,top+dp(56),13,MUTED,false);
+        primaryHit.set(dp(24),bottom-dp(180),w-dp(24),bottom-dp(130));secondaryHit.set(dp(24),bottom-dp(118),w-dp(24),bottom-dp(68));tertiaryHit.set(dp(24),bottom-dp(60),w-dp(24),bottom-dp(12));
+        float cy=(top+dp(76)+primaryHit.top)/2;paint.setColor(BLUE);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(4));Path p=new Path();p.moveTo(w*.25f,cy+dp(28));p.lineTo(w*.55f,cy+dp(28));p.lineTo(w*.55f,cy-dp(28));p.lineTo(w*.75f,cy-dp(28));c.drawPath(p,paint);paint.setStyle(Paint.Style.FILL);drawMiniArrow(c,w*.75f,cy-dp(28),dp(13),BLUE,0);
+        action(c,primaryHit,"RESTART LEVEL",BLUE,0xFF001822);action(c,secondaryHit,"▶  WATCH AD · REVIVE",BOSS_GOLD,0xFF221700);
+        label(c,"Back to Route",w/2,tertiaryHit.centerY()+dp(5),14,NAVY,false);walletHit.setEmpty();
     }
 
-    private float mapNodeX(int index) {
-        float amplitude=Math.min(dp(112),getWidth()*.28f);
-        return getWidth()/2f + (float)Math.sin(index*Math.PI/2)*amplitude;
-    }
-    private float mapNodeY(int index) { return mapViewportTop+dp(62)+index*dp(88)-mapScroll; }
+    private float mapNodeX(int index) { return getWidth()*(index%2==0?.28f:.72f); }
+    private float mapNodeY(int index) { return mapViewportBottom-dp(58)-index*dp(88)+mapScroll; }
     private void clampMapScroll() {
         float viewport=Math.max(dp(80),mapViewportBottom-mapViewportTop);
-        mapScroll=Math.max(0,Math.min(mapScroll,dp(20*88+30)-viewport));
+        mapScroll=Math.max(0,Math.min(mapScroll,dp(20*88+24)-viewport));
     }
     private void centerMapOnCurrent() {
         levelPage=(currentLevelNumber()-1)/20;
-        mapScroll=Math.max(0,((currentLevelNumber()-1)%20)*dp(88)-Math.max(dp(80),getHeight()-insetTop-insetBottom-dp(210))*.45f);
+        mapScroll=Math.max(0,((currentLevelNumber()-1)%20)*dp(88)-Math.max(dp(80),getHeight()-insetTop-insetBottom-dp(190))*.45f);
         clampMapScroll();
     }
     private void polishedPill(Canvas c,RectF r,int a,int b){
@@ -1036,21 +1017,10 @@ public class ArrowGameView extends View {
     }
 
     private void drawScenicBackdrop(Canvas c) {
-        float w=getWidth(),h=getHeight();
-        paint.setStyle(Paint.Style.FILL);
-        paint.setShader(new LinearGradient(0,0,w,h,new int[]{0xFF182D55,0xFF24335D,0xFF123D4B},null,Shader.TileMode.CLAMP));
-        c.drawRect(0,0,w,h,paint);paint.setShader(null);
-        // Distant ridges and drifting fireflies give depth without obscuring the trail.
-        for(int layer=0;layer<3;layer++){
-            Path ridge=new Path();ridge.moveTo(0,h);ridge.lineTo(0,h*(.38f+layer*.2f));
-            for(int i=0;i<=8;i++){float x=w*i/8f,y=h*(.42f+layer*.19f)+(float)Math.sin(i*1.7+levelPage)*dp(35);ridge.lineTo(x,y);}
-            ridge.lineTo(w,h);ridge.close();paint.setColor(new int[]{0x553A5382,0x66306073,0x77234555}[layer]);c.drawPath(ridge,paint);
-        }
-        double time=SystemClock.elapsedRealtime()/3000.0;
-        for(int i=0;i<22;i++){
-            float x=(i*73%101)/101f*w+(float)Math.sin(time+i)*dp(5),y=(i*43%97)/97f*h;
-            paint.setColor(Color.argb((int)(35+30*(1+Math.sin(time+i))*.5),160,246,223));c.drawCircle(x,y,dp(i%4==0?2:1),paint);
-        }
+        float w=getWidth(),h=getHeight();paint.setStyle(Paint.Style.FILL);
+        paint.setShader(new LinearGradient(0,0,w,h,0xFF071329,0xFF0A2036,Shader.TileMode.CLAMP));c.drawRect(0,0,w,h,paint);paint.setShader(null);
+        paint.setColor(0xFF193A5C);
+        for(float x=dp(20);x<w;x+=dp(22))for(float y=dp(20);y<h;y+=dp(22))c.drawCircle(x,y,dp(1),paint);
     }
 
     private void drawCelebration(Canvas c) {
@@ -1062,63 +1032,65 @@ public class ArrowGameView extends View {
         }
     }
 
+    private Path routeSegment(float px,float py,float nx,float ny){
+        float mid=(py+ny)/2,r=dp(10),dir=nx>px?1:-1;Path path=new Path();path.moveTo(px,py);
+        path.lineTo(px,mid+r);path.quadTo(px,mid,px+dir*r,mid);
+        path.lineTo(nx-dir*r,mid);path.quadTo(nx,mid,nx,mid-r);path.lineTo(nx,ny);
+        return path;
+    }
+    private void drawRouteLock(Canvas c,float x,float y,int color){
+        paint.setColor(color);paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.5f));
+        c.drawArc(new RectF(x-dp(3),y-dp(5),x+dp(3),y+dp(2)),180,180,false,paint);
+        paint.setStyle(Paint.Style.FILL);c.drawRoundRect(new RectF(x-dp(4),y-dp(1),x+dp(4),y+dp(5)),dp(1),dp(1),paint);
+    }
     private void drawLevels(Canvas c) {
-        drawScenicBackdrop(c);
-        float w=getWidth(),h=getHeight(),top=insetTop+dp(12);
-        drawThemeAtmosphere(c,w,h);
-        mapViewportTop=top+dp(112);
-        mapViewportBottom=h-insetBottom-dp(82);
-        clampMapScroll();
-        int start=levelPage*20+1;
+        drawScenicBackdrop(c);float w=getWidth(),h=getHeight(),top=insetTop+dp(10);
+        mapViewportTop=top+dp(98);mapViewportBottom=h-insetBottom-dp(78);clampMapScroll();int start=levelPage*20+1;
         c.save();c.clipRect(0,mapViewportTop,w,mapViewportBottom);
-        // One continuous winding trail. Only twenty nodes are drawn at a time.
-        Path trail=new Path();trail.moveTo(mapNodeX(0),mapNodeY(0));
-        for(int i=1;i<20;i++) {
-            float px=mapNodeX(i-1),py=mapNodeY(i-1),nx=mapNodeX(i),ny=mapNodeY(i);
-            trail.cubicTo(px,py+dp(44),nx,ny-dp(44),nx,ny);
+        for(int i=1;i<20;i++){
+            int lv=start+i;float px=mapNodeX(i-1),py=mapNodeY(i-1),nx=mapNodeX(i),ny=mapNodeY(i);
+            Path route=routeSegment(px,py,nx,ny);boolean open=lv<=maxUnlocked;
+            paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeWidth(dp(open?7:3));
+            paint.setColor(open?0xFF2AD9E5:0xFF7C80B7);
+            if(!open)paint.setPathEffect(new DashPathEffect(new float[]{dp(3),dp(7)},0));c.drawPath(route,paint);paint.setPathEffect(null);
+            paint.setStyle(Paint.Style.FILL);if(open)drawMiniArrow(c,nx,ny+dp(35),dp(9),BLUE,-90);
         }
-        paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);
-        paint.setStrokeWidth(dp(18));paint.setColor(0xFF192E5C);c.drawPath(trail,paint);
-        paint.setStrokeWidth(dp(10));paint.setShader(new LinearGradient(0,mapViewportTop,w,mapViewportBottom,new int[]{0xFF56E5D3,0xFF7289FF,0xFFDA98FF},null,Shader.TileMode.CLAMP));c.drawPath(trail,paint);paint.setShader(null);
-        paint.setStrokeWidth(dp(2));paint.setColor(0x88E1F6FF);c.drawPath(trail,paint);
-        paint.setStyle(Paint.Style.FILL);
-        for(int i=0;i<20;i++) {
+        for(int i=0;i<20;i++){
             int lv=start+i;float x=mapNodeX(i),y=mapNodeY(i);
-            if(mapNodeHits[i]==null)mapNodeHits[i]=new RectF();
-            mapNodeHits[i].set(x-dp(30),y-dp(30),x+dp(30),y+dp(30));
-            if(y+dp(45)<mapViewportTop||y-dp(45)>mapViewportBottom)continue;
+            if(mapNodeHits[i]==null)mapNodeHits[i]=new RectF();mapNodeHits[i].set(x-dp(30),y-dp(30),x+dp(30),y+dp(30));
+            if(y+dp(46)<mapViewportTop||y-dp(46)>mapViewportBottom)continue;
             boolean open=lv<=maxUnlocked,current=lv==currentLevelNumber(),done=bestStars(lv)>0;
-            int accent=CampaignRules.tier(lv)==3?Color.rgb(255,99,104):CampaignRules.tier(lv)==2?SUPER_HARD:CampaignRules.tier(lv)==1?BOSS_GOLD:BLUE;
-            if(isBoss(lv))accent=BOSS_GOLD;
-            if(current){float pulse=(float)(.5+.5*Math.sin(SystemClock.elapsedRealtime()/550.0));paint.setColor(Color.argb((int)(35+25*pulse),74,237,218));c.drawCircle(x,y,dp(34+4*pulse),paint);}
-            paint.setColor(Color.rgb(3,10,25));c.drawCircle(x,y+dp(4),dp(27),paint);
-            paint.setShader(new LinearGradient(x-dp(20),y-dp(27),x+dp(20),y+dp(27),!open?new int[]{0xFF243255,0xFF141E37}:done?new int[]{0xFF33CBA9,0xFF137E97}:new int[]{accent,0xFF5D48B9},null,Shader.TileMode.CLAMP));
-            c.drawCircle(x,y,dp(27),paint);paint.setShader(null);
-            paint.setColor(open?0x44FFFFFF:0x155B86BE);c.drawOval(new RectF(x-dp(19),y-dp(21),x+dp(14),y-dp(8)),paint);
-            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(current?3:2));
-            paint.setColor(open?accent:Color.rgb(44,58,78));c.drawCircle(x,y,dp(27),paint);paint.setStyle(Paint.Style.FILL);
-            label(c,String.valueOf(lv),x,y+dp(6),18,open?Color.WHITE:MUTED,true);
-            if(done)label(c,starString(bestStars(lv)),x,y+dp(40),10,BOSS_GOLD,true);
-            else if(CampaignRules.tier(lv)>0)label(c,CampaignRules.tier(lv)==3?"EXTREME":CampaignRules.tier(lv)==2?"SUPER HARD":"HARD",x,y-dp(34),10,BOSS_GOLD,true);
-            else if(current)label(c,"YOU ARE HERE",x,y-dp(35),9,BLUE,true);
+            int tier=CampaignRules.tier(lv),accent=tier==3?0xFFFF7984:tier==2?0xFFB091EF:tier==1?0xFFFFCE60:BLUE;
+            if(current){float pulse=settings.getBoolean("reduce_motion",false)?0f:(float)(.5+.5*Math.sin(SystemClock.elapsedRealtime()/550.0));paint.setColor(0x3327D8EE);c.drawRoundRect(new RectF(x-dp(35+pulse*2),y-dp(35+pulse*2),x+dp(35+pulse*2),y+dp(35+pulse*2)),dp(20),dp(20),paint);}
+            RectF token=new RectF(x-dp(27),y-dp(27),x+dp(27),y+dp(27));
+            Path shape=new Path();
+            if(tier>0){int sides=tier==1?4:tier==2?6:8;float offset=tier==1?-(float)Math.PI/2:0;
+                for(int k=0;k<sides;k++){double angle=offset+k*Math.PI*2/sides;float ax=x+(float)Math.cos(angle)*dp(31),ay=y+(float)Math.sin(angle)*dp(31);if(k==0)shape.moveTo(ax,ay);else shape.lineTo(ax,ay);}shape.close();
+            }else shape.addRoundRect(token,dp(15),dp(15),Path.Direction.CW);
+            paint.setShader(new LinearGradient(x,y-dp(28),x,y+dp(28),open?(tier==0?0xFF127D8E:accent):0xFF253457,open?0xFF12384D:0xFF142037,Shader.TileMode.CLAMP));c.drawPath(shape,paint);paint.setShader(null);
+            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(current?3:2));paint.setColor(open||tier>0?accent:0xFF5C6D99);c.drawPath(shape,paint);paint.setStyle(Paint.Style.FILL);
+            label(c,String.valueOf(lv),x,y+dp(open?6:0),20,open?NAVY:MUTED,true);
+            if(!open)drawRouteLock(c,x,y+dp(14),MUTED);
+            if(done)label(c,starString(bestStars(lv)),x,y+dp(42),12,BOSS_GOLD,true);
+            else if(current)label(c,lv==1?"START HERE":"YOU ARE HERE",x,y+dp(43),10,BLUE,true);
+            if(tier>0)label(c,tier==3?"EXTREME":tier==2?"SUPER HARD":"HARD",x,y+dp(!done&&!current?43:-39),10,accent,true);
         }
         c.restore();
-        RectF header=new RectF(dp(12),top,w-dp(12),top+dp(106));
-        paint.setShader(new LinearGradient(0,top,w,top+dp(106),0xEE213D70,0xEE28234F,Shader.TileMode.CLAMP));c.drawRoundRect(header,dp(22),dp(22),paint);paint.setShader(null);
-        strokeRound(c,header,Color.rgb(31,83,133),dp(1));
-        drawBack(c,dp(38),top+dp(28));
-        label(c,"ESCAPE TRAIL",w/2+dp(10),top+dp(31),21,NAVY,true);
-        label(c,chapterName(start)+"  ·  "+start+"–"+(start+19),w/2,top+dp(56),12,BLUE,true);
-        label(c,"400 LEVELS  ·  "+totalStars()+" / 1200 ★",w/2,top+dp(78),11,BLUE,true);
-        label(c,"Hard: 6th · Super: 12th · Extreme: 30th",w/2,top+dp(96),9,MUTED,false);
-        float y=h-insetBottom-dp(68),gap=dp(8),left=dp(14),bw=(w-2*left-2*gap)/3;
-        mapPrevHit.set(left,y,left+bw,y+dp(48));
-        mapCurrentHit.set(left+bw+gap,y,left+2*bw+gap,y+dp(48));
-        mapNextHit.set(left+2*bw+2*gap,y,w-left,y+dp(48));
-        pill(c,mapPrevHit,Color.rgb(8,27,56));pill(c,mapCurrentHit,Color.rgb(12,61,103));pill(c,mapNextHit,Color.rgb(8,27,56));
-        label(c,"‹ PREV",mapPrevHit.centerX(),y+dp(29),12,levelPage>0?NAVY:MUTED,true);
-        label(c,"MY LEVEL",mapCurrentHit.centerX(),y+dp(29),12,BLUE,true);
-        label(c,"NEXT ›",mapNextHit.centerX(),y+dp(29),12,levelPage<(MAX_LEVEL-1)/20?NAVY:MUTED,true);
+        RectF header=new RectF(dp(10),top,w-dp(10),top+dp(90));polishedPill(c,header,0xFF10294A,0xFF0B1932);strokeRound(c,header,0xFF23527A,dp(1));
+        label(c,"ESCAPE ROUTE",dp(24),top+dp(29),20,NAVY,true,Paint.Align.LEFT);
+        walletHit.set(w-dp(116),top+dp(7),w-dp(60),top+dp(45));pill(c,walletHit,0xFF30280F);drawCoin(c,walletHit.left+dp(12),walletHit.centerY(),dp(7));label(c,String.valueOf(wallet.balance()),walletHit.centerX()+dp(7),walletHit.centerY()+dp(4),12,BOSS_GOLD,true);
+        drawGear(c,w-dp(32),top+dp(26));
+        label(c,"CH "+chapterNumber(start)+" · "+chapterName(start),w/2,top+dp(53),12,MUTED,false);
+        mapPrevHit.set(dp(14),top+dp(61),dp(64),top+dp(89));mapNextHit.set(w-dp(64),top+dp(61),w-dp(14),top+dp(89));
+        label(c,"‹",mapPrevHit.centerX(),top+dp(81),22,levelPage>0?BLUE:MUTED,true);
+        label(c,"›",mapNextHit.centerX(),top+dp(81),22,levelPage<19?BLUE:MUTED,true);
+        label(c,"400 LEVELS · "+totalStars()+" ★",w/2,top+dp(78),11,BLUE,true);
+        mapCurrentHit.set(dp(20),h-insetBottom-dp(64),w-dp(20),h-insetBottom-dp(14));
+        action(c,mapCurrentHit,"PLAY LEVEL "+currentLevelNumber()+"  ›",BLUE,0xFF001822);
+    }
+
+    private void label(Canvas c,String value,float x,float y,int size,int color,boolean bold,Paint.Align align){
+        paint.setTextAlign(align);paint.setTextSize(dp(size));paint.setColor(color);paint.setFakeBoldText(bold);c.drawText(value,x,y,paint);paint.setFakeBoldText(false);paint.setTextAlign(Paint.Align.CENTER);
     }
 
     private void drawBack(Canvas c,float x,float y){
@@ -1158,7 +1130,13 @@ public class ArrowGameView extends View {
 
     private void drawMiniArrow(Canvas c,float x,float y,float s,int color,float degrees){c.save();c.rotate(degrees,x,y);paint.setColor(color);Path a=new Path();a.moveTo(x+s*.7f,y);a.lineTo(x-s*.35f,y-s*.45f);a.lineTo(x-s*.18f,y);a.lineTo(x-s*.35f,y+s*.45f);a.close();c.drawPath(a,paint);c.restore();}
 
-    private void drawToast(Canvas c,String msg){paint.setTextSize(dp(14));paint.setTextAlign(Paint.Align.CENTER);float tw=paint.measureText(msg);RectF r=new RectF((getWidth()-tw)/2-dp(18),insetTop+dp(130),(getWidth()+tw)/2+dp(18),insetTop+dp(172));paint.setColor(Color.argb(225,31,38,50));c.drawRoundRect(r,dp(20),dp(20),paint);paint.setColor(Color.WHITE);c.drawText(msg,r.centerX(),r.centerY()+dp(5),paint);}
+    private void drawToast(Canvas c,String msg){
+        float y=screen==Screen.PLAY?insetTop+dp(125):mapViewportTop;
+        paint.setTextSize(dp(12));paint.setTextAlign(Paint.Align.CENTER);
+        while(paint.measureText(msg)>getWidth()-dp(52)&&paint.getTextSize()>dp(9))paint.setTextSize(paint.getTextSize()-dp(.5f));
+        float tw=paint.measureText(msg);RectF r=new RectF((getWidth()-tw)/2-dp(16),y,(getWidth()+tw)/2+dp(16),y+dp(32));
+        paint.setColor(0xEE14273F);c.drawRoundRect(r,dp(16),dp(16),paint);paint.setColor(NAVY);c.drawText(msg,r.centerX(),r.centerY()+dp(4),paint);
+    }
 
     private void clampBoardPan() {
         if (boardZoom <= MIN_BOARD_ZOOM + .01f) {
@@ -1230,7 +1208,7 @@ public class ArrowGameView extends View {
         if(failed){
             if(primaryHit.contains(x,y))restartCurrentLevel();
             else if(secondaryHit.contains(x,y))host.requestRewardedRevive();
-            else if(walletHit.contains(x,y))host.openWallet();
+            else if(tertiaryHit.contains(x,y)){if(challengeActive())leaveChallenge();else showLevelSelect();}
             return true;
         }
         if(boosterMode!=0){
@@ -1242,7 +1220,8 @@ public class ArrowGameView extends View {
         float top=insetTop+dp(8);
         if(x<dp(65)&&y<top+dp(60)){if(challengeActive())leaveChallenge();else host.openHome();return true;}
         if(x>getWidth()-dp(65)&&y<top+dp(60)){host.openSettings();return true;}
-        if(walletHit.contains(x,y)||rewardHit.contains(x,y)){host.openWallet();return true;}
+        if(walletHit.contains(x,y)){host.openWallet();return true;}
+        if(rewardHit.contains(x,y)){beginBooster(3);return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
         if(eraseHit.contains(x,y)){host.openBoosters();return true;}
         // A tap belongs to the arrow selected on ACTION_DOWN. Re-running hit testing
@@ -1254,6 +1233,7 @@ public class ArrowGameView extends View {
     }
 
     private void startLevel(int lv) {
+        host.onGameplayStarted();
         dailyChallenge=false;weeklyChallenge=false;challengeDay=-1L;challengeWeek=-1L;
         setupLevel(lv,true);
     }
@@ -1320,7 +1300,7 @@ public class ArrowGameView extends View {
             case MotionEvent.ACTION_MOVE:
                 if(Math.abs(y-mapDownY)>dp(8))mapDragging=true;
                 if(mapDragging&&mapDownY>=mapViewportTop&&mapDownY<=mapViewportBottom){
-                    mapScroll+=mapLastY-y;clampMapScroll();invalidate();
+                    mapScroll+=y-mapLastY;clampMapScroll();invalidate();
                 }
                 mapLastY=y;return true;
             case MotionEvent.ACTION_UP:
@@ -1331,8 +1311,9 @@ public class ArrowGameView extends View {
     }
     private boolean handleLevelsTouch(float x,float y) {
         float top=insetTop+dp(12);
-        if(x<dp(70)&&y<top+dp(65)){screen=Screen.PLAY;host.openHome();invalidate();return true;}
-        if(mapCurrentHit.contains(x,y)){centerMapOnCurrent();invalidate();return true;}
+        if(walletHit.contains(x,y)){host.openWallet();return true;}
+        if(x>getWidth()-dp(65)&&y<top+dp(55)){host.openSettings();return true;}
+        if(mapCurrentHit.contains(x,y)){if(finished||failed)startLevel(currentLevelNumber());else openPlay();return true;}
         if(mapPrevHit.contains(x,y)&&levelPage>0){levelPage--;mapScroll=0;invalidate();return true;}
         if(mapNextHit.contains(x,y)&&levelPage<(MAX_LEVEL-1)/20){levelPage++;mapScroll=0;invalidate();return true;}
         if(y>=mapViewportTop&&y<=mapViewportBottom)for(int i=0;i<20;i++){
@@ -1549,6 +1530,13 @@ public class ArrowGameView extends View {
         if(complete>=1)n++;if(perfect>=1)n++;if(complete>=25)n++;if(complete>=60)n++;if(complete>=100)n++;
         if(complete>=140)n++;if(complete>=180)n++;if(complete>=200)n++;if(stars>=300)n++;if(perfect>=50)n++;if(allBossesCleared())n++;
         return n;
+    }
+    public String[][] chapterAwardCards(){
+        String[][] cards=new String[13][4];
+        for(int ch=1;ch<=13;ch++){int first=chapterStart(ch),count=chapterEnd(ch)-first+1,done=chapterCompleted(ch);
+            cards[ch-1]=new String[]{"CH "+ch+" · "+chapterName(first),"Levels "+first+"–"+chapterEnd(ch),done+" / "+count+" cleared · "+chapterStars(ch)+" stars",String.valueOf(done==count)};
+        }
+        return cards;
     }
     public int trophyCount(){int n=0;for(int ch=1;ch<=13;ch++)if(chapterCompleted(ch)==chapterEnd(ch)-chapterStart(ch)+1)n++;return n;}
     public String progressSummary(){return totalStars()+"/1200★  ·  "+trophyCount()+"/13 chapter trophies  ·  "+achievementCount()+"/11 achievements";}
@@ -2277,7 +2265,8 @@ public class ArrowGameView extends View {
     public boolean buyContinue(){if(!failed||!wallet.spend(Wallet.CONTINUE_COST))return false;grantRevive();return true;}
     public void restartCurrentLevel(){if(challengeActive())setupLevel(level,false);else startLevel(level);}
     public void showTutorialAgain(){screen=Screen.PLAY;tutorial=true;invalidate();}
-    private void showLevelSelect(){cancelBooster();screen=Screen.LEVELS;centerMapOnCurrent();saveProgress();invalidate();}
+    public void finishGuidedTutorial(){tutorial=false;}
+    private void showLevelSelect(){cancelBooster();tutorial=false;screen=Screen.LEVELS;centerMapOnCurrent();saveProgress();host.onRouteOpened();invalidate();}
     public void openLevels(){
         if(challengeActive())exitChallengeToCampaign();
         showLevelSelect();
@@ -2287,7 +2276,7 @@ public class ArrowGameView extends View {
         // Daily/weekly challenges have their own entry points and must never trap
         // the player in the internal difficulty-profile level used by a challenge.
         if(challengeActive())exitChallengeToCampaign();
-        screen=Screen.PLAY;invalidate();
+        screen=Screen.PLAY;host.onGameplayStarted();invalidate();
     }
     public int currentLevelNumber(){return challengeActive()?Math.max(1,Math.min(MAX_LEVEL,normalLevelBeforeChallenge)):level;}
     public int dailyPuzzleNumber(){return dailyChallengeNumberForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
@@ -2297,7 +2286,7 @@ public class ArrowGameView extends View {
     public boolean allBossesComplete(){return allBossesCleared();}
     public boolean handleBack(){
         if(boosterMode!=0){cancelBooster();return true;}
-        if(screen==Screen.LEVELS){screen=Screen.PLAY;host.openHome();invalidate();return true;}
+        if(screen==Screen.LEVELS)return false;
         if(tutorial){tutorial=false;prefs.edit().putBoolean("tutorialSeen",true).apply();invalidate();return true;}
         if(challengeActive()){leaveChallenge();invalidate();return true;}
         host.openHome();return true;

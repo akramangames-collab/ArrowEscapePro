@@ -46,6 +46,8 @@ import java.util.UUID;
 
 public class MainActivity extends ComponentActivity implements ArrowGameView.Host {
     private ArrowGameView game;
+    private LinearLayout routeNav;
+    private int onboardingStep = -1;
     private Wallet wallet;
     private SharedPreferences settings;
     private AmbientMusic music;
@@ -104,6 +106,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         music.setEnabled(settings.getBoolean("music", true));
         wallet = new Wallet(new PreferenceWalletStorage(this));
         game = new ArrowGameView(this, this, wallet);
+        game.finishGuidedTutorial();game.openLevels();
         root = new FrameLayout(this);
         root.setBackgroundColor(INK);
         applySystemBarInsets(root);
@@ -112,6 +115,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         gameColumn.setOrientation(LinearLayout.VERTICAL);
         root.addView(gameColumn,new FrameLayout.LayoutParams(-1,-1));
         gameColumn.addView(game,new LinearLayout.LayoutParams(-1,0,1f));
+        routeNav = navigationBar(0);
+        gameColumn.addView(routeNav,new LinearLayout.LayoutParams(-1,dp(64)));
         gameBannerSlot = new FrameLayout(this);
         gameBannerSlot.setBackgroundColor(INK);
         gameBannerSlot.setVisibility(View.GONE);
@@ -124,7 +129,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         installBackHandler();
         game.postDelayed(() -> {
             if (isFinishing() || isDestroyed()) return;
-            showHome();
+            if(settings.contains("route_onboarding_step"))showOnboarding(settings.getInt("route_onboarding_step",0));else if(settings.getBoolean("route_onboarding_complete",false))showHome();else showOnboarding(0);
         }, 450L);
         consent = UserMessagingPlatform.getConsentInformation(this);
         requestConsentAndStartAds();
@@ -296,6 +301,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         // enabled on pre-Android-15 devices as well. This call does not require the
         // deprecated status/navigation bar color APIs.
         WindowCompat.setDecorFitsSystemWindows(window, false);
+        if(settings!=null&&settings.getBoolean("reduce_motion",false))window.setWindowAnimations(0);
         if (android.os.Build.VERSION.SDK_INT >= 30) {
             android.view.WindowManager.LayoutParams attrs = window.getAttributes();
             attrs.layoutInDisplayCutoutMode =
@@ -387,7 +393,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(54));
         lp.setMargins(0,dp(7),0,dp(5)); b.setLayoutParams(lp);
         b.setElevation(dp(primary?5:2));
-        b.setOnTouchListener((v,event)->{if(event.getAction()==android.view.MotionEvent.ACTION_DOWN)v.animate().scaleX(.97f).scaleY(.97f).setDuration(90).start();else if(event.getAction()==android.view.MotionEvent.ACTION_UP||event.getAction()==android.view.MotionEvent.ACTION_CANCEL)v.animate().scaleX(1f).scaleY(1f).setDuration(160).start();return false;});
+        b.setOnTouchListener((v,event)->{if(settings.getBoolean("reduce_motion",false))return false;if(event.getAction()==android.view.MotionEvent.ACTION_DOWN)v.animate().scaleX(.97f).scaleY(.97f).setDuration(90).start();else if(event.getAction()==android.view.MotionEvent.ACTION_UP||event.getAction()==android.view.MotionEvent.ACTION_CANCEL)v.animate().scaleX(1f).scaleY(1f).setDuration(160).start();return false;});
         b.setOnClickListener(v -> action.run()); return b;
     }
     private LinearLayout panel() {
@@ -411,10 +417,23 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         Button buy=new Button(this);buy.setAllCaps(false);buy.setText(actionLabel);buy.setTextSize(12);buy.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
         buy.setTextColor(selected?INK:TEXT);
         buy.setBackground(selected?gradient(CYAN,BLUE,14,0):gradient(PURPLE,0xFF5C38D8,14,0));
-        buy.setOnClickListener(v->action.run());
-        row.addView(buy,new LinearLayout.LayoutParams(dp(96),dp(42)));
-        card.addView(row);body.addView(card);
+        buy.setEnabled(!selected);buy.setOnClickListener(v->action.run());
+        row.addView(buy,new LinearLayout.LayoutParams(dp(96),dp(48)));
+        card.addView(row);
+        Button preview=button("PREVIEW",()->showProductPreview(name,feature,status,actionLabel,action),false);
+        card.addView(preview);body.addView(card);
     }
+    private void showProductPreview(String name,String feature,String status,String actionLabel,Runnable action){
+        int arrow=0,theme=0;String[] names=game.arrowTypeNames();
+        for(int i=0;i<names.length;i++)if(names[i].equals(name))arrow=i;
+        names=game.boardThemeNames();for(int i=0;i<names.length;i++)if(names[i].equals(name))theme=i;
+        LinearLayout body=panel();body.addView(text(name,22,TEXT));body.addView(text(feature,14,MUTED));
+        body.addView(new ArrowPreviewView(this,arrow,theme),new LinearLayout.LayoutParams(-1,dp(190)));
+        body.addView(text(status,14,GOLD));body.addView(text("Preview only · your coins and equipped style stay unchanged",13,MUTED));
+        AlertDialog preview=new AlertDialog.Builder(this).setView(body).setNegativeButton("Close",null).setPositiveButton(actionLabel,(d,w)->action.run()).create();
+        preview.show();if(preview.getWindow()!=null)preview.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+    }
+
     private void updateBalance() { if (menuBalance != null) menuBalance.setText("● " + wallet.balance()); }
 
     private void refreshStore() {
@@ -451,16 +470,20 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);
         FrameLayout shell=menuShell(scroll);
         menu=new AlertDialog.Builder(this).setView(shell).create();
-        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
+        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);}game.invalidate();});
         menu.show();
         scroll.post(() -> scroll.scrollTo(0,0));
-        showVisibleMenuBanner();
+        if(onboardingStep<0)showVisibleMenuBanner();
         if(menu.getWindow()!=null){
-            configurePlatformEdgeToEdge(menu.getWindow());
-            menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
-            menu.getWindow().setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT,android.view.WindowManager.LayoutParams.MATCH_PARENT);
-            applySystemBarInsets(shell);
+            mountFullScreenMenu(shell);
         }
+    }
+
+    private void mountFullScreenMenu(FrameLayout shell){
+        android.view.Window window=menu.getWindow();if(window==null)return;
+        if(shell.getParent() instanceof android.view.ViewGroup parent)parent.removeView(shell);
+        window.setContentView(shell);configurePlatformEdgeToEdge(window);
+        window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(INK));window.setLayout(-1,-1);applySystemBarInsets(shell);
     }
 
     private LinearLayout premiumBody() {
@@ -472,11 +495,11 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void addPremiumHeader(LinearLayout body,String title,String subtitle) {
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView icon=new ImageView(this);icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
+        TextView icon=text("‹",30,CYAN);icon.setGravity(Gravity.CENTER);icon.setContentDescription("Back to Route");icon.setBackground(background(0xFF10284A,14,0xFF245681));icon.setOnClickListener(v->{if(onboardingStep>=0)finishOnboarding();else showHome();});
         row.addView(icon,new LinearLayout.LayoutParams(dp(48),dp(48)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(10),0,0,0);
-        TextView t=text(title,21,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);
-        TextView sub=text(subtitle,10,MUTED);sub.setLetterSpacing(.06f);copy.addView(sub);
+        TextView t=text(title,19,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);
+        TextView sub=text(subtitle,12,MUTED);sub.setLetterSpacing(.06f);copy.addView(sub);
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
         TextView coin=text("● "+wallet.balance(),12,GOLD);coin.setGravity(Gravity.CENTER);
         coin.setTypeface(Typeface.DEFAULT,Typeface.BOLD);coin.setBackground(background(0xFF221B09,17,0xFF6E5512));
@@ -485,52 +508,82 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         body.addView(row);
     }
 
+    private void dismissMenuForRoute() {
+        if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();menu=null;}
+        destroyBanner();clearMenuBannerSlot();
+    }
+
     private void showHome() {
-        stopGameplayBanner();
-        currentNav=0;
+        dismissMenuForRoute();hideResultBanner();stopGameplayBanner();currentNav=0;
+        game.setPaused(false);game.openLevels();onRouteOpened();
+    }
+    @Override public void onRouteOpened(){
+        hideResultBanner();stopGameplayBanner();currentNav=0;
+        if(routeNav!=null)routeNav.setVisibility(View.VISIBLE);
+        if(root!=null)root.requestLayout();
+    }
+    @Override public void onGameplayStarted(){
+        if(routeNav!=null)routeNav.setVisibility(View.GONE);
+        stopGameplayBanner();if(root!=null)root.requestLayout();
+    }
+
+    private void finishOnboarding(){
+        settings.edit().putBoolean("route_onboarding_complete",true).remove("route_onboarding_step").apply();
+        getSharedPreferences("arrow_puzzle_faithful",MODE_PRIVATE).edit().putBoolean("tutorialSeen",true).apply();
+        game.finishGuidedTutorial();onboardingStep=-1;showHome();
+    }
+
+    private void showOnboarding(int step){
+        if(isDestroyed()||showingAd)return;
+        onboardingStep=Math.max(0,Math.min(2,step));
+        settings.edit().putInt("route_onboarding_step",onboardingStep).apply();
+        dismissMenuForRoute();hideResultBanner();stopGameplayBanner();game.setPaused(true);routeNav.setVisibility(View.GONE);
         LinearLayout body=premiumBody();
-        addPremiumHeader(body,"ARROW ESCAPE PRO","THINK  ·  PLAN  ·  SLIDE  ·  ESCAPE");
-
-        LinearLayout hero=panel();
-        hero.setBackground(gradient(0xFF103A67,0xFF08182F,22,CYAN));
-        TextView kicker=text("CONTINUE YOUR ESCAPE",11,CYAN);kicker.setTypeface(Typeface.DEFAULT,Typeface.BOLD);kicker.setLetterSpacing(.12f);hero.addView(kicker);
-        TextView levelTitle=text("Level "+game.currentLevelNumber(),28,TEXT);levelTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(levelTitle);
-        hero.addView(text("Chapter "+game.currentChapterNumber()+"  ·  "+game.currentChapterName()+"  ·  "+game.progressSummary(),12,MUTED));
-        hero.addView(button("▶  PLAY NOW",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();enterGameplay();},true));
-        body.addView(hero);
-
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
-        LinearLayout daily=panel();
-        LinearLayout dailyRow=new LinearLayout(this);dailyRow.setGravity(Gravity.CENTER_VERTICAL);
-        TextView cup=text("🏆",30,GOLD);cup.setGravity(Gravity.CENTER);dailyRow.addView(cup,new LinearLayout.LayoutParams(dp(54),dp(54)));
-        LinearLayout dailyCopy=new LinearLayout(this);dailyCopy.setOrientation(LinearLayout.VERTICAL);dailyCopy.setPadding(dp(10),0,0,0);
-        TextView dt=text("Daily Challenge #"+game.dailyPuzzleNumber(),16,TEXT);dt.setTypeface(Typeface.DEFAULT,Typeface.BOLD);dailyCopy.addView(dt);
-        dailyCopy.addView(text(wallet.canRewardDailyChallenge(day)?"200 coins waiting today":"Completed today · replay for stars",12,wallet.canRewardDailyChallenge(day)?GOLD:GREEN));
-        dailyRow.addView(dailyCopy,new LinearLayout.LayoutParams(0,-2,1f));
-        Button go=new Button(this);go.setText("PLAY");go.setTextSize(12);go.setTypeface(Typeface.DEFAULT,Typeface.BOLD);go.setTextColor(TEXT);
-        go.setBackground(gradient(PURPLE,0xFF5A38D6,14,0));go.setOnClickListener(v->showDailyChallengePanel());
-        dailyRow.addView(go,new LinearLayout.LayoutParams(dp(82),dp(42)));daily.addView(dailyRow);body.addView(daily);
-
-        LinearLayout row1=new LinearLayout(this);row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.addView(tileButton("▦\nLEVELS\n400 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();enterGameplay();}));
-        row1.addView(tileButton("🏆\nDAILY\n200 COINS",GOLD,this::showDailyChallengePanel));body.addView(row1);
-
-        LinearLayout row2=new LinearLayout(this);row2.setOrientation(LinearLayout.HORIZONTAL);
-        row2.addView(tileButton("★\nACHIEVEMENTS\n"+game.completedLevelCount()+" CLEARED",GOLD,this::showAchievements));
-        row2.addView(tileButton("🛒\nSTORE\nARROWS & THEMES",PURPLE,this::showPremiumStore));body.addView(row2);
-
-        presentFullScreen(body,0);
+        Button skip=button("Skip tutorial  ›",this::finishOnboarding,false);LinearLayout.LayoutParams skipLp=new LinearLayout.LayoutParams(dp(150),dp(48));skipLp.gravity=Gravity.END;skip.setLayoutParams(skipLp);body.addView(skip);
+        String[] titles={"WELCOME TO ARROW ESCAPE","YOUR ESCAPE TOOLS","LEARN TO ESCAPE"};
+        TextView title=text(titles[onboardingStep],26,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);body.addView(title);
+        body.addView(text("STEP "+(onboardingStep+1)+" OF 3",12,CYAN));
+        if(onboardingStep==0){
+            body.addView(text("Clear the arrows. Find your escape.",20,TEXT));
+            body.addView(new ArrowPreviewView(this,4,0),new LinearLayout.LayoutParams(-1,dp(190)));
+            body.addView(text("400 levels · Hard, Super Hard and Extreme checkpoints",15,CYAN));
+            body.addView(text("Tap an arrow only when its full escape path is clear. Its body follows through the bends; other arrows and its own tail can block it.",15,MUTED));
+            body.addView(button("NEXT  ›",()->showOnboarding(1),true));
+        }else if(onboardingStep==1){
+            body.addView(text("Hint · highlights a safe move",18,GOLD));
+            body.addView(text("Precise eraser · removes your selected arrow\nArea bomb · clears arrows in a limited area\nRow sweep · clears arrows touching one row",15,TEXT));
+            body.addView(text("Choose a target and preview it before confirming. Cancel is free; prices are shown before coins are spent.",15,MUTED));
+            body.addView(text("Route is your home. Daily has a separate challenge; Store has cosmetic previews; Awards tracks achievements and streaks; Me has your preferences.",15,CYAN));
+            body.addView(button("TRY THE PRACTICE  ›",()->showOnboarding(2),true));
+            body.addView(button("‹  BACK",()->showOnboarding(0),false));
+        }else{
+            body.addView(text("Clear the purple arrow first, then the cyan arrow.",16,TEXT));
+            body.addView(new TutorialPracticeView(this,this::finishOnboarding),new LinearLayout.LayoutParams(-1,dp(260)));
+            body.addView(text("Practice is free: no hearts, coins or campaign progress are used. In a real level, a blocked tap costs one heart. Pinch to zoom dense boards.",14,MUTED));
+            body.addView(button("‹  BACK",()->showOnboarding(1),false));
+        }
+        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.addView(body);
+        FrameLayout shell=new FrameLayout(this);shell.addView(scroll,new FrameLayout.LayoutParams(-1,-1));applySystemBarInsets(shell);
+        menu=new AlertDialog.Builder(this).setView(shell).create();menu.setOnCancelListener(d->finishOnboarding());menu.show();
+        if(menu.getWindow()!=null)mountFullScreenMenu(shell);
     }
 
     private void showPremiumStore() {
         LinearLayout body=premiumBody();
-        addPremiumHeader(body,"STORE","Arrows, themes and rewards in one premium space");
+        addPremiumHeader(body,"STORE","Preview · unlock · equip");
 
         LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
-        tabs.addView(tabButton("Arrow Garage",storeTab==0,()->{storeTab=0;showPremiumStore();}));
+        tabs.addView(tabButton("Arrows",storeTab==0,()->{storeTab=0;showPremiumStore();}));
         tabs.addView(tabButton("Themes",storeTab==1,()->{storeTab=1;showPremiumStore();}));
         tabs.addView(tabButton("Coins",storeTab==2,()->{storeTab=2;showPremiumStore();}));
         LinearLayout.LayoutParams tlp=new LinearLayout.LayoutParams(-1,dp(42));tlp.setMargins(0,dp(12),0,dp(8));tabs.setLayoutParams(tlp);body.addView(tabs);
+        if(storeTab<2){
+            LinearLayout hero=panel();
+            int arrow=game.currentArrowTypeIndex(),theme=game.currentBoardThemeIndex();
+            hero.addView(text(storeTab==0?game.arrowTypeNames()[arrow]:game.boardThemeNames()[theme],20,TEXT));
+            hero.addView(new ArrowPreviewView(this,arrow,theme),new LinearLayout.LayoutParams(-1,dp(140)));
+            hero.addView(text("✓  EQUIPPED · cosmetic changes only",12,CYAN));body.addView(hero);
+        }
 
         if(storeTab==0){
             body.addView(section("ARROW GARAGE"));
@@ -582,7 +635,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(button("🏆  DAILY CHALLENGE  ·  +200 COINS",()->showDailyChallengePanel(),false));
             body.addView(button("🔥  DAILY STREAK REWARDS",()->{achievementTab=1;showAchievements();},false));
         }
-        presentFullScreen(body,3);
+        presentFullScreen(body,2);
     }
 
     private void addAchievementCard(LinearLayout body,String icon,String name,String goal,String progress,boolean done) {
@@ -595,15 +648,19 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void showAchievements() {
-        LinearLayout body=premiumBody();addPremiumHeader(body,"ACHIEVEMENTS","Track progress, trophies and your daily streak");
+        LinearLayout body=premiumBody();addPremiumHeader(body,"AWARDS","Track progress, trophies and your daily streak");
         menuBalance=text(game.progressSummary(),13,CYAN);menuBalance.setGravity(Gravity.CENTER);body.addView(menuBalance);
 
         LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
-        tabs.addView(tabButton("All Achievements",achievementTab==0,()->{achievementTab=0;showAchievements();}));
-        tabs.addView(tabButton("Daily Streak",achievementTab==1,()->{achievementTab=1;showAchievements();}));
+        tabs.addView(tabButton("Achievements",achievementTab==0,()->{achievementTab=0;showAchievements();}));
+        tabs.addView(tabButton("Streak",achievementTab==1,()->{achievementTab=1;showAchievements();}));
+        tabs.addView(tabButton("Chapters",achievementTab==2,()->{achievementTab=2;showAchievements();}));
         LinearLayout.LayoutParams tlp=new LinearLayout.LayoutParams(-1,dp(42));tlp.setMargins(0,dp(12),0,dp(8));tabs.setLayoutParams(tlp);body.addView(tabs);
 
-        if(achievementTab==0){
+        if(achievementTab==2){
+            String[][] chapters=game.chapterAwardCards();
+            for(String[] chapter:chapters)addAchievementCard(body,"◆",chapter[0],chapter[1],chapter[2],chapter[3].equals("true"));
+        }else if(achievementTab==0){
             int complete=game.completedLevelCount(),perfect=game.perfectLevelCount(),stars=game.totalStarCount();
             addAchievementCard(body,"★","First Escape","Complete your first level",Math.min(complete,1)+" / 1",complete>=1);
             addAchievementCard(body,"◎","Perfect Run","Earn a 3★ clear",Math.min(perfect,1)+" / 1",perfect>=1);
@@ -639,7 +696,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             },true);claim.setEnabled(wallet.canClaimDaily(now));body.addView(claim);
             body.addView(text("Rewards grow with your streak: 10 → 15 → 20 → 30 → 40 → 50 → 75 coins. After day 7, each continuing day earns 75 coins.",12,MUTED));
         }
-        presentFullScreen(body,4);updatePlayGamesControls();refreshPlayGamesStatus();
+        presentFullScreen(body,3);updatePlayGamesControls();refreshPlayGamesStatus();
     }
 
     private String challengeResetText() {
@@ -653,7 +710,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         settings.edit().putLong("daily_challenge_prompt_day",day).apply();
         dailyReminderScheduled=false;
         if(game!=null)game.removeCallbacks(dailyReminderTask);
-        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–400");
+        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","Separate from your 400-level route");
+        LinearLayout preview=panel();preview.addView(new ArrowPreviewView(this,0,0),new LinearLayout.LayoutParams(-1,dp(120)));body.addView(preview);
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
         TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
@@ -675,44 +733,29 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         week.addView(dots);body.addView(week);
         body.addView(button("▶  PLAY TODAY'S CHALLENGE",()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();enterGameplay();},true));
         body.addView(text("Separate from campaign progress · reward once per day · replay anytime to improve stars.",12,MUTED));
-        presentFullScreen(body,2);
+        presentFullScreen(body,1);
     }
 
+    private android.widget.Switch preferenceToggle(String label,String key,boolean defaultValue){
+        android.widget.Switch toggle=new android.widget.Switch(this);toggle.setText(label);toggle.setTextSize(16);toggle.setTextColor(TEXT);toggle.setMinHeight(dp(52));
+        toggle.setThumbTintList(android.content.res.ColorStateList.valueOf(CYAN));toggle.setTrackTintList(android.content.res.ColorStateList.valueOf(0xFF245A75));
+        toggle.setChecked(settings.getBoolean(key,defaultValue));toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();if(key.equals("music")){music.setEnabled(checked);if(foreground&&!showingAd)music.resume();}game.invalidate();});return toggle;
+    }
     private void showProfile() {
-        currentNav=4;
-        LinearLayout body=premiumBody();
-        addPremiumHeader(body,"PLAYER","Your progress, preferences and support");
-
-        LinearLayout identity=panel();
-        LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
-        TextView avatar=text("★",30,CYAN);avatar.setGravity(Gravity.CENTER);avatar.setBackground(gradient(0xFF153D70,0xFF0A1D3A,22,CYAN));
-        row.addView(avatar,new LinearLayout.LayoutParams(dp(62),dp(62)));
+        currentNav=4;LinearLayout body=premiumBody();addPremiumHeader(body,"ME","Your profile and preferences");
+        LinearLayout identity=panel(),row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
+        TextView avatar=text("➜",30,CYAN);avatar.setGravity(Gravity.CENTER);avatar.setBackground(gradient(0xFF153D70,0xFF0A1D3A,30,CYAN));row.addView(avatar,new LinearLayout.LayoutParams(dp(60),dp(60)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        TextView player=text(playGamesName,20,TEXT);playGamesPlayerLabel=player;player.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(player);
-        copy.addView(text("Level "+game.currentLevelNumber()+"  ·  "+game.totalStarCount()+" stars",12,MUTED));
-        row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));identity.addView(row);body.addView(identity);
-
-        LinearLayout stats=new LinearLayout(this);stats.setOrientation(LinearLayout.HORIZONTAL);
-        stats.addView(profileStat(String.valueOf(game.completedLevelCount()),"Levels"));
-        stats.addView(profileStat(String.valueOf(game.totalStarCount()),"Stars"));
-        stats.addView(profileStat(wallet.streak()+"d","Streak"));
-        body.addView(stats);
-
-        body.addView(section("GOOGLE PLAY GAMES"));
-        playGamesStatusLabel=text(playGamesSignedIn?"Connected to Google Play Games":"Connect your Play Games profile",13,MUTED);
-        body.addView(playGamesStatusLabel);
-        playGamesButton=button(playGamesSignedIn?"✓  Google Play Games connected":"Sign in with Google Play Games",this::signInWithPlayGames,true);
-        playGamesButton.setEnabled(ArrowApplication.playGamesReady&&!playGamesSignInBusy&&!playGamesSignedIn);
-        body.addView(playGamesButton);
-        body.addView(text("Level progress and coins are saved on this device.",12,MUTED));
-        body.addView(section("YOUR JOURNEY"));
-        body.addView(button("★  Achievements & trophies",this::showAchievements,false));
-        body.addView(button("🔥  Daily streak rewards",()->{achievementTab=1;showAchievements();},false));
-        body.addView(section("PREFERENCES"));
-        body.addView(button("⚙  Settings",()->showMenu(false),false));
-        body.addView(button("★  Rate Arrow Escape",this::openPlayStoreRating,false));
-        body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
-        presentFullScreen(body,4);updatePlayGamesControls();refreshPlayGamesStatus();
+        playGamesPlayerLabel=text(playGamesName,20,TEXT);playGamesPlayerLabel.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(playGamesPlayerLabel);
+        copy.addView(text("Level "+game.currentLevelNumber()+" · "+game.totalStarCount()+" stars",13,MUTED));row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));identity.addView(row);body.addView(identity);
+        LinearLayout account=panel();account.addView(text("GOOGLE PLAY GAMES",14,CYAN));
+        playGamesStatusLabel=text(playGamesSignedIn?"Connected":"Optional · play without signing in",13,MUTED);account.addView(playGamesStatusLabel);
+        playGamesButton=button(playGamesSignedIn?"✓  Connected":"Sign in with Google Play Games",this::signInWithPlayGames,true);account.addView(playGamesButton);
+        account.addView(text("Progress saved on this device",12,MUTED));body.addView(account);
+        LinearLayout preferences=panel();preferences.addView(preferenceToggle("Music","music",true));preferences.addView(preferenceToggle("Sound effects","sound",true));preferences.addView(preferenceToggle("Vibration","haptics",true));body.addView(preferences);
+        body.addView(button("⚙  More settings",()->showMenu(false),false));body.addView(button("Replay tutorial",()->showOnboarding(0),false));body.addView(button("Help & privacy",this::showPrivacyPolicy,false));
+        body.addView(button("★  Rate Arrow Escape",this::openPlayStoreRating,false));presentFullScreen(body,4);updatePlayGamesControls();refreshPlayGamesStatus();
+        playGamesButton.setAlpha(playGamesButton.isEnabled()?1f:.55f);
     }
 
     private void refreshPlayGamesStatus() {
@@ -813,7 +856,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void showMenu(boolean store) {
-        currentNav=store?3:4;
+        currentNav=store?2:4;
         if (isDestroyed() || showingAd) return;
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
         destroyBanner(); suspendGameBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
@@ -926,13 +969,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(button("Achievements & chapter trophies",this::showProgressHall,false));
         } else {
             body.addView(section("GAMEPLAY"));
-            String[] labels={"Soothing background music","Sound effects","Vibration","High contrast arrows"};
-            String[] keys={"music","sound","haptics","contrast"};
+            String[] labels={"Soothing background music","Sound effects","Vibration","High contrast arrows","Reduce motion"};
+            String[] keys={"music","sound","haptics","contrast","reduce_motion"};
             for(int i=0;i<keys.length;i++){
                 String key=keys[i],label=labels[i];
                 android.widget.Switch toggle=new android.widget.Switch(this);
                 toggle.setText(label);toggle.setTextSize(16);toggle.setTextColor(TEXT);toggle.setMinHeight(dp(54));
-                toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")));
+                toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")&&!key.equals("reduce_motion")));
                 toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();if(key.equals("music")){music.setEnabled(checked);if(foreground&&!showingAd)music.resume();}game.invalidate();});
                 body.addView(toggle);
             }
@@ -942,7 +985,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(note);
 
             body.addView(section("GAME"));
-            body.addView(button("How to play",()->{menu.dismiss();game.showTutorialAgain();},false));
+            body.addView(button("Replay tutorial",()->showOnboarding(0),false));
             body.addView(button("Restart this level",()->{
                 new AlertDialog.Builder(this).setTitle("Restart level?").setMessage("Your coins stay safe. This puzzle starts again.")
                     .setNegativeButton("Keep playing",null).setPositiveButton("Restart",(d,w)->{menu.dismiss();game.restartCurrentLevel();}).show();
@@ -960,17 +1003,17 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(text("Version "+BuildConfig.VERSION_NAME,12,MUTED));
         }
 
-        body.addView(button(store?"BACK TO PUZZLE":"⌂  BACK TO HOME",()->{if(store)menu.dismiss();else showHome();},true));
+        body.addView(button(store?"BACK TO PUZZLE":"‹  BACK TO ROUTE",()->{if(store)menu.dismiss();else showHome();},true));
 
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(INK);scroll.addView(body);
         FrameLayout shell=menuShell(scroll);
         menu=new AlertDialog.Builder(this).setView(shell).create();
-        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
+        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);}game.invalidate();});
         menu.show();
         scroll.post(() -> scroll.scrollTo(0,0));
-        showVisibleMenuBanner();
+        if(onboardingStep<0)showVisibleMenuBanner();
         if(menu.getWindow()!=null){
-            menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
+            mountFullScreenMenu(shell);
         }
     }
 
@@ -995,19 +1038,21 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         int height=Math.max(dp(50),size.getHeightInPixels(this));
         android.view.ViewGroup.LayoutParams lp=slot.getLayoutParams();
         if(lp!=null){lp.height=android.view.ViewGroup.LayoutParams.WRAP_CONTENT;slot.setLayoutParams(lp);}
-        slot.setMinimumHeight(height);
+        slot.setPadding(0,dp(24),0,0);
+        slot.setMinimumHeight(height+dp(24));
+        slot.setBackground(new AdRailBackdrop(dp(10),dp(16)));
         slot.removeAllViews();
-        // Keep the slot invisible until an actual creative is loaded. This prevents
-        // empty black ad rails on new/no-fill inventory.
-        slot.setVisibility(View.GONE);
-        AdView ad=new AdView(this);
-        slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));
+        // Reserve the requested footprint before loading, so controls never move into
+        // the ad area while the creative arrives. Buffer stays non-interactive.
+        slot.setVisibility(View.VISIBLE);
+        AdView ad=new AdView(this);ad.setVisibility(View.INVISIBLE);
+        slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL));
         BannerAdRequest request=new BannerAdRequest.Builder(BuildConfig.ADMOB_BANNER_ID,size).build();
         ad.loadAd(request,new AdLoadCallback<BannerAd>() {
             @Override public void onAdLoaded(BannerAd loadedAd) {
                 runOnUiThread(() -> {
                 if(isDestroyed()||ad.getParent()!=slot)return;
-                bannerRetryCount=0;
+                bannerRetryCount=0;ad.setVisibility(View.VISIBLE);
                 loadedAd.setAdEventCallback(new BannerAdEventCallback() {});
                 slot.setVisibility(View.VISIBLE);
                 if(slot==gameBannerSlot){
@@ -1025,7 +1070,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             @Override public void onAdFailedToLoad(LoadAdError error) {
                 runOnUiThread(() -> {
                 if(isDestroyed()||ad.getParent()!=slot)return;
-                slot.setVisibility(View.GONE);
+                slot.setVisibility(View.VISIBLE);ad.setVisibility(View.INVISIBLE);
                 if(slot==gameBannerSlot){
                     gameBannerHeightPx=0; updateGameBottomInset();
                 }else if(slot==resultBannerSlot){
@@ -1062,13 +1107,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(game!=null)game.invalidate();
     }
 
-    private void enterGameplay() {
-        gameplayBannerRequested=true;
-        showGameBanner();
-    }
+    private void enterGameplay() {onGameplayStarted();}
 
     private void showGameBanner() {
-        if(!gameplayBannerRequested||!canRequestAds()||showingAd||isFinishing()||isDestroyed())return;
+        if(onboardingStep>=0||!gameplayBannerRequested||!canRequestAds()||showingAd||isFinishing()||isDestroyed())return;
         if(menu!=null&&menu.isShowing())return;
         if(resultBannerSlot!=null&&resultBannerSlot.getVisibility()==View.VISIBLE)return;
         if(gameBanner!=null)return;
@@ -1093,14 +1135,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout column=new LinearLayout(this);column.setOrientation(LinearLayout.VERTICAL);
         shell.addView(column,new FrameLayout.LayoutParams(-1,-1));
         column.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
-        LinearLayout nav=new LinearLayout(this);nav.setOrientation(LinearLayout.HORIZONTAL);nav.setGravity(Gravity.CENTER);
-        nav.setPadding(dp(6),dp(4),dp(6),dp(4));
-        nav.setBackground(gradient(0xFF07162F,0xFF040D20,0,0xFF15345E));
-        nav.addView(navButton("⌂\nHome",0));
-        nav.addView(navButton("▦\nLevels",1));
-        nav.addView(navButton("★\nDaily",2));
-        nav.addView(navButton("🛒\nStore",3));
-        nav.addView(navButton("●\nMe",4));
+        LinearLayout nav=navigationBar(currentNav);
         activeMenuNav=nav;
         column.addView(nav,new LinearLayout.LayoutParams(-1,dp(68)));
         menuBannerSlot=new FrameLayout(this);
@@ -1110,10 +1145,19 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         return shell;
     }
 
+    private LinearLayout navigationBar(int selected){
+        LinearLayout nav=new LinearLayout(this);nav.setGravity(Gravity.CENTER);nav.setPadding(dp(6),dp(4),dp(6),dp(4));
+        nav.setBackground(gradient(0xFF091B33,0xFF041020,0,0xFF1A466A));
+        String[] labels={"Route","Daily","Store","Awards","Me"};
+        for(int i=0;i<labels.length;i++)nav.addView(navButton(labels[i],i));
+        return nav;
+    }
+
     private TextView navButton(String label,int index) {
         boolean selected=currentNav==index;
         TextView b=text(label,11,selected?CYAN:MUTED);
-        b.setPadding(0,0,0,0);
+        b.setPadding(0,dp(3),0,dp(3));
+        RouteNavIcon icon=new RouteNavIcon(index,selected?CYAN:MUTED);icon.setBounds(0,0,dp(23),dp(23));b.setCompoundDrawables(null,icon,null,null);b.setCompoundDrawablePadding(dp(3));
         b.setGravity(Gravity.CENTER);
         b.setTypeface(Typeface.DEFAULT,selected?Typeface.BOLD:Typeface.NORMAL);
         b.setBackground(selected?background(0xFF102A52,15,0xFF1F5C96):background(0x00000000,15,0));
@@ -1129,21 +1173,17 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void openNav(int index) {
-        if(index==currentNav && index!=1)return;
+        if(index==currentNav&&index!=0)return;
+        onboardingStep=-1;
         if(index==0){showHome();return;}
-        if(index==1){
-            currentNav=1;
-            scheduleDailyChallengeReminder();
-            if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();}
-            game.setPaused(false);game.openLevels();enterGameplay();return;
-        }
-        if(index==2){showDailyChallengePanel();return;}
-        if(index==3){showPremiumStore();return;}
+        if(index==1){showDailyChallengePanel();return;}
+        if(index==2){showPremiumStore();return;}
+        if(index==3){showAchievements();return;}
         showProfile();
     }
 
     private void showVisibleMenuBanner() {
-        if(menuBannerSlot==null||menu==null||!menu.isShowing()||banner!=null)return;
+        if(onboardingStep>=0||menuBannerSlot==null||menu==null||!menu.isShowing()||banner!=null)return;
         if(!canRequestAds()){
             menuBannerSlot.setVisibility(View.INVISIBLE);
             setMenuBannerSpace(0,false);

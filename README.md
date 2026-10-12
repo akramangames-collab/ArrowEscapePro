@@ -4,14 +4,15 @@ Current release-hardening line for the Android arrow puzzle game.
 
 ## Current build
 
-- Version: `1.2.2`
-- Version code: `30`
-- Package: `com.arrowescape.pro`
+- Version: `1.3.0`
+- Version code: `31`
+- Production package: `com.arrowescape.pro`
+- Installable preview package: `com.arrowescape.pro.preview` (separate from earlier debug installs)
 - Minimum SDK: `24`
 - Compile SDK: `36`
 - Target SDK: `36`
 - Java: `17`
-- Active hardening branch: `v26-release-hardening`
+- Active branch: `feature/v28-400-level-trail-boosters`
 
 ## Gameplay baseline
 
@@ -112,3 +113,7 @@ This fixes an initialization ordering error; it does not hide startup exceptions
 ## v30 visual and layout update
 
 The escape trail now uses colourful gradient paths, dimensional level markers, soft landscape ridges and gentle firefly/current-level animations. Buttons respond to presses and wins celebrate with confetti. Original quiet offline music has a separate Settings toggle and pauses in the background or during full-screen ads. Banners occupy measured layout rows above system navigation, preserving game controls and menu navigation. Details: `play-store/V30-UI-AND-AUDIO.md`.
+
+## Approved route design (v31)
+
+First launch offers a skippable app/tools introduction and separate interactive practice, then opens the level Route. Later launches open Route directly. Store previews never spend coins; Daily, Awards, Me and Settings use the same arrow-route visual style. See `play-store/V31-APPROVED-ROUTE-DESIGN.md` for behavior, validation and preview-install signing details.

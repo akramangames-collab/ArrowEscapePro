@@ -35,7 +35,7 @@ public class BannerLayoutRuntimeTest {
  @Test public void actualBannerFootprintNeverOverlapsGameControls()throws Exception{
   try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
    MainActivity a=c.get();FrameLayout root=(FrameLayout)get(a,"root");ArrowGameView game=(ArrowGameView)get(a,"game");
-   set(game,"tutorial",false);game.setPaused(false);
+   set(game,"tutorial",false);game.openPlay();game.setPaused(false);
    WindowInsetsCompat insets=new WindowInsetsCompat.Builder().setInsets(WindowInsetsCompat.Type.systemBars(),Insets.of(0,48,0,24)).build();
    ViewCompat.dispatchApplyWindowInsets(root,insets);
    FrameLayout slot=(FrameLayout)get(a,"gameBannerSlot");
@@ -48,10 +48,10 @@ public class BannerLayoutRuntimeTest {
     RectF hit=(RectF)get(game,name);assertTrue(name+" overlaps banner",game.getTop()+hit.bottom<=slot.getTop());
    }
    assertTrue("Game viewport overlaps banner",game.getBottom()<=slot.getTop());
-   game.openLevels();render(root,720,1560,"polished-trail-phone");
-   assertTrue(((RectF)get(game,"mapNextHit")).bottom<=game.getHeight());
    int before=game.getHeight();slot.setVisibility(View.GONE);call(a,"updateGameBottomInset");render(root,720,1560,null);
    assertEquals(before+200,game.getHeight());
+   game.openLevels();render(root,720,1560,"polished-trail-phone");
+   assertTrue(((RectF)get(game,"mapNextHit")).bottom<=game.getHeight());
    FrameLayout result=(FrameLayout)get(a,"resultBannerSlot");result.getLayoutParams().height=220;result.setVisibility(View.VISIBLE);call(a,"updateGameBottomInset");
    render(root,1280,800,"banner-safe-controls-landscape");assertTrue(game.getBottom()<=result.getTop());
   }

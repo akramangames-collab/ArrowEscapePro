@@ -64,9 +64,9 @@ public class CampaignRuntimeTest {
             g.openLevels();render(g,1600,1100,"escape-trail-tablet");
             call(g,"startLevel",new Class[]{int.class},1);g.openLevels();render(g,720,1280,"escape-trail-start");
             float before=(Float)get(g,"mapScroll"),top=(Float)get(g,"mapViewportTop");long now=100;
-            g.onTouchEvent(MotionEvent.obtain(now,now,0,300,top+300,0));
-            g.onTouchEvent(MotionEvent.obtain(now,now+20,2,300,top+150,0));
-            g.onTouchEvent(MotionEvent.obtain(now,now+40,1,300,top+150,0));
+            g.onTouchEvent(MotionEvent.obtain(now,now,0,300,top+150,0));
+            g.onTouchEvent(MotionEvent.obtain(now,now+20,2,300,top+300,0));
+            g.onTouchEvent(MotionEvent.obtain(now,now+40,1,300,top+300,0));
             assertTrue((Float)get(g,"mapScroll")>before);assertEquals(1,g.currentLevelNumber());
         }finally{g.release();}
     }
