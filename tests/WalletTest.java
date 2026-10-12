@@ -15,8 +15,8 @@ public class WalletTest {
         yes(w.ownsArrowType(0));no(w.ownsArrowType(1));
         no(w.purchaseArrowType(1,200));eq(75,w.balance());
         eq(25,w.rewardLevel("run1",1,3));eq(0,w.rewardLevel("run1",1,3));
-        eq(90,w.rewardLevel("run5",5,1));eq(100,w.rewardLevel("run10",10,3));
-        eq(175,w.rewardLevel("boss25",25,3));eq(465,w.balance());
+        eq(90,w.rewardLevel("run12",12,1));eq(100,w.rewardLevel("run24",24,3));
+        eq(175,w.rewardLevel("boss30",30,3));eq(465,w.balance());
 
         eq(10,w.nextDailyReward(10*Wallet.DAY_MS));
         eq(10,w.claimDaily(10*Wallet.DAY_MS));eq(0,new Wallet(s).claimDaily(10*Wallet.DAY_MS));eq(1,w.currentStreak(10*Wallet.DAY_MS));

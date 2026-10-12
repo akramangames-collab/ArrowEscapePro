@@ -1,5 +1,13 @@
 plugins { id("com.android.application") }
 
+val playGamesProjectId = providers.gradleProperty("playGamesProjectId")
+    .orElse(providers.environmentVariable("ARROW_PLAY_GAMES_PROJECT_ID")).getOrElse("841960223704")
+val playGamesReady = providers.gradleProperty("playGamesReady")
+    .orElse(providers.environmentVariable("ARROW_PLAY_GAMES_READY")).getOrElse("false").toBoolean()
+require(playGamesProjectId.isEmpty() || playGamesProjectId.matches(Regex("[0-9]+"))) {
+    "Play Games project ID must be the numeric ID from Play Console"
+}
+
 val releaseStorePath = providers.environmentVariable("ARROW_RELEASE_STORE_FILE").orNull
 val releaseStorePassword = providers.environmentVariable("ARROW_RELEASE_STORE_PASSWORD").orNull
 val releaseKeyAlias = providers.environmentVariable("ARROW_RELEASE_KEY_ALIAS").orNull
@@ -22,9 +30,11 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 27
-        versionName = "1.1.15"
+        versionCode = 28
+        versionName = "1.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        resValue("string", "game_services_project_id", playGamesProjectId)
+        buildConfigField("boolean", "PLAY_GAMES_CONFIGURED", (playGamesReady && !playGamesProjectId.isEmpty()).toString())
     }
     signingConfigs {
         if (releaseSigningReady) {
@@ -71,7 +81,8 @@ android {
             buildConfigField("String", "ADMOB_REWARDED_ID", "\"ca-app-pub-2475015099415787/2469203439\"")
         }
     }
-    buildFeatures { buildConfig = true }
+    buildFeatures { buildConfig = true; resValues = true }
+    testOptions { unitTests.isIncludeAndroidResources = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -80,6 +91,7 @@ android {
 }
 
 dependencies {
+    implementation("com.google.android.gms:play-services-games-v2:22.1.0")
     // Keep AndroidX on current stable releases so Play SDK Index does not resolve
     // older transitive Activity/Fragment versions from advertising dependencies.
     implementation("androidx.activity:activity:1.13.0")
@@ -105,6 +117,8 @@ dependencies {
     // explicit fallback when that Activity is unavailable.
     implementation("com.google.android.play:hsdp:2.2.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
@@ -113,4 +127,13 @@ dependencies {
 configurations.configureEach {
     exclude(group = "com.google.android.gms", module = "play-services-ads")
     exclude(group = "com.google.android.gms", module = "play-services-ads-lite")
+}
+
+// Run this before distributing a production build with Google Play Games sign-in.
+tasks.register("verifyPlayGamesConfiguration") {
+    doLast {
+        check(playGamesProjectId.isNotEmpty() && playGamesReady) {
+            "Complete and test Play Console OAuth/Android credentials, then set ARROW_PLAY_GAMES_READY=true"
+        }
+    }
 }

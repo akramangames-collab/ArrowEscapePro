@@ -3,1523 +3,1816 @@
     "level": 1,
     "arrows": 24,
     "grid": [
-      24,
-      29
+      26,
+      21
     ],
     "initial_safe_arrows": 3,
     "dependency_depth": 22,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 199,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 198,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 2,
     "arrows": 24,
     "grid": [
-      19,
-      31
+      25,
+      32
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 23,
-    "self_crossing_arrows": 1,
-    "occupied_nodes": 175,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 22,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 195,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 3,
     "arrows": 24,
     "grid": [
-      24,
-      32
+      25,
+      31
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 23,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 213,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 22,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 185,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 4,
     "arrows": 25,
     "grid": [
-      26,
-      31
+      23,
+      32
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 24,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 211,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 23,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 214,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 5,
-    "arrows": 41,
+    "arrows": 25,
     "grid": [
-      29,
-      32
+      24,
+      30
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 36,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 324,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 23,
+    "self_crossing_arrows": 3,
+    "occupied_nodes": 204,
+    "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 6,
-    "arrows": 25,
+    "arrows": 33,
     "grid": [
       26,
-      27
+      32
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 24,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 205,
+    "dependency_depth": 32,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 254,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
     "generation_attempts": 1
   },
   {
     "level": 7,
     "arrows": 25,
     "grid": [
-      26,
-      33
+      25,
+      32
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 24,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 23,
     "self_crossing_arrows": 5,
-    "occupied_nodes": 213,
+    "occupied_nodes": 206,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 8,
-    "arrows": 26,
+    "arrows": 25,
     "grid": [
-      26,
-      33
+      23,
+      32
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 25,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 228,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 17,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 211,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 9,
-    "arrows": 26,
+    "arrows": 25,
     "grid": [
-      22,
-      30
+      26,
+      31
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 24,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 22,
     "self_crossing_arrows": 5,
-    "occupied_nodes": 211,
+    "occupied_nodes": 206,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 10,
-    "arrows": 42,
+    "arrows": 26,
     "grid": [
-      29,
-      28
+      27,
+      33
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 40,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 24,
     "self_crossing_arrows": 5,
-    "occupied_nodes": 315,
-    "milestone": true,
+    "occupied_nodes": 206,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 4
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 11,
     "arrows": 26,
     "grid": [
-      23,
-      32
+      21,
+      25
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 25,
-    "self_crossing_arrows": 3,
-    "occupied_nodes": 208,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 24,
+    "self_crossing_arrows": 2,
+    "occupied_nodes": 187,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 12,
-    "arrows": 27,
+    "arrows": 44,
     "grid": [
-      26,
-      35
+      31,
+      38
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 26,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 235,
-    "milestone": false,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 44,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 346,
+    "milestone": true,
     "boss": false,
-    "generation_attempts": 1
+    "phase": "SUPER HARD",
+    "generation_attempts": 2
   },
   {
     "level": 13,
-    "arrows": 27,
+    "arrows": 26,
     "grid": [
       27,
-      24
+      35
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 26,
-    "self_crossing_arrows": 3,
-    "occupied_nodes": 190,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 19,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 204,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 14,
-    "arrows": 27,
+    "arrows": 26,
     "grid": [
-      26,
-      31
+      27,
+      34
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 26,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 229,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 24,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 218,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 15,
-    "arrows": 43,
+    "arrows": 27,
     "grid": [
-      31,
-      39
+      26,
+      34
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 43,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 371,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 16,
-    "arrows": 28,
-    "grid": [
-      24,
-      33
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 27,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 238,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 25,
+    "self_crossing_arrows": 3,
+    "occupied_nodes": 203,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
-    "level": 17,
-    "arrows": 28,
+    "level": 16,
+    "arrows": 27,
     "grid": [
-      26,
-      35
+      28,
+      33
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 27,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 213,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 25,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 237,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 17,
+    "arrows": 27,
+    "grid": [
+      25,
+      33
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 25,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 214,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 18,
-    "arrows": 28,
-    "grid": [
-      28,
-      32
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 27,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 229,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 19,
-    "arrows": 28,
-    "grid": [
-      28,
-      30
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 27,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 229,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 20,
-    "arrows": 45,
-    "grid": [
-      31,
-      38
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 45,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 360,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 5
-  },
-  {
-    "level": 21,
-    "arrows": 29,
-    "grid": [
-      26,
-      33
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 28,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 236,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 22,
-    "arrows": 29,
-    "grid": [
-      26,
-      29
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 26,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 231,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 23,
-    "arrows": 29,
-    "grid": [
-      27,
-      35
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 28,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 232,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 24,
-    "arrows": 30,
-    "grid": [
-      28,
-      35
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 29,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 240,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 25,
-    "arrows": 62,
-    "grid": [
-      38,
-      45
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 62,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 464,
-    "milestone": true,
-    "boss": true,
-    "generation_attempts": 3
-  },
-  {
-    "level": 26,
-    "arrows": 30,
-    "grid": [
-      29,
-      31
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 28,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 273,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 27,
-    "arrows": 30,
+    "arrows": 35,
     "grid": [
       28,
       34
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 29,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 236,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 28,
-    "arrows": 30,
-    "grid": [
-      29,
-      36
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 28,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 249,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 29,
-    "arrows": 31,
-    "grid": [
-      25,
-      30
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 29,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 247,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 30,
-    "arrows": 47,
-    "grid": [
-      33,
-      35
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 46,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 346,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 5
-  },
-  {
-    "level": 31,
-    "arrows": 31,
-    "grid": [
-      27,
-      32
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 30,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 241,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 32,
-    "arrows": 31,
-    "grid": [
-      28,
-      36
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 30,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 289,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 33,
-    "arrows": 32,
-    "grid": [
-      25,
-      32
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 31,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 257,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 34,
-    "arrows": 32,
-    "grid": [
-      24,
-      36
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 31,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 267,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 35,
-    "arrows": 48,
-    "grid": [
-      33,
-      39
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 48,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 382,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 36,
-    "arrows": 32,
-    "grid": [
-      29,
-      36
-    ],
-    "initial_safe_arrows": 2,
     "dependency_depth": 27,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 247,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 37,
-    "arrows": 33,
-    "grid": [
-      29,
-      38
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 30,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 276,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 38,
-    "arrows": 33,
-    "grid": [
-      26,
-      35
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 21,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 268,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 39,
-    "arrows": 33,
-    "grid": [
-      27,
-      39
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 32,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 264,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 40,
-    "arrows": 49,
-    "grid": [
-      35,
-      41
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 48,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 375,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 41,
-    "arrows": 34,
-    "grid": [
-      28,
-      30
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 31,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 256,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 42,
-    "arrows": 34,
-    "grid": [
-      31,
-      36
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 33,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 285,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 43,
-    "arrows": 34,
-    "grid": [
-      31,
-      35
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 30,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 262,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 44,
-    "arrows": 34,
-    "grid": [
-      29,
-      33
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 33,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 254,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 45,
-    "arrows": 51,
-    "grid": [
-      35,
-      42
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 51,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 397,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 7
-  },
-  {
-    "level": 46,
-    "arrows": 35,
-    "grid": [
-      26,
-      39
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 34,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 282,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 47,
-    "arrows": 35,
-    "grid": [
-      32,
-      35
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 34,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 277,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 48,
-    "arrows": 35,
-    "grid": [
-      25,
-      37
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 34,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 268,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 49,
-    "arrows": 36,
-    "grid": [
-      30,
-      38
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 27,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 265,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 50,
-    "arrows": 68,
-    "grid": [
-      42,
-      38
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 68,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 506,
-    "milestone": true,
-    "boss": true,
-    "generation_attempts": 1
-  },
-  {
-    "level": 51,
-    "arrows": 36,
-    "grid": [
-      31,
-      40
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 277,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 52,
-    "arrows": 36,
-    "grid": [
-      27,
-      33
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 290,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 53,
-    "arrows": 36,
-    "grid": [
-      31,
-      38
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 288,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 54,
-    "arrows": 37,
-    "grid": [
-      31,
-      39
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 36,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 307,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 55,
-    "arrows": 53,
-    "grid": [
-      36,
-      45
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 53,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 424,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 3
-  },
-  {
-    "level": 56,
-    "arrows": 37,
-    "grid": [
-      30,
-      39
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 34,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 310,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 57,
-    "arrows": 37,
-    "grid": [
-      33,
-      38
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 316,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 58,
-    "arrows": 38,
-    "grid": [
-      32,
-      31
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 294,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 59,
-    "arrows": 38,
-    "grid": [
-      31,
-      33
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 31,
     "self_crossing_arrows": 5,
     "occupied_nodes": 283,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 19,
+    "arrows": 27,
+    "grid": [
+      26,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 25,
+    "self_crossing_arrows": 3,
+    "occupied_nodes": 206,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 20,
+    "arrows": 27,
+    "grid": [
+      25,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 25,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 233,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 21,
+    "arrows": 28,
+    "grid": [
+      28,
+      32
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 26,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 232,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 22,
+    "arrows": 28,
+    "grid": [
+      29,
+      36
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 24,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 251,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 23,
+    "arrows": 28,
+    "grid": [
+      28,
+      33
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 26,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 226,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 24,
+    "arrows": 46,
+    "grid": [
+      27,
+      40
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 45,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 366,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 25,
+    "arrows": 28,
+    "grid": [
+      26,
+      29
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 26,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 227,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 26,
+    "arrows": 28,
+    "grid": [
+      29,
+      35
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 26,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 223,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 27,
+    "arrows": 29,
+    "grid": [
+      27,
+      25
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 23,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 235,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 28,
+    "arrows": 29,
+    "grid": [
+      25,
+      35
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 27,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 242,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 29,
+    "arrows": 29,
+    "grid": [
+      24,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 27,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 227,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 30,
+    "arrows": 61,
+    "grid": [
+      34,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 478,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 9
+  },
+  {
+    "level": 31,
+    "arrows": 29,
+    "grid": [
+      28,
+      23
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 24,
+    "self_crossing_arrows": 3,
+    "occupied_nodes": 211,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 32,
+    "arrows": 30,
+    "grid": [
+      30,
+      27
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 28,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 248,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 33,
+    "arrows": 30,
+    "grid": [
+      29,
+      21
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 19,
+    "self_crossing_arrows": 3,
+    "occupied_nodes": 203,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 34,
+    "arrows": 30,
+    "grid": [
+      27,
+      36
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 24,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 259,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 35,
+    "arrows": 30,
+    "grid": [
+      25,
+      32
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 20,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 229,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 36,
+    "arrows": 48,
+    "grid": [
+      32,
+      41
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 47,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 386,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 4
+  },
+  {
+    "level": 37,
+    "arrows": 30,
+    "grid": [
+      29,
+      36
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 27,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 257,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 38,
+    "arrows": 31,
+    "grid": [
+      25,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 29,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 261,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 39,
+    "arrows": 31,
+    "grid": [
+      30,
+      35
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 29,
+    "self_crossing_arrows": 3,
+    "occupied_nodes": 243,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 40,
+    "arrows": 31,
+    "grid": [
+      30,
+      25
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 28,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 240,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 41,
+    "arrows": 31,
+    "grid": [
+      30,
+      28
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 29,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 244,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 42,
+    "arrows": 39,
+    "grid": [
+      31,
+      33
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 38,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 294,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 43,
+    "arrows": 32,
+    "grid": [
+      28,
+      36
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 30,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 273,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 44,
+    "arrows": 32,
+    "grid": [
+      29,
+      33
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 25,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 261,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 45,
+    "arrows": 32,
+    "grid": [
+      31,
+      33
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 30,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 263,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 46,
+    "arrows": 32,
+    "grid": [
+      27,
+      39
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 26,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 262,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 47,
+    "arrows": 32,
+    "grid": [
+      28,
+      38
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 30,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 240,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 48,
+    "arrows": 50,
+    "grid": [
+      35,
+      36
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 47,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 415,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 49,
+    "arrows": 33,
+    "grid": [
+      32,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 31,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 265,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 50,
+    "arrows": 33,
+    "grid": [
+      30,
+      32
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 31,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 269,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 51,
+    "arrows": 33,
+    "grid": [
+      31,
+      38
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 31,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 258,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 52,
+    "arrows": 33,
+    "grid": [
+      32,
+      38
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 31,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 268,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 53,
+    "arrows": 33,
+    "grid": [
+      25,
+      38
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 29,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 265,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 54,
+    "arrows": 42,
+    "grid": [
+      31,
+      37
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 41,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 330,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 55,
+    "arrows": 34,
+    "grid": [
+      27,
+      40
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 27,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 273,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 56,
+    "arrows": 34,
+    "grid": [
+      32,
+      32
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 18,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 286,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 57,
+    "arrows": 34,
+    "grid": [
+      32,
+      39
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 32,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 269,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 58,
+    "arrows": 34,
+    "grid": [
+      28,
+      39
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 32,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 276,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 59,
+    "arrows": 34,
+    "grid": [
+      26,
+      36
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 32,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 283,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 60,
-    "arrows": 54,
+    "arrows": 67,
     "grid": [
-      36,
-      45
+      43,
+      49
     ],
     "initial_safe_arrows": 1,
-    "dependency_depth": 53,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 436,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 544,
     "milestone": true,
-    "boss": false,
-    "generation_attempts": 4
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 2
   },
   {
     "level": 61,
-    "arrows": 38,
+    "arrows": 35,
     "grid": [
-      32,
-      38
+      30,
+      33
     ],
-    "initial_safe_arrows": 2,
+    "initial_safe_arrows": 3,
     "dependency_depth": 33,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 319,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 278,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 62,
-    "arrows": 39,
+    "arrows": 35,
     "grid": [
-      33,
-      34
+      28,
+      37
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 36,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 335,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 33,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 280,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 63,
-    "arrows": 39,
+    "arrows": 35,
     "grid": [
-      32,
+      31,
       39
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 38,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 33,
     "self_crossing_arrows": 8,
-    "occupied_nodes": 317,
+    "occupied_nodes": 309,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 64,
-    "arrows": 39,
+    "arrows": 35,
     "grid": [
-      33,
-      40
+      34,
+      31
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 38,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 317,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 29,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 252,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 65,
-    "arrows": 55,
+    "arrows": 36,
     "grid": [
-      35,
-      46
+      34,
+      31
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 55,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 429,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 33,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 292,
+    "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 66,
-    "arrows": 40,
+    "arrows": 44,
     "grid": [
-      34,
+      32,
       39
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 29,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 354,
+    "dependency_depth": 43,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 369,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
     "generation_attempts": 1
   },
   {
     "level": 67,
-    "arrows": 40,
+    "arrows": 36,
     "grid": [
-      33,
-      30
+      32,
+      33
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 30,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 321,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 264,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 68,
-    "arrows": 40,
+    "arrows": 36,
     "grid": [
-      33,
-      40
+      30,
+      36
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 39,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
     "self_crossing_arrows": 7,
-    "occupied_nodes": 318,
+    "occupied_nodes": 283,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 69,
-    "arrows": 40,
+    "arrows": 36,
     "grid": [
-      32,
-      28
+      33,
+      40
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 31,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 309,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 291,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 70,
-    "arrows": 57,
+    "arrows": 36,
     "grid": [
-      38,
-      45
+      33,
+      36
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 57,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 469,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 31,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 294,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 7
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 71,
-    "arrows": 41,
+    "arrows": 37,
     "grid": [
-      34,
-      42
+      31,
+      39
     ],
-    "initial_safe_arrows": 2,
+    "initial_safe_arrows": 3,
     "dependency_depth": 35,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 341,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 304,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 72,
-    "arrows": 41,
+    "arrows": 55,
     "grid": [
-      33,
-      43
+      37,
+      46
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 40,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 324,
-    "milestone": false,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 431,
+    "milestone": true,
     "boss": false,
-    "generation_attempts": 1
+    "phase": "SUPER HARD",
+    "generation_attempts": 9
   },
   {
     "level": 73,
-    "arrows": 41,
+    "arrows": 37,
     "grid": [
-      32,
-      35
+      34,
+      38
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 40,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 316,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 35,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 310,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 74,
-    "arrows": 42,
+    "arrows": 37,
     "grid": [
-      34,
-      40
+      32,
+      43
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 26,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 35,
     "self_crossing_arrows": 8,
-    "occupied_nodes": 347,
+    "occupied_nodes": 311,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 75,
-    "arrows": 58,
+    "arrows": 37,
     "grid": [
-      38,
-      45
+      33,
+      40
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 52,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 427,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 35,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 314,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 5
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 76,
-    "arrows": 42,
+    "arrows": 38,
     "grid": [
-      33,
-      38
+      30,
+      41
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 41,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 36,
     "self_crossing_arrows": 8,
-    "occupied_nodes": 360,
+    "occupied_nodes": 315,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 77,
-    "arrows": 42,
+    "arrows": 38,
     "grid": [
-      34,
-      40
+      30,
+      38
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 41,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 348,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 35,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 283,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 78,
-    "arrows": 42,
-    "grid": [
-      29,
-      40
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 41,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 338,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 79,
-    "arrows": 43,
-    "grid": [
-      31,
-      41
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 31,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 335,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 80,
-    "arrows": 59,
-    "grid": [
-      38,
-      45
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 59,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 433,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 81,
-    "arrows": 43,
-    "grid": [
-      33,
-      42
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 38,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 327,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 82,
-    "arrows": 43,
-    "grid": [
-      30,
-      42
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 42,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 352,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 83,
-    "arrows": 44,
-    "grid": [
-      36,
-      38
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 353,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 84,
-    "arrows": 44,
-    "grid": [
-      27,
-      42
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 43,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 319,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 85,
-    "arrows": 60,
-    "grid": [
-      37,
-      47
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 60,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 486,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 4
-  },
-  {
-    "level": 86,
-    "arrows": 44,
-    "grid": [
-      34,
-      44
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 345,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 87,
-    "arrows": 45,
-    "grid": [
-      33,
-      42
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 39,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 363,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 88,
-    "arrows": 45,
-    "grid": [
-      33,
-      40
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 44,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 363,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 89,
-    "arrows": 45,
-    "grid": [
-      34,
-      44
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 41,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 356,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 90,
-    "arrows": 61,
-    "grid": [
-      35,
-      47
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 60,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 480,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 6
-  },
-  {
-    "level": 91,
     "arrows": 46,
     "grid": [
-      35,
-      43
+      31,
+      40
     ],
     "initial_safe_arrows": 2,
     "dependency_depth": 45,
     "self_crossing_arrows": 9,
-    "occupied_nodes": 384,
+    "occupied_nodes": 379,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 79,
+    "arrows": 38,
+    "grid": [
+      27,
+      40
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 36,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 305,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 80,
+    "arrows": 38,
+    "grid": [
+      30,
+      44
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 36,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 305,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 81,
+    "arrows": 38,
+    "grid": [
+      35,
+      42
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 30,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 318,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 82,
+    "arrows": 39,
+    "grid": [
+      35,
+      30
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 35,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 304,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 83,
+    "arrows": 39,
+    "grid": [
+      34,
+      37
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 37,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 312,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 84,
+    "arrows": 57,
+    "grid": [
+      34,
+      47
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 444,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 85,
+    "arrows": 39,
+    "grid": [
+      33,
+      41
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 37,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 299,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 86,
+    "arrows": 39,
+    "grid": [
+      36,
+      31
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 30,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 321,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 87,
+    "arrows": 39,
+    "grid": [
+      34,
+      41
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 37,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 329,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 88,
+    "arrows": 40,
+    "grid": [
+      33,
+      37
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 38,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 329,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 89,
+    "arrows": 40,
+    "grid": [
+      35,
+      38
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 38,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 342,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 90,
+    "arrows": 72,
+    "grid": [
+      39,
+      54
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 586,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 5
+  },
+  {
+    "level": 91,
+    "arrows": 40,
+    "grid": [
+      37,
+      28
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 28,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 304,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 92,
-    "arrows": 46,
+    "arrows": 40,
     "grid": [
-      37,
-      37
+      29,
+      39
     ],
-    "initial_safe_arrows": 2,
+    "initial_safe_arrows": 3,
     "dependency_depth": 38,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 392,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 330,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 93,
-    "arrows": 46,
-    "grid": [
-      37,
-      45
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 41,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 372,
-    "milestone": false,
-    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 2
   },
   {
-    "level": 94,
-    "arrows": 46,
+    "level": 93,
+    "arrows": 41,
     "grid": [
-      36,
-      45
+      28,
+      44
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 42,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 386,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 39,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 337,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 94,
+    "arrows": 41,
+    "grid": [
+      33,
+      43
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 37,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 316,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 95,
-    "arrows": 63,
+    "arrows": 41,
     "grid": [
-      41,
-      48
+      37,
+      42
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 62,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 474,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 39,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 346,
+    "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 96,
-    "arrows": 47,
+    "arrows": 59,
     "grid": [
       37,
-      40
+      48
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 46,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 368,
-    "milestone": false,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 480,
+    "milestone": true,
     "boss": false,
-    "generation_attempts": 1
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
   },
   {
     "level": 97,
-    "arrows": 47,
+    "arrows": 41,
     "grid": [
-      29,
-      37
+      32,
+      33
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 40,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 373,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 39,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 307,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 98,
-    "arrows": 47,
+    "arrows": 41,
     "grid": [
-      36,
-      45
+      34,
+      44
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 40,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 385,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 39,
+    "self_crossing_arrows": 3,
+    "occupied_nodes": 317,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 99,
-    "arrows": 48,
+    "arrows": 42,
     "grid": [
-      37,
-      32
+      38,
+      25
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 42,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 349,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 29,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 307,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 100,
-    "arrows": 80,
+    "arrows": 42,
     "grid": [
-      47,
-      53
+      38,
+      31
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 80,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 615,
-    "milestone": true,
-    "boss": true,
-    "generation_attempts": 15
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 309,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 101,
-    "arrows": 48,
+    "arrows": 42,
     "grid": [
-      37,
-      44
+      29,
+      31
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 44,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 393,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 40,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 300,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 102,
-    "arrows": 48,
+    "arrows": 50,
     "grid": [
-      36,
+      33,
+      44
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 37,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 416,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 103,
+    "arrows": 42,
+    "grid": [
+      34,
       43
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 40,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 358,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 104,
+    "arrows": 43,
+    "grid": [
+      37,
+      44
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 30,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 340,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 105,
+    "arrows": 43,
+    "grid": [
+      34,
+      29
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 41,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 333,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 106,
+    "arrows": 43,
+    "grid": [
+      37,
+      41
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 22,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 338,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 107,
+    "arrows": 43,
+    "grid": [
+      38,
+      37
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 41,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 325,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 108,
+    "arrows": 61,
+    "grid": [
+      43,
+      51
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 465,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 9
+  },
+  {
+    "level": 109,
+    "arrows": 43,
+    "grid": [
+      37,
+      42
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 41,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 360,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 110,
+    "arrows": 44,
+    "grid": [
+      37,
+      39
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 42,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 342,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 111,
+    "arrows": 44,
+    "grid": [
+      31,
+      44
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 42,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 346,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 112,
+    "arrows": 44,
+    "grid": [
+      37,
+      44
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 42,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 366,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 113,
+    "arrows": 44,
+    "grid": [
+      30,
+      42
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 42,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 379,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 114,
+    "arrows": 52,
+    "grid": [
+      39,
+      29
     ],
     "initial_safe_arrows": 2,
     "dependency_depth": 47,
@@ -1527,1476 +1820,4583 @@
     "occupied_nodes": 375,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
     "generation_attempts": 1
-  },
-  {
-    "level": 103,
-    "arrows": 48,
-    "grid": [
-      35,
-      43
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 36,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 381,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 104,
-    "arrows": 49,
-    "grid": [
-      36,
-      44
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 35,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 392,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 105,
-    "arrows": 65,
-    "grid": [
-      42,
-      51
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 65,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 501,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 6
-  },
-  {
-    "level": 106,
-    "arrows": 49,
-    "grid": [
-      34,
-      45
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 48,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 386,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 107,
-    "arrows": 49,
-    "grid": [
-      38,
-      46
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 45,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 395,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 108,
-    "arrows": 50,
-    "grid": [
-      37,
-      45
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 48,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 388,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 109,
-    "arrows": 50,
-    "grid": [
-      37,
-      44
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 49,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 391,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 110,
-    "arrows": 66,
-    "grid": [
-      43,
-      47
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 66,
-    "self_crossing_arrows": 4,
-    "occupied_nodes": 486,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 111,
-    "arrows": 50,
-    "grid": [
-      38,
-      45
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 49,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 405,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 112,
-    "arrows": 51,
-    "grid": [
-      39,
-      42
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 50,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 400,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 113,
-    "arrows": 51,
-    "grid": [
-      34,
-      45
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 50,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 429,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 114,
-    "arrows": 51,
-    "grid": [
-      39,
-      46
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 50,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 428,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 2
   },
   {
     "level": 115,
-    "arrows": 67,
+    "arrows": 45,
     "grid": [
-      44,
-      52
+      38,
+      34
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 67,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 497,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 35,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 360,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 8
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 116,
-    "arrows": 52,
+    "arrows": 45,
     "grid": [
-      40,
+      31,
       44
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 51,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 422,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 43,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 337,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 117,
-    "arrows": 52,
+    "arrows": 45,
     "grid": [
-      40,
-      37
+      38,
+      38
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 40,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 397,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 43,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 365,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 118,
-    "arrows": 52,
+    "arrows": 45,
     "grid": [
-      35,
-      47
+      33,
+      39
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 32,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 451,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 35,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 363,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 119,
-    "arrows": 52,
+    "arrows": 45,
     "grid": [
       37,
-      43
+      45
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 48,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 390,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 26,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 367,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 120,
-    "arrows": 69,
+    "arrows": 77,
     "grid": [
-      43,
-      50
+      45,
+      55
     ],
     "initial_safe_arrows": 1,
-    "dependency_depth": 69,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 540,
+    "dependency_depth": 76,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 579,
     "milestone": true,
-    "boss": false,
-    "generation_attempts": 1
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 5
   },
   {
     "level": 121,
-    "arrows": 53,
+    "arrows": 46,
     "grid": [
-      36,
-      45
+      32,
+      46
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 30,
-    "self_crossing_arrows": 5,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 44,
+    "self_crossing_arrows": 11,
     "occupied_nodes": 388,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 122,
-    "arrows": 53,
+    "arrows": 46,
     "grid": [
-      40,
-      35
+      37,
+      47
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 42,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 405,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 44,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 378,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 123,
-    "arrows": 53,
+    "arrows": 46,
     "grid": [
       40,
-      45
+      44
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 52,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 453,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 41,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 373,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 124,
-    "arrows": 54,
+    "arrows": 46,
     "grid": [
-      40,
-      48
+      37,
+      44
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 52,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 449,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 44,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 357,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 125,
-    "arrows": 70,
+    "arrows": 46,
     "grid": [
-      45,
-      51
+      34,
+      48
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 70,
-    "self_crossing_arrows": 14,
-    "occupied_nodes": 559,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 41,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 375,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 3
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 126,
     "arrows": 54,
     "grid": [
       41,
-      48
+      49
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 42,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 431,
+    "dependency_depth": 48,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 414,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "HARD",
+    "generation_attempts": 1
   },
   {
     "level": 127,
-    "arrows": 54,
+    "arrows": 47,
     "grid": [
-      40,
-      42
+      39,
+      29
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 53,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 436,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 29,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 338,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 3
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 128,
-    "arrows": 54,
+    "arrows": 47,
     "grid": [
-      39,
-      42
+      35,
+      49
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 53,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 441,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 39,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 383,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 129,
-    "arrows": 55,
+    "arrows": 47,
     "grid": [
-      40,
+      38,
       47
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 54,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 458,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 45,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 394,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 130,
-    "arrows": 71,
+    "arrows": 47,
     "grid": [
-      46,
-      45
+      36,
+      48
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 70,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 45,
     "self_crossing_arrows": 11,
-    "occupied_nodes": 547,
-    "milestone": true,
+    "occupied_nodes": 385,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 5
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 131,
-    "arrows": 55,
+    "arrows": 47,
     "grid": [
-      42,
-      48
+      37,
+      49
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 47,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 439,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 45,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 416,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 2
   },
   {
     "level": 132,
-    "arrows": 55,
+    "arrows": 66,
     "grid": [
-      40,
-      47
+      43,
+      52
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 46,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 443,
-    "milestone": false,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 514,
+    "milestone": true,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "SUPER HARD",
+    "generation_attempts": 5
   },
   {
     "level": 133,
-    "arrows": 56,
+    "arrows": 48,
     "grid": [
-      42,
-      48
+      39,
+      45
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 55,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 462,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 38,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 387,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 134,
-    "arrows": 56,
+    "arrows": 48,
     "grid": [
-      39,
-      48
+      34,
+      49
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 51,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 455,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 38,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 365,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 135,
-    "arrows": 72,
+    "arrows": 48,
     "grid": [
-      43,
-      51
+      35,
+      42
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 72,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 563,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 378,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 136,
-    "arrows": 56,
+    "arrows": 48,
     "grid": [
-      40,
+      33,
       45
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 38,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 446,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 43,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 367,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 137,
-    "arrows": 57,
+    "arrows": 48,
     "grid": [
-      41,
-      48
+      33,
+      47
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 56,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 46,
     "self_crossing_arrows": 10,
-    "occupied_nodes": 459,
+    "occupied_nodes": 397,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 138,
     "arrows": 57,
     "grid": [
-      35,
-      48
+      39,
+      40
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 47,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 451,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 447,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
     "generation_attempts": 1
   },
   {
     "level": 139,
-    "arrows": 57,
+    "arrows": 49,
     "grid": [
-      40,
-      48
+      34,
+      49
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 45,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 469,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 39,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 398,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 140,
-    "arrows": 73,
+    "arrows": 49,
     "grid": [
-      46,
-      54
+      42,
+      46
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 73,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 605,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 47,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 429,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 141,
-    "arrows": 58,
+    "arrows": 49,
     "grid": [
       42,
-      50
+      27
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 42,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 467,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 44,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 361,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 142,
-    "arrows": 58,
+    "arrows": 49,
     "grid": [
-      43,
-      49
+      39,
+      44
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 57,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 469,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 47,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 412,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 143,
-    "arrows": 58,
+    "arrows": 50,
     "grid": [
-      40,
-      47
+      37,
+      50
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 52,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 457,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 45,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 426,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 144,
-    "arrows": 58,
+    "arrows": 68,
     "grid": [
-      41,
-      46
+      45,
+      50
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 57,
-    "self_crossing_arrows": 5,
-    "occupied_nodes": 432,
-    "milestone": false,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 547,
+    "milestone": true,
     "boss": false,
-    "generation_attempts": 1
+    "phase": "SUPER HARD",
+    "generation_attempts": 5
   },
   {
     "level": 145,
-    "arrows": 75,
+    "arrows": 50,
     "grid": [
-      47,
-      48
+      42,
+      43
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 72,
-    "self_crossing_arrows": 15,
-    "occupied_nodes": 606,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 45,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 422,
+    "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 146,
-    "arrows": 59,
+    "arrows": 50,
     "grid": [
-      34,
-      46
+      38,
+      49
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 52,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 444,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 37,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 423,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 147,
-    "arrows": 59,
+    "arrows": 50,
     "grid": [
-      37,
-      49
+      36,
+      50
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 38,
-    "self_crossing_arrows": 15,
-    "occupied_nodes": 506,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 48,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 414,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 148,
-    "arrows": 59,
+    "arrows": 50,
     "grid": [
       43,
-      50
+      26
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 38,
-    "self_crossing_arrows": 15,
-    "occupied_nodes": 503,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 47,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 372,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 149,
-    "arrows": 60,
+    "arrows": 51,
     "grid": [
-      35,
-      52
+      43,
+      43
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 59,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 485,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 44,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 420,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 150,
-    "arrows": 92,
+    "arrows": 83,
     "grid": [
-      53,
+      52,
       60
     ],
     "initial_safe_arrows": 1,
-    "dependency_depth": 90,
-    "self_crossing_arrows": 17,
-    "occupied_nodes": 730,
+    "dependency_depth": 80,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 661,
     "milestone": true,
     "boss": true,
-    "generation_attempts": 10
+    "phase": "EXTREME HARD",
+    "generation_attempts": 3
   },
   {
     "level": 151,
-    "arrows": 60,
+    "arrows": 51,
     "grid": [
-      40,
+      43,
       50
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 49,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
     "self_crossing_arrows": 13,
-    "occupied_nodes": 493,
+    "occupied_nodes": 416,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 152,
-    "arrows": 60,
+    "arrows": 51,
     "grid": [
-      39,
-      52
+      44,
+      34
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 50,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 488,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 48,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 395,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 153,
-    "arrows": 60,
+    "arrows": 51,
     "grid": [
-      38,
-      48
+      40,
+      38
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 50,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 445,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 42,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 381,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 154,
-    "arrows": 61,
+    "arrows": 52,
     "grid": [
-      43,
-      38
+      41,
+      49
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 58,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 480,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 395,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 155,
-    "arrows": 77,
+    "arrows": 52,
     "grid": [
-      49,
-      54
+      42,
+      52
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 77,
-    "self_crossing_arrows": 14,
-    "occupied_nodes": 627,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 41,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 401,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 7
+    "phase": "NORMAL",
+    "generation_attempts": 3
   },
   {
     "level": 156,
-    "arrows": 61,
+    "arrows": 70,
     "grid": [
-      33,
-      37
+      43,
+      54
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 58,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 459,
-    "milestone": false,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 555,
+    "milestone": true,
     "boss": false,
+    "phase": "SUPER HARD",
     "generation_attempts": 1
   },
   {
     "level": 157,
-    "arrows": 61,
+    "arrows": 52,
     "grid": [
-      43,
-      42
+      44,
+      53
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 46,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 456,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 440,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 158,
-    "arrows": 62,
+    "arrows": 52,
     "grid": [
-      43,
-      51
+      35,
+      52
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 61,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
     "self_crossing_arrows": 7,
-    "occupied_nodes": 476,
+    "occupied_nodes": 409,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 159,
-    "arrows": 62,
+    "arrows": 52,
     "grid": [
-      45,
-      51
+      37,
+      52
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 45,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 507,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 441,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 160,
-    "arrows": 78,
+    "arrows": 53,
     "grid": [
       41,
-      53
+      51
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 75,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 592,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 43,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 429,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 7
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 161,
-    "arrows": 62,
+    "arrows": 53,
+    "grid": [
+      40,
+      35
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 46,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 416,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 162,
+    "arrows": 61,
     "grid": [
       35,
       48
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 55,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 507,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 461,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 1
-  },
-  {
-    "level": 162,
-    "arrows": 63,
-    "grid": [
-      42,
-      48
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 50,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 478,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 1
+    "phase": "HARD",
+    "generation_attempts": 3
   },
   {
     "level": 163,
-    "arrows": 63,
+    "arrows": 53,
     "grid": [
-      38,
-      54
+      37,
+      53
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 40,
-    "self_crossing_arrows": 15,
-    "occupied_nodes": 505,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 51,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 445,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 164,
-    "arrows": 63,
+    "arrows": 53,
     "grid": [
-      36,
-      47
+      41,
+      48
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 62,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 493,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 51,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 431,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 165,
-    "arrows": 79,
+    "arrows": 54,
     "grid": [
-      39,
-      58
+      41,
+      42
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 79,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 610,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 51,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 418,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 9
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 166,
-    "arrows": 64,
+    "arrows": 54,
     "grid": [
-      36,
-      45
+      45,
+      39
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 60,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 520,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 47,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 441,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 167,
-    "arrows": 64,
+    "arrows": 54,
     "grid": [
       45,
-      51
+      53
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 63,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 508,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 447,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 4
-  },
-  {
-    "level": 168,
-    "arrows": 64,
-    "grid": [
-      43,
-      52
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 63,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 481,
-    "milestone": false,
-    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
-    "level": 169,
-    "arrows": 64,
+    "level": 168,
+    "arrows": 72,
     "grid": [
-      39,
-      43
+      41,
+      51
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 50,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 497,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 71,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 551,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 169,
+    "arrows": 54,
+    "grid": [
+      42,
+      52
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 433,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 170,
-    "arrows": 81,
+    "arrows": 54,
     "grid": [
-      49,
-      56
+      36,
+      53
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 81,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 631,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 51,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 447,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 19
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 171,
-    "arrows": 65,
+    "arrows": 55,
     "grid": [
-      41,
+      32,
       53
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 59,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 489,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 53,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 421,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 172,
-    "arrows": 65,
+    "arrows": 55,
     "grid": [
-      36,
-      50
+      44,
+      52
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 62,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 53,
     "self_crossing_arrows": 9,
-    "occupied_nodes": 499,
+    "occupied_nodes": 440,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 173,
-    "arrows": 65,
+    "arrows": 55,
     "grid": [
-      47,
-      50
+      40,
+      52
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 64,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 505,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 46,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 409,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 174,
-    "arrows": 66,
+    "arrows": 63,
     "grid": [
-      38,
+      46,
       53
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 55,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 487,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 519,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
     "generation_attempts": 1
   },
   {
     "level": 175,
-    "arrows": 82,
+    "arrows": 55,
     "grid": [
-      51,
-      56
+      46,
+      50
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 82,
-    "self_crossing_arrows": 7,
-    "occupied_nodes": 591,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 42,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 461,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 5
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 176,
-    "arrows": 66,
+    "arrows": 56,
     "grid": [
-      44,
-      45
+      45,
+      53
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 57,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 47,
     "self_crossing_arrows": 11,
-    "occupied_nodes": 515,
+    "occupied_nodes": 461,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 177,
-    "arrows": 66,
+    "arrows": 56,
     "grid": [
-      44,
-      54
+      41,
+      53
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 55,
-    "self_crossing_arrows": 9,
-    "occupied_nodes": 502,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 54,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 446,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 178,
-    "arrows": 66,
+    "arrows": 56,
     "grid": [
-      46,
-      53
+      37,
+      55
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 52,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 54,
     "self_crossing_arrows": 11,
-    "occupied_nodes": 509,
+    "occupied_nodes": 466,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 179,
-    "arrows": 67,
+    "arrows": 56,
     "grid": [
-      45,
-      54
+      46,
+      51
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 66,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 54,
     "self_crossing_arrows": 9,
-    "occupied_nodes": 534,
+    "occupied_nodes": 442,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 3
-  },
-  {
-    "level": 180,
-    "arrows": 83,
-    "grid": [
-      49,
-      58
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 82,
-    "self_crossing_arrows": 16,
-    "occupied_nodes": 657,
-    "milestone": true,
-    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 2
   },
   {
-    "level": 181,
-    "arrows": 67,
+    "level": 180,
+    "arrows": 88,
     "grid": [
-      38,
-      55
+      48,
+      66
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 65,
-    "self_crossing_arrows": 14,
-    "occupied_nodes": 548,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 88,
+    "self_crossing_arrows": 16,
+    "occupied_nodes": 692,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 181,
+    "arrows": 56,
+    "grid": [
+      44,
+      51
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 46,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 452,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 182,
-    "arrows": 67,
+    "arrows": 57,
     "grid": [
-      46,
-      49
+      36,
+      54
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 66,
-    "self_crossing_arrows": 8,
-    "occupied_nodes": 513,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 468,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 183,
-    "arrows": 68,
+    "arrows": 57,
     "grid": [
-      47,
-      50
+      40,
+      54
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 65,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 537,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 424,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 184,
-    "arrows": 68,
+    "arrows": 57,
     "grid": [
-      45,
-      56
+      40,
+      42
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 54,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 518,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 49,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 428,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 185,
-    "arrows": 84,
-    "grid": [
-      52,
-      58
-    ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 84,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 670,
-    "milestone": true,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 186,
-    "arrows": 68,
-    "grid": [
-      48,
-      55
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 62,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 544,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 187,
-    "arrows": 69,
-    "grid": [
-      44,
-      54
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 68,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 568,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 2
-  },
-  {
-    "level": 188,
-    "arrows": 69,
-    "grid": [
-      43,
-      54
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 68,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 554,
-    "milestone": false,
-    "boss": false,
-    "generation_attempts": 3
-  },
-  {
-    "level": 189,
-    "arrows": 69,
-    "grid": [
-      46,
-      47
-    ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 68,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 567,
-    "milestone": false,
-    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
-    "level": 190,
-    "arrows": 85,
+    "level": 185,
+    "arrows": 57,
     "grid": [
-      52,
+      35,
+      53
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 476,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 186,
+    "arrows": 65,
+    "grid": [
+      47,
       54
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 85,
-    "self_crossing_arrows": 14,
-    "occupied_nodes": 675,
-    "milestone": true,
+    "initial_safe_arrows": 2,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 535,
+    "milestone": false,
     "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 187,
+    "arrows": 57,
+    "grid": [
+      46,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 448,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 188,
+    "arrows": 58,
+    "grid": [
+      44,
+      48
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 56,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 445,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 189,
+    "arrows": 58,
+    "grid": [
+      38,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 40,
+    "self_crossing_arrows": 17,
+    "occupied_nodes": 492,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 3
+  },
+  {
+    "level": 190,
+    "arrows": 58,
+    "grid": [
+      41,
+      52
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 49,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 443,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 191,
-    "arrows": 70,
+    "arrows": 58,
     "grid": [
-      46,
-      53
+      45,
+      38
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 69,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 545,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 56,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 469,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 192,
-    "arrows": 70,
+    "arrows": 76,
     "grid": [
-      48,
-      57
+      46,
+      59
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 51,
-    "self_crossing_arrows": 10,
-    "occupied_nodes": 565,
-    "milestone": false,
+    "initial_safe_arrows": 1,
+    "dependency_depth": 75,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 579,
+    "milestone": true,
     "boss": false,
-    "generation_attempts": 1
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
   },
   {
     "level": 193,
-    "arrows": 70,
+    "arrows": 59,
     "grid": [
       49,
-      51
+      55
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 52,
-    "self_crossing_arrows": 11,
-    "occupied_nodes": 531,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 478,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 194,
-    "arrows": 70,
+    "arrows": 59,
     "grid": [
-      44,
+      49,
       57
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 64,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 538,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 494,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 2
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 195,
-    "arrows": 87,
+    "arrows": 59,
     "grid": [
-      52,
-      59
+      43,
+      45
     ],
-    "initial_safe_arrows": 1,
-    "dependency_depth": 85,
-    "self_crossing_arrows": 15,
-    "occupied_nodes": 660,
-    "milestone": true,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 488,
+    "milestone": false,
     "boss": false,
-    "generation_attempts": 16
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 196,
-    "arrows": 71,
+    "arrows": 59,
     "grid": [
       44,
-      53
+      52
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 64,
-    "self_crossing_arrows": 12,
-    "occupied_nodes": 567,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 54,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 468,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 197,
-    "arrows": 71,
+    "arrows": 59,
     "grid": [
-      38,
-      56
+      50,
+      51
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 70,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 48,
     "self_crossing_arrows": 8,
-    "occupied_nodes": 542,
+    "occupied_nodes": 454,
     "milestone": false,
     "boss": false,
+    "phase": "NORMAL",
     "generation_attempts": 1
   },
   {
     "level": 198,
-    "arrows": 71,
+    "arrows": 67,
     "grid": [
-      48,
+      46,
       56
     ],
     "initial_safe_arrows": 2,
-    "dependency_depth": 60,
-    "self_crossing_arrows": 6,
-    "occupied_nodes": 526,
+    "dependency_depth": 46,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 542,
     "milestone": false,
     "boss": false,
+    "phase": "HARD",
     "generation_attempts": 1
   },
   {
     "level": 199,
-    "arrows": 72,
+    "arrows": 60,
     "grid": [
-      50,
-      58
+      44,
+      55
     ],
-    "initial_safe_arrows": 2,
-    "dependency_depth": 71,
-    "self_crossing_arrows": 17,
-    "occupied_nodes": 602,
+    "initial_safe_arrows": 3,
+    "dependency_depth": 53,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 467,
     "milestone": false,
     "boss": false,
-    "generation_attempts": 4
+    "phase": "NORMAL",
+    "generation_attempts": 1
   },
   {
     "level": 200,
-    "arrows": 104,
+    "arrows": 60,
     "grid": [
-      60,
-      65
+      48,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 457,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 201,
+    "arrows": 60,
+    "grid": [
+      41,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 51,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 488,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 202,
+    "arrows": 60,
+    "grid": [
+      49,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 48,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 449,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 203,
+    "arrows": 60,
+    "grid": [
+      43,
+      49
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 486,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 204,
+    "arrows": 79,
+    "grid": [
+      52,
+      60
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 79,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 632,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
+  },
+  {
+    "level": 205,
+    "arrows": 61,
+    "grid": [
+      43,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 56,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 491,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 206,
+    "arrows": 61,
+    "grid": [
+      43,
+      52
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 461,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 207,
+    "arrows": 61,
+    "grid": [
+      50,
+      35
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 473,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 208,
+    "arrows": 61,
+    "grid": [
+      49,
+      53
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 503,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 209,
+    "arrows": 61,
+    "grid": [
+      42,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 472,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 210,
+    "arrows": 94,
+    "grid": [
+      51,
+      68
     ],
     "initial_safe_arrows": 1,
     "dependency_depth": 94,
-    "self_crossing_arrows": 13,
-    "occupied_nodes": 785,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 702,
     "milestone": true,
     "boss": true,
-    "generation_attempts": 13
+    "phase": "EXTREME HARD",
+    "generation_attempts": 5
+  },
+  {
+    "level": 211,
+    "arrows": 62,
+    "grid": [
+      50,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 510,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 212,
+    "arrows": 62,
+    "grid": [
+      49,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 489,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 213,
+    "arrows": 62,
+    "grid": [
+      40,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 49,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 485,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 214,
+    "arrows": 62,
+    "grid": [
+      41,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 451,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 215,
+    "arrows": 63,
+    "grid": [
+      42,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 507,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 216,
+    "arrows": 81,
+    "grid": [
+      47,
+      62
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 78,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 629,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
+  },
+  {
+    "level": 217,
+    "arrows": 63,
+    "grid": [
+      38,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 480,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 218,
+    "arrows": 63,
+    "grid": [
+      39,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 47,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 462,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 219,
+    "arrows": 63,
+    "grid": [
+      51,
+      48
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 45,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 506,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 220,
+    "arrows": 63,
+    "grid": [
+      45,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 526,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 221,
+    "arrows": 64,
+    "grid": [
+      49,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 34,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 502,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 222,
+    "arrows": 72,
+    "grid": [
+      51,
+      51
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 557,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 223,
+    "arrows": 64,
+    "grid": [
+      43,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 502,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 224,
+    "arrows": 64,
+    "grid": [
+      50,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 520,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 225,
+    "arrows": 64,
+    "grid": [
+      40,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 490,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 226,
+    "arrows": 64,
+    "grid": [
+      46,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 516,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 227,
+    "arrows": 65,
+    "grid": [
+      48,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 529,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 228,
+    "arrows": 83,
+    "grid": [
+      53,
+      62
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 81,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 652,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 229,
+    "arrows": 65,
+    "grid": [
+      46,
+      58
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 51,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 527,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 230,
+    "arrows": 65,
+    "grid": [
+      46,
+      49
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 527,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 231,
+    "arrows": 65,
+    "grid": [
+      41,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 484,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 232,
+    "arrows": 66,
+    "grid": [
+      47,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 530,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 233,
+    "arrows": 66,
+    "grid": [
+      39,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 489,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 234,
+    "arrows": 74,
+    "grid": [
+      47,
+      52
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 73,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 565,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 235,
+    "arrows": 66,
+    "grid": [
+      44,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 502,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 236,
+    "arrows": 66,
+    "grid": [
+      49,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 480,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 237,
+    "arrows": 66,
+    "grid": [
+      51,
+      50
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 4,
+    "occupied_nodes": 469,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 238,
+    "arrows": 67,
+    "grid": [
+      46,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 529,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 239,
+    "arrows": 67,
+    "grid": [
+      43,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 544,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 240,
+    "arrows": 99,
+    "grid": [
+      53,
+      70
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 99,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 779,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 3
+  },
+  {
+    "level": 241,
+    "arrows": 67,
+    "grid": [
+      44,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 46,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 550,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 242,
+    "arrows": 67,
+    "grid": [
+      43,
+      58
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 56,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 526,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 243,
+    "arrows": 68,
+    "grid": [
+      41,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 526,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 244,
+    "arrows": 68,
+    "grid": [
+      44,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 491,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 245,
+    "arrows": 68,
+    "grid": [
+      52,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 46,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 584,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 246,
+    "arrows": 76,
+    "grid": [
+      40,
+      60
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 55,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 551,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 247,
+    "arrows": 68,
+    "grid": [
+      44,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 516,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 248,
+    "arrows": 68,
+    "grid": [
+      50,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 491,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 249,
+    "arrows": 69,
+    "grid": [
+      46,
+      58
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 545,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 250,
+    "arrows": 69,
+    "grid": [
+      49,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 504,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 251,
+    "arrows": 69,
+    "grid": [
+      48,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 523,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 252,
+    "arrows": 87,
+    "grid": [
+      50,
+      63
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 86,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 674,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 4
+  },
+  {
+    "level": 253,
+    "arrows": 69,
+    "grid": [
+      50,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 53,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 565,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 254,
+    "arrows": 70,
+    "grid": [
+      37,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 56,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 542,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 255,
+    "arrows": 70,
+    "grid": [
+      43,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 57,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 547,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 256,
+    "arrows": 70,
+    "grid": [
+      53,
+      52
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 534,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 257,
+    "arrows": 70,
+    "grid": [
+      42,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 526,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 258,
+    "arrows": 78,
+    "grid": [
+      48,
+      58
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 77,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 638,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 259,
+    "arrows": 70,
+    "grid": [
+      51,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 572,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 260,
+    "arrows": 71,
+    "grid": [
+      54,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 528,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 261,
+    "arrows": 71,
+    "grid": [
+      48,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 546,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 262,
+    "arrows": 71,
+    "grid": [
+      47,
+      48
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 543,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 263,
+    "arrows": 71,
+    "grid": [
+      45,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 51,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 573,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 264,
+    "arrows": 89,
+    "grid": [
+      46,
+      59
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 87,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 681,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
+  },
+  {
+    "level": 265,
+    "arrows": 72,
+    "grid": [
+      41,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 558,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 266,
+    "arrows": 72,
+    "grid": [
+      44,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 562,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 267,
+    "arrows": 72,
+    "grid": [
+      51,
+      50
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 572,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 268,
+    "arrows": 72,
+    "grid": [
+      53,
+      47
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 517,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 269,
+    "arrows": 72,
+    "grid": [
+      38,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 571,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 270,
+    "arrows": 104,
+    "grid": [
+      40,
+      72
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 101,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 755,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 6
+  },
+  {
+    "level": 271,
+    "arrows": 73,
+    "grid": [
+      42,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 60,
+    "self_crossing_arrows": 16,
+    "occupied_nodes": 605,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 272,
+    "arrows": 73,
+    "grid": [
+      50,
+      45
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 565,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 273,
+    "arrows": 73,
+    "grid": [
+      53,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 71,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 563,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 274,
+    "arrows": 73,
+    "grid": [
+      43,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 64,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 589,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 275,
+    "arrows": 73,
+    "grid": [
+      54,
+      36
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 549,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 276,
+    "arrows": 92,
+    "grid": [
+      59,
+      66
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 90,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 698,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
+  },
+  {
+    "level": 277,
+    "arrows": 74,
+    "grid": [
+      45,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 594,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 278,
+    "arrows": 74,
+    "grid": [
+      41,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 589,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 279,
+    "arrows": 74,
+    "grid": [
+      55,
+      49
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 37,
+    "self_crossing_arrows": 6,
+    "occupied_nodes": 554,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 280,
+    "arrows": 74,
+    "grid": [
+      41,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 566,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 281,
+    "arrows": 74,
+    "grid": [
+      55,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 554,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 282,
+    "arrows": 83,
+    "grid": [
+      42,
+      59
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 632,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 283,
+    "arrows": 75,
+    "grid": [
+      41,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 584,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 284,
+    "arrows": 75,
+    "grid": [
+      51,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 73,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 634,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 285,
+    "arrows": 75,
+    "grid": [
+      45,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 621,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 286,
+    "arrows": 75,
+    "grid": [
+      55,
+      42
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 560,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 287,
+    "arrows": 75,
+    "grid": [
+      45,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 591,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 288,
+    "arrows": 94,
+    "grid": [
+      57,
+      64
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 93,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 724,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
+  },
+  {
+    "level": 289,
+    "arrows": 76,
+    "grid": [
+      52,
+      39
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 586,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 290,
+    "arrows": 76,
+    "grid": [
+      42,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 568,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 291,
+    "arrows": 76,
+    "grid": [
+      53,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 74,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 602,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 292,
+    "arrows": 76,
+    "grid": [
+      56,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 588,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 293,
+    "arrows": 77,
+    "grid": [
+      52,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 63,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 611,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 294,
+    "arrows": 85,
+    "grid": [
+      39,
+      64
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 71,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 649,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 295,
+    "arrows": 77,
+    "grid": [
+      48,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 75,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 600,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 296,
+    "arrows": 77,
+    "grid": [
+      55,
+      64
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 75,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 577,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 297,
+    "arrows": 77,
+    "grid": [
+      44,
+      53
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 608,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 298,
+    "arrows": 77,
+    "grid": [
+      54,
+      39
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 50,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 608,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 299,
+    "arrows": 78,
+    "grid": [
+      53,
+      52
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 76,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 626,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 300,
+    "arrows": 110,
+    "grid": [
+      61,
+      72
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 109,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 831,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 11
+  },
+  {
+    "level": 301,
+    "arrows": 78,
+    "grid": [
+      44,
+      58
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 598,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 302,
+    "arrows": 78,
+    "grid": [
+      52,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 76,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 629,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 303,
+    "arrows": 78,
+    "grid": [
+      44,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 76,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 624,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 304,
+    "arrows": 79,
+    "grid": [
+      56,
+      50
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 74,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 588,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 305,
+    "arrows": 79,
+    "grid": [
+      43,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 577,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 306,
+    "arrows": 87,
+    "grid": [
+      45,
+      61
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 79,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 653,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 307,
+    "arrows": 79,
+    "grid": [
+      52,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 77,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 587,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 308,
+    "arrows": 79,
+    "grid": [
+      51,
+      52
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 53,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 623,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 309,
+    "arrows": 79,
+    "grid": [
+      44,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 77,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 638,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 310,
+    "arrows": 80,
+    "grid": [
+      55,
+      39
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 75,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 577,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 311,
+    "arrows": 80,
+    "grid": [
+      56,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 640,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 312,
+    "arrows": 98,
+    "grid": [
+      51,
+      60
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 98,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 760,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 9
+  },
+  {
+    "level": 313,
+    "arrows": 80,
+    "grid": [
+      45,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 613,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 314,
+    "arrows": 80,
+    "grid": [
+      46,
+      64
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 78,
+    "self_crossing_arrows": 17,
+    "occupied_nodes": 666,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 315,
+    "arrows": 81,
+    "grid": [
+      51,
+      50
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 75,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 600,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 316,
+    "arrows": 81,
+    "grid": [
+      52,
+      47
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 636,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 317,
+    "arrows": 81,
+    "grid": [
+      55,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 79,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 649,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 318,
+    "arrows": 89,
+    "grid": [
+      48,
+      63
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 84,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 704,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 5
+  },
+  {
+    "level": 319,
+    "arrows": 81,
+    "grid": [
+      48,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 606,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 320,
+    "arrows": 81,
+    "grid": [
+      50,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 79,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 631,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 321,
+    "arrows": 82,
+    "grid": [
+      56,
+      45
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 598,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 322,
+    "arrows": 82,
+    "grid": [
+      52,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 61,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 654,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 323,
+    "arrows": 82,
+    "grid": [
+      56,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 80,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 636,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 324,
+    "arrows": 100,
+    "grid": [
+      48,
+      44
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 100,
+    "self_crossing_arrows": 5,
+    "occupied_nodes": 707,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 3
+  },
+  {
+    "level": 325,
+    "arrows": 82,
+    "grid": [
+      56,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 16,
+    "occupied_nodes": 649,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 326,
+    "arrows": 82,
+    "grid": [
+      48,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 80,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 590,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 327,
+    "arrows": 83,
+    "grid": [
+      49,
+      52
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 635,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 328,
+    "arrows": 83,
+    "grid": [
+      55,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 78,
+    "self_crossing_arrows": 17,
+    "occupied_nodes": 685,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 329,
+    "arrows": 83,
+    "grid": [
+      46,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 620,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 330,
+    "arrows": 115,
+    "grid": [
+      66,
+      76
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 115,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 871,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 17
+  },
+  {
+    "level": 331,
+    "arrows": 83,
+    "grid": [
+      49,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 46,
+    "self_crossing_arrows": 19,
+    "occupied_nodes": 707,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 332,
+    "arrows": 84,
+    "grid": [
+      41,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 54,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 623,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 333,
+    "arrows": 84,
+    "grid": [
+      56,
+      64
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 670,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 334,
+    "arrows": 84,
+    "grid": [
+      48,
+      50
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 71,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 631,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 335,
+    "arrows": 84,
+    "grid": [
+      48,
+      58
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 675,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 336,
+    "arrows": 102,
+    "grid": [
+      60,
+      61
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 102,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 778,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 337,
+    "arrows": 84,
+    "grid": [
+      57,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 53,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 637,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 338,
+    "arrows": 85,
+    "grid": [
+      46,
+      59
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 617,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 339,
+    "arrows": 85,
+    "grid": [
+      49,
+      55
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 83,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 653,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 340,
+    "arrows": 85,
+    "grid": [
+      49,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 83,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 635,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 341,
+    "arrows": 85,
+    "grid": [
+      46,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 16,
+    "occupied_nodes": 675,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 342,
+    "arrows": 93,
+    "grid": [
+      56,
+      61
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 92,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 671,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 343,
+    "arrows": 86,
+    "grid": [
+      59,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 67,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 644,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 344,
+    "arrows": 86,
+    "grid": [
+      59,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 79,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 678,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 345,
+    "arrows": 86,
+    "grid": [
+      59,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 84,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 667,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 346,
+    "arrows": 86,
+    "grid": [
+      57,
+      64
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 664,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 347,
+    "arrows": 86,
+    "grid": [
+      57,
+      47
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 78,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 671,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 348,
+    "arrows": 104,
+    "grid": [
+      63,
+      65
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 104,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 789,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 4
+  },
+  {
+    "level": 349,
+    "arrows": 87,
+    "grid": [
+      46,
+      64
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 74,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 651,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 350,
+    "arrows": 87,
+    "grid": [
+      52,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 77,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 699,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 351,
+    "arrows": 87,
+    "grid": [
+      59,
+      47
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 76,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 653,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 352,
+    "arrows": 87,
+    "grid": [
+      46,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 16,
+    "occupied_nodes": 668,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 353,
+    "arrows": 87,
+    "grid": [
+      59,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 77,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 688,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 354,
+    "arrows": 96,
+    "grid": [
+      59,
+      64
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 71,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 728,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 1
+  },
+  {
+    "level": 355,
+    "arrows": 88,
+    "grid": [
+      58,
+      43
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 65,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 691,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 356,
+    "arrows": 88,
+    "grid": [
+      56,
+      64
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 86,
+    "self_crossing_arrows": 16,
+    "occupied_nodes": 697,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 357,
+    "arrows": 88,
+    "grid": [
+      47,
+      63
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 78,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 639,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 358,
+    "arrows": 88,
+    "grid": [
+      58,
+      45
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 81,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 656,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 359,
+    "arrows": 88,
+    "grid": [
+      49,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 699,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 360,
+    "arrows": 121,
+    "grid": [
+      70,
+      75
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 121,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 906,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 361,
+    "arrows": 89,
+    "grid": [
+      57,
+      51
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 84,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 677,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 362,
+    "arrows": 89,
+    "grid": [
+      49,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 76,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 683,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 3
+  },
+  {
+    "level": 363,
+    "arrows": 89,
+    "grid": [
+      60,
+      56
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 87,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 684,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 364,
+    "arrows": 89,
+    "grid": [
+      60,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 87,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 684,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 365,
+    "arrows": 90,
+    "grid": [
+      57,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 88,
+    "self_crossing_arrows": 18,
+    "occupied_nodes": 737,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 366,
+    "arrows": 98,
+    "grid": [
+      56,
+      66
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 86,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 759,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 4
+  },
+  {
+    "level": 367,
+    "arrows": 90,
+    "grid": [
+      50,
+      50
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 87,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 659,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 368,
+    "arrows": 90,
+    "grid": [
+      50,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 718,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 369,
+    "arrows": 90,
+    "grid": [
+      53,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 20,
+    "occupied_nodes": 751,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 370,
+    "arrows": 90,
+    "grid": [
+      59,
+      66
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 68,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 689,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 371,
+    "arrows": 91,
+    "grid": [
+      45,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 700,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 372,
+    "arrows": 109,
+    "grid": [
+      61,
+      68
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 109,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 821,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 11
+  },
+  {
+    "level": 373,
+    "arrows": 91,
+    "grid": [
+      55,
+      44
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 81,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 667,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 374,
+    "arrows": 91,
+    "grid": [
+      58,
+      34
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 70,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 615,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 375,
+    "arrows": 91,
+    "grid": [
+      58,
+      66
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 89,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 698,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 3
+  },
+  {
+    "level": 376,
+    "arrows": 92,
+    "grid": [
+      51,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 79,
+    "self_crossing_arrows": 19,
+    "occupied_nodes": 735,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 377,
+    "arrows": 92,
+    "grid": [
+      49,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 83,
+    "self_crossing_arrows": 16,
+    "occupied_nodes": 721,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 378,
+    "arrows": 100,
+    "grid": [
+      56,
+      64
+    ],
+    "initial_safe_arrows": 2,
+    "dependency_depth": 84,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 785,
+    "milestone": false,
+    "boss": false,
+    "phase": "HARD",
+    "generation_attempts": 2
+  },
+  {
+    "level": 379,
+    "arrows": 92,
+    "grid": [
+      60,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 90,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 727,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 380,
+    "arrows": 92,
+    "grid": [
+      52,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 72,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 686,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 381,
+    "arrows": 92,
+    "grid": [
+      61,
+      66
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 12,
+    "occupied_nodes": 693,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 382,
+    "arrows": 93,
+    "grid": [
+      59,
+      68
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 58,
+    "self_crossing_arrows": 17,
+    "occupied_nodes": 743,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 383,
+    "arrows": 93,
+    "grid": [
+      58,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 728,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 384,
+    "arrows": 111,
+    "grid": [
+      61,
+      71
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 110,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 858,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 12
+  },
+  {
+    "level": 385,
+    "arrows": 93,
+    "grid": [
+      60,
+      54
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 62,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 719,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 386,
+    "arrows": 93,
+    "grid": [
+      51,
+      53
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 74,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 702,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 387,
+    "arrows": 93,
+    "grid": [
+      57,
+      66
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 52,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 732,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 388,
+    "arrows": 94,
+    "grid": [
+      61,
+      65
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 92,
+    "self_crossing_arrows": 13,
+    "occupied_nodes": 732,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 389,
+    "arrows": 94,
+    "grid": [
+      59,
+      48
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 66,
+    "self_crossing_arrows": 10,
+    "occupied_nodes": 704,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 390,
+    "arrows": 126,
+    "grid": [
+      65,
+      79
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 126,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 929,
+    "milestone": true,
+    "boss": true,
+    "phase": "EXTREME HARD",
+    "generation_attempts": 25
+  },
+  {
+    "level": 391,
+    "arrows": 94,
+    "grid": [
+      61,
+      68
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 53,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 693,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 2
+  },
+  {
+    "level": 392,
+    "arrows": 94,
+    "grid": [
+      62,
+      35
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 69,
+    "self_crossing_arrows": 7,
+    "occupied_nodes": 650,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 393,
+    "arrows": 95,
+    "grid": [
+      61,
+      60
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 85,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 741,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 394,
+    "arrows": 95,
+    "grid": [
+      53,
+      61
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 59,
+    "self_crossing_arrows": 17,
+    "occupied_nodes": 755,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 395,
+    "arrows": 95,
+    "grid": [
+      60,
+      68
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 78,
+    "self_crossing_arrows": 14,
+    "occupied_nodes": 729,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 396,
+    "arrows": 113,
+    "grid": [
+      65,
+      55
+    ],
+    "initial_safe_arrows": 1,
+    "dependency_depth": 111,
+    "self_crossing_arrows": 9,
+    "occupied_nodes": 845,
+    "milestone": true,
+    "boss": false,
+    "phase": "SUPER HARD",
+    "generation_attempts": 16
+  },
+  {
+    "level": 397,
+    "arrows": 95,
+    "grid": [
+      62,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 93,
+    "self_crossing_arrows": 15,
+    "occupied_nodes": 724,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 398,
+    "arrows": 95,
+    "grid": [
+      58,
+      67
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 89,
+    "self_crossing_arrows": 11,
+    "occupied_nodes": 715,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 399,
+    "arrows": 96,
+    "grid": [
+      50,
+      57
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 90,
+    "self_crossing_arrows": 8,
+    "occupied_nodes": 676,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 1
+  },
+  {
+    "level": 400,
+    "arrows": 96,
+    "grid": [
+      60,
+      68
+    ],
+    "initial_safe_arrows": 3,
+    "dependency_depth": 94,
+    "self_crossing_arrows": 18,
+    "occupied_nodes": 781,
+    "milestone": false,
+    "boss": false,
+    "phase": "NORMAL",
+    "generation_attempts": 3
   }
 ]

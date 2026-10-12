@@ -4,8 +4,8 @@ Current release-hardening line for the Android arrow puzzle game.
 
 ## Current build
 
-- Version: `1.0.2`
-- Version code: `3`
+- Version: `1.2.0`
+- Version code: `28`
 - Package: `com.arrowescape.pro`
 - Minimum SDK: `24`
 - Compile SDK: `36`
@@ -17,7 +17,7 @@ Current release-hardening line for the Android arrow puzzle game.
 
 The approved V15 movement model remains the gameplay foundation: the arrow head travels forward while the body follows the original path like a snake. Later releases preserve that movement while adding full escape validation, including own-tail/body clearance and blocking by other live arrows.
 
-The current product line retains the 200-level campaign, persistent progression/economy, hearts, hints, Daily Challenge, streak rewards, achievements, store/settings surfaces, production AdMob IDs in release and Google test IDs in debug.
+The current product line has a redesigned 400-level campaign, persistent progression/economy, hearts, hints, Daily Challenge, streak rewards, achievements, store/settings surfaces, production AdMob IDs in release and Google test IDs in debug.
 
 ## Release signing
 
@@ -86,4 +86,18 @@ Debug builds use Google's official test ad IDs. Release builds keep the producti
 
 ## Play Store release rule
 
-Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.0.2` / code `3` is already configured for SDK 36.
+Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.2.0` / code `28` is already configured for SDK 36.
+
+## 400-level campaign update
+
+See `play-store/V28-RESEARCH-AND-READINESS.md` for difficulty cadence, boosters,
+Google Play Games configuration and the remaining vendor edge-to-edge warning.
+
+Validate Android runtime behavior locally with `gradle :app:testDebugUnitTest`.
+It solves all 400 campaign puzzles with the actual game logic and tests map
+selection, scrolling, migration and booster spending/persistence.
+
+The debug APK is for testing and installs as `com.arrowescape.pro.debug`.
+Production sign-in requires completed OAuth/Android credentials in Play Console
+and `ARROW_PLAY_GAMES_READY=true`. Run `verifyPlayGamesConfiguration` before
+production distribution. Do not publish the unsigned review AAB.

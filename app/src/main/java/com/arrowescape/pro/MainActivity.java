@@ -67,6 +67,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private Button watchButton;
     private AlertDialog reminder;
     private int storeTab = 0, achievementTab = 0;
+    private boolean playGamesSignedIn, playGamesSignInBusy;
+    private String playGamesName="Arrow Player";
+    private TextView playGamesPlayerLabel, playGamesStatusLabel;
+    private android.widget.Button playGamesButton;
     private int currentNav = 0; // 0 Home · 1 Levels · 2 Daily · 3 Store · 4 Me
     private boolean adsStarted, loadingReward, loadingInterstitial, showingAd, pausedForAd;
     private long rewardedLoadedAt, interstitialLoadedAt;
@@ -258,6 +262,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             if (!isDestroyed()) { game.invalidate(); updateBalance(); }
         });
     }
+    @Override public void openBoosters() {
+        LinearLayout body=premiumBody();addPremiumHeader(body,"BOOSTERS","Choose a tool, preview its target, then confirm. Cancel is free.");
+        body.addView(text("Every level can be solved without boosters. Using a booster counts as an assist for stars.",14,MUTED));
+        body.addView(button("PRECISE ERASER · select one arrow",()->{menu.dismiss();game.beginBooster(1);},false));
+        body.addView(button("AREA BOMB · radius 4 cells · "+ArrowGameView.BOMB_COST+" coins",()->{menu.dismiss();game.beginBooster(2);},true));
+        body.addView(button("ROW SWEEP · one row · "+ArrowGameView.ROW_COST+" coins",()->{menu.dismiss();game.beginBooster(3);},false));
+        body.addView(button("Back to puzzle",()->menu.dismiss(),false));
+        presentFullScreen(body);
+    }
     @Override public void requestRewardedErase() { showRewarded(() -> game.grantEraser()); }
     @Override public void requestRewardedRevive() { showRewarded(() -> game.grantRevive()); }
     @Override public void requestRewardedCoins() {
@@ -277,7 +290,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         // enabled on pre-Android-15 devices as well. This call does not require the
         // deprecated status/navigation bar color APIs.
         WindowCompat.setDecorFitsSystemWindows(window, false);
-        if (android.os.Build.VERSION.SDK_INT >= 28) {
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
             android.view.WindowManager.LayoutParams attrs = window.getAttributes();
             attrs.layoutInDisplayCutoutMode =
                 android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
@@ -489,7 +502,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dailyRow.addView(go,new LinearLayout.LayoutParams(dp(82),dp(42)));daily.addView(dailyRow);body.addView(daily);
 
         LinearLayout row1=new LinearLayout(this);row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.addView(tileButton("▦\nLEVELS\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();enterGameplay();}));
+        row1.addView(tileButton("▦\nLEVELS\n400 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();enterGameplay();}));
         row1.addView(tileButton("🏆\nDAILY\n200 COINS",GOLD,this::showDailyChallengePanel));body.addView(row1);
 
         LinearLayout row2=new LinearLayout(this);row2.setOrientation(LinearLayout.HORIZONTAL);
@@ -587,7 +600,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             addAchievementCard(body,"♛","Puzzle Master","Complete 50 levels",Math.min(complete,50)+" / 50",complete>=50);
             addAchievementCard(body,"✦","Star Collector","Earn 300 stars",Math.min(stars,300)+" / 300",stars>=300);
             addAchievementCard(body,"◆","Perfectionist","Get 3★ on 50 levels",Math.min(perfect,50)+" / 50",perfect>=50);
-            addAchievementCard(body,"🏆","Boss Hunter","Clear all five boss milestones",game.allBossesComplete()?"5 / 5":"Keep climbing",game.allBossesComplete());
+            addAchievementCard(body,"🏆","Boss Hunter","Clear all 13 Extreme Hard checkpoints",game.allBossesComplete()?"Unlocked":"Keep climbing",game.allBossesComplete());
             int streak=wallet.streak();
             addAchievementCard(body,"🔥","Streak Starter","Reach a 3-day daily streak",Math.min(streak,3)+" / 3",streak>=3);
             addAchievementCard(body,"🔥","Week Warrior","Reach a 7-day daily streak",Math.min(streak,7)+" / 7",streak>=7);
@@ -616,7 +629,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             },true);claim.setEnabled(wallet.canClaimDaily(now));body.addView(claim);
             body.addView(text("Rewards grow with your streak: 10 → 15 → 20 → 30 → 40 → 50 → 75 coins. After day 7, each continuing day earns 75 coins.",12,MUTED));
         }
-        presentFullScreen(body,4);
+        presentFullScreen(body,4);updatePlayGamesControls();refreshPlayGamesStatus();
     }
 
     private String challengeResetText() {
@@ -630,12 +643,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         settings.edit().putLong("daily_challenge_prompt_day",day).apply();
         dailyReminderScheduled=false;
         if(game!=null)game.removeCallbacks(dailyReminderTask);
-        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");
+        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–400");
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
         TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
         TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
-        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 200 campaign levels",13,MUTED));
+        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 400 campaign levels",13,MUTED));
         body.addView(hero);
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
         amount.setGravity(Gravity.CENTER);amount.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(amount);
@@ -665,7 +678,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         TextView avatar=text("★",30,CYAN);avatar.setGravity(Gravity.CENTER);avatar.setBackground(gradient(0xFF153D70,0xFF0A1D3A,22,CYAN));
         row.addView(avatar,new LinearLayout.LayoutParams(dp(62),dp(62)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        TextView player=text("Arrow Player",20,TEXT);player.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(player);
+        TextView player=text(playGamesName,20,TEXT);playGamesPlayerLabel=player;player.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(player);
         copy.addView(text("Level "+game.currentLevelNumber()+"  ·  "+game.totalStarCount()+" stars",12,MUTED));
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));identity.addView(row);body.addView(identity);
 
@@ -675,6 +688,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         stats.addView(profileStat(wallet.streak()+"d","Streak"));
         body.addView(stats);
 
+        body.addView(section("GOOGLE PLAY GAMES"));
+        playGamesStatusLabel=text(playGamesSignedIn?"Connected to Google Play Games":"Connect your Play Games profile",13,MUTED);
+        body.addView(playGamesStatusLabel);
+        playGamesButton=button(playGamesSignedIn?"✓  Google Play Games connected":"Sign in with Google Play Games",this::signInWithPlayGames,true);
+        playGamesButton.setEnabled(ArrowApplication.playGamesReady&&!playGamesSignInBusy&&!playGamesSignedIn);
+        body.addView(playGamesButton);
+        body.addView(text("Level progress and coins are saved on this device.",12,MUTED));
         body.addView(section("YOUR JOURNEY"));
         body.addView(button("★  Achievements & trophies",this::showAchievements,false));
         body.addView(button("🔥  Daily streak rewards",()->{achievementTab=1;showAchievements();},false));
@@ -682,7 +702,48 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         body.addView(button("⚙  Settings",()->showMenu(false),false));
         body.addView(button("★  Rate Arrow Escape",this::openPlayStoreRating,false));
         body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
-        presentFullScreen(body,4);
+        presentFullScreen(body,4);updatePlayGamesControls();refreshPlayGamesStatus();
+    }
+
+    private void refreshPlayGamesStatus() {
+        if(!ArrowApplication.playGamesReady||isDestroyed()||playGamesSignInBusy)return;
+        com.google.android.gms.games.PlayGames.getGamesSignInClient(this).isAuthenticated()
+            .addOnCompleteListener(task->{
+                if(isDestroyed()||isFinishing())return;
+                playGamesSignedIn=task.isSuccessful()&&task.getResult()!=null&&task.getResult().isAuthenticated();
+                updatePlayGamesProfile();
+            });
+    }
+    private void signInWithPlayGames() {
+        if(!ArrowApplication.playGamesReady||playGamesSignInBusy||playGamesSignedIn)return;
+        playGamesSignInBusy=true;updatePlayGamesControls();
+        com.google.android.gms.games.PlayGames.getGamesSignInClient(this).signIn()
+            .addOnCompleteListener(task->{
+                if(isDestroyed()||isFinishing())return;
+                playGamesSignInBusy=false;
+                playGamesSignedIn=task.isSuccessful()&&task.getResult()!=null&&task.getResult().isAuthenticated();
+                if(!playGamesSignedIn)toast("Sign-in was not completed. You can try again.");
+                updatePlayGamesProfile();
+            });
+    }
+    private void updatePlayGamesProfile() {
+        if(isDestroyed())return;
+        if(!playGamesSignedIn){playGamesName="Arrow Player";updatePlayGamesControls();return;}
+        com.google.android.gms.games.PlayGames.getPlayersClient(this).getCurrentPlayer()
+            .addOnCompleteListener(task->{
+                if(isDestroyed()||isFinishing())return;
+                if(task.isSuccessful()&&task.getResult()!=null)playGamesName=task.getResult().getDisplayName();
+                updatePlayGamesControls();
+            });
+    }
+    private void updatePlayGamesControls() {
+        if(isDestroyed())return;
+        if(playGamesPlayerLabel!=null)playGamesPlayerLabel.setText(playGamesName);
+        if(playGamesStatusLabel!=null)playGamesStatusLabel.setText(playGamesSignedIn?"Connected to Google Play Games":ArrowApplication.playGamesReady?"Connect your Play Games profile":"Google Play Games is not available yet");
+        if(playGamesButton!=null){
+            playGamesButton.setText(playGamesSignInBusy?"Connecting…":playGamesSignedIn?"✓  Google Play Games connected":"Sign in with Google Play Games");
+            playGamesButton.setEnabled(ArrowApplication.playGamesReady&&!playGamesSignInBusy&&!playGamesSignedIn);
+        }
     }
 
     private LinearLayout profileStat(String value,String label) {
@@ -1149,6 +1210,6 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);}
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
+    @Override protected void onResume(){super.onResume();refreshPlayGamesStatus();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
     @Override protected void onDestroy(){destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }
