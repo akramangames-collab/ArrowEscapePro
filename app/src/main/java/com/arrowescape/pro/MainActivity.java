@@ -51,6 +51,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private Wallet wallet;
     private SharedPreferences settings;
     private AmbientMusic music;
+    private int pendingBooster=-1;
+    private AlertDialog boosterLoading;
+    private final android.os.Handler boosterHandler=new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable boosterTimeout=()->{if(pendingBooster>=0){cancelPendingBooster();toast("Ad unavailable. Please try again.");}};
     private boolean foreground;
     private InterstitialAd interstitial;
     private RewardedAd rewarded;
@@ -99,6 +103,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
         configurePlatformEdgeToEdge(getWindow());
         configureFamiliesAdPolicy();
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
@@ -207,10 +212,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         RewardedAd.load(new AdRequest.Builder(BuildConfig.ADMOB_REWARDED_ID).build(), new AdLoadCallback<RewardedAd>() {
             @Override public void onAdLoaded(RewardedAd ad) {
                 loadingReward = false;
-                if (!isDestroyed()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); }
+                if (!isDestroyed()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); deliverPendingBoosterAd(); }
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
-                loadingReward = false; rewarded = null; updateRewardStatus();
+                loadingReward = false; rewarded = null; updateRewardStatus(); if(pendingBooster>=0){cancelPendingBooster();toast("Ad unavailable. No booster used.");}
             }
         });
     }
@@ -296,12 +301,24 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     @Override public void requestRewardedErase() { requestRewardedBooster(1); }
     @Override public void requestRewardedBooster(int kind) {
-        if(kind<0||kind>3)return;
-        String name=BoosterInventory.name(kind),receipt=UUID.randomUUID().toString();
-        new AlertDialog.Builder(this).setTitle("Get 1 "+name)
-            .setMessage("Complete one rewarded ad to save 1 "+name+". Use it once whenever you choose. No coins required.")
-            .setNegativeButton("Not now",null)
-            .setPositiveButton("Watch ad · +1 "+name,(d,w)->showRewarded(()->game.grantBooster(kind,receipt))).show();
+        if(kind<0||kind>3||showingAd||pendingBooster>=0)return;
+        if(!canRequestAds()){toast("Reward ad unavailable. No booster used.");return;}
+        pendingBooster=kind;
+        if(rewardReady()){deliverPendingBoosterAd();return;}
+        boosterLoading=new AlertDialog.Builder(this).setTitle("Loading ad · +1 "+BoosterInventory.name(kind))
+            .setMessage("Complete the rewarded ad for one saved use. You can cancel while it loads.")
+            .setNegativeButton("Cancel",(d,w)->cancelPendingBooster()).create();
+        boosterLoading.setOnCancelListener(d->cancelPendingBooster());boosterLoading.show();
+        boosterHandler.postDelayed(boosterTimeout,20000);loadRewarded();
+    }
+    private void deliverPendingBoosterAd(){
+        if(pendingBooster<0||!foreground||showingAd||!rewardReady())return;
+        int kind=pendingBooster;cancelPendingBooster();String receipt=UUID.randomUUID().toString();
+        showRewarded(()->game.grantBooster(kind,receipt));
+    }
+    private void cancelPendingBooster(){
+        pendingBooster=-1;boosterHandler.removeCallbacks(boosterTimeout);
+        if(boosterLoading!=null){boosterLoading.dismiss();boosterLoading=null;}
     }
     @Override public void requestRewardedRevive() { showRewarded(() -> game.grantRevive()); }
     @Override public void requestRewardedCoins() {
@@ -575,7 +592,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(button("NEXT  ›",()->showOnboarding(1),true));
         }else if(onboardingStep==1){
             body.addView(text("Hint · highlights a safe move",18,GOLD));
-            body.addView(text("Precise eraser · removes your selected arrow\nArea bomb · clears arrows in a limited area\nRow sweep · clears arrows touching one row",15,TEXT));
+            body.addView(text("1 free hint every level attempt. At zero, tap a tool to watch an ad for one use.\nPrecise eraser · removes your selected arrow\nArea bomb · clears arrows in a limited area\nRow sweep · clears arrows touching one row",15,TEXT));
             body.addView(text("Choose a target and preview it before confirming. Cancel is free; prices are shown before coins are spent.",15,MUTED));
             body.addView(text("Route is your home. Daily has a separate challenge; Store has cosmetic previews; Awards tracks achievements and streaks; Me has your preferences.",15,CYAN));
             body.addView(button("TRY THE PRACTICE  ›",()->showOnboarding(2),true));
@@ -1274,7 +1291,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dialog.show();if(dialog.getWindow()!=null)dialog.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
-    @Override protected void onPause(){foreground=false;if(music!=null)music.suspend();super.onPause();game.saveProgress();game.setPaused(true);}
+    @Override public void onWindowFocusChanged(boolean hasFocus){super.onWindowFocusChanged(hasFocus);if(hasFocus&&foreground&&!showingAd&&music!=null)music.resume();}
+    @Override protected void onPause(){cancelPendingBooster();foreground=false;if(music!=null)music.suspend();super.onPause();game.saveProgress();game.setPaused(true);}
     @Override protected void onResume(){super.onResume();foreground=true;if(music!=null&&!showingAd)music.resume();refreshPlayGamesStatus();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
-    @Override protected void onDestroy(){if(music!=null)music.release();destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
+    @Override protected void onDestroy(){cancelPendingBooster();if(music!=null)music.release();destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }

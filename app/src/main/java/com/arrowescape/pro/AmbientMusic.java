@@ -32,7 +32,7 @@ final class AmbientMusic {
                 if (request == null) request = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                     .setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME)
                         .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build())
-                    .setOnAudioFocusChangeListener(listener).setWillPauseWhenDucked(true).build();
+                    .setOnAudioFocusChangeListener(listener).setWillPauseWhenDucked(true).setAcceptsDelayedFocusGain(true).build();
                 result = audio.requestAudioFocus(request);
             } else result = audio.requestAudioFocus(listener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) play();
@@ -42,10 +42,12 @@ final class AmbientMusic {
         if (!active || !enabled) return;
         try {
             if (player == null) {
-                player = MediaPlayer.create(context, R.raw.quiet_trail);
+                player = MediaPlayer.create(context, R.raw.quiet_trail,
+                    new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build(),0);
                 if (player == null) return;
                 player.setLooping(true);
-                player.setVolume(.22f, .22f);
+                player.setVolume(.65f, .65f);
                 player.setOnErrorListener((p, what, extra) -> { releasePlayer(); return true; });
             }
             if (!player.isPlaying()) player.start();

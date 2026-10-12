@@ -30,6 +30,7 @@ public class CampaignRuntimeTest {
     private static void set(Object o,String k,Object v)throws Exception{Field f=o.getClass().getDeclaredField(k);f.setAccessible(true);f.set(o,v);}
     private static Object call(Object o,String n,Class<?>[] types,Object...args)throws Exception{Method m=o.getClass().getDeclaredMethod(n,types);m.setAccessible(true);return m.invoke(o,args);}
     private static final class Host implements ArrowGameView.Host {
+        int requested=-1;public void requestRewardedBooster(int kind){requested=kind;}
         public void onLevelCompleted(){}public void requestRewardedErase(){}public void requestRewardedRevive(){}public void requestRewardedCoins(){}public void openWallet(){}public void openSettings(){}public void onContinueAfterWin(Runnable r){r.run();}
     }
     @Before public void reset(){
@@ -86,6 +87,23 @@ public class CampaignRuntimeTest {
             assertEquals(pieces.size()-count,call(g,"remaining",new Class[]{}));assertEquals(1,get(g,"assistsUsed"));
             call(g,"confirmBooster",new Class[]{});assertEquals(coins,w.balance());assertEquals(0,g.boosterCount(2));
             g.saveProgress();g.release();g=game();assertEquals(pieces.size()-count,call(g,"remaining",new Class[]{}));
+        }finally{g.release();}
+    }
+    @SuppressWarnings("unchecked")
+    @Test public void oneFreeHintPersistsAfterRestartAndEmptyToolsRequestAds()throws Exception{
+        Host host=new Host();ArrowGameView g=new ArrowGameView(context,host,new Wallet(new PreferenceWalletStorage(context)));
+        try{
+            int coins=((Wallet)get(g,"wallet")).balance();assertEquals(1,get(g,"hints"));
+            call(g,"useHint",new Class[]{});assertEquals(0,get(g,"hints"));assertEquals(-1,host.requested);assertEquals(0,g.boosterCount(0));
+            for(Object piece:(ArrayList<Object>)get(g,"pieces"))set(piece,"hintUntil",0L);
+            call(g,"useHint",new Class[]{});assertEquals(0,host.requested);assertEquals(coins,((Wallet)get(g,"wallet")).balance());
+            g.saveProgress();g.release();g=game();assertEquals(0,get(g,"hints"));
+            call(g,"startLevel",new Class[]{int.class},2);assertEquals(1,get(g,"hints"));
+            call(g,"useHint",new Class[]{});assertEquals(0,get(g,"hints"));
+            g.grantBooster(0,"hint-ad");for(Object piece:(ArrayList<Object>)get(g,"pieces"))set(piece,"hintUntil",0L);
+            call(g,"useHint",new Class[]{});assertEquals(0,g.boosterCount(0));
+            host=new Host();g.release();g=new ArrowGameView(context,host,new Wallet(new PreferenceWalletStorage(context)));
+            for(int kind=1;kind<=3;kind++){g.beginBooster(kind);assertEquals(kind,host.requested);assertEquals(0,get(g,"boosterMode"));assertEquals(0,g.boosterCount(kind));}
         }finally{g.release();}
     }
     @SuppressWarnings("unchecked")

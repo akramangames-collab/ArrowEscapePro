@@ -97,7 +97,7 @@ public class ArrowGameView extends View {
     private int level;
     private int maxUnlocked;
     private int hearts = 3;
-    private int hints = 2;
+    private int hints = 1;
     private int erasers = 1;
     private int boosterMode=0; // 1 precise eraser, 2 area bomb, 3 row sweep
     private float boosterX,boosterY;
@@ -380,9 +380,9 @@ public class ArrowGameView extends View {
             if(i==0)drawBulb(c,r.centerX(),controlY-dp(17),dp(10));
             else {BoosterIcon icon=new BoosterIcon(i,colors[i]);icon.setBounds((int)(r.centerX()-dp(13)),(int)(controlY-dp(31)),(int)(r.centerX()+dp(13)),(int)(controlY-dp(5)));icon.draw(c);}
             label(c,BoosterInventory.name(i),r.centerX(),controlY+dp(10),11,NAVY,true);
-            label(c,inventory.count(i)>0?"×"+inventory.count(i):"▶ Ad · +1",r.centerX(),controlY+dp(26),9,colors[i],true);
+            label(c,String.valueOf(inventory.count(i)+(i==0?hints:0)),r.centerX(),controlY+dp(26),9,colors[i],true);
         }
-        label(c,"THINK  ·  TAP  ·  ESCAPE",w/2,h-insetBottom-dp(10),9,Color.rgb(96,132,184),false);
+        label(c,"0 = TAP FOR AD · +1 TOOL",w/2,h-insetBottom-dp(10),9,Color.rgb(96,132,184),false);
         if(boosterMode!=0&&!finished&&!failed){
             for(RectF r:tools)pill(c,r,0xFF102A42);
             label(c,"CANCEL",hintHit.centerX(),controlY+dp(5),11,NAVY,true);
@@ -1275,7 +1275,7 @@ public class ArrowGameView extends View {
     private void setupLevel(int lv,boolean persistNormal) {
         level=Math.max(1,Math.min(MAX_LEVEL,lv));
         if(persistNormal){prefs.edit().putInt("lastLevel",level).apply();normalLevelBeforeChallenge=level;}
-        cancelBooster();blastUntil=0;screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=2;erasers=1;
+        cancelBooster();blastUntil=0;screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=1;erasers=1;
         mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;winBoosterAmount=0;winBoosterKind=-1;combo=0;bestCombo=0;lastCorrectTapAt=0L;flowShield=false;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         if(dailyChallenge) generateDailyChallenge(challengeDay);
         else generateLevel(level);
@@ -1405,8 +1405,9 @@ public class ArrowGameView extends View {
         long now=SystemClock.elapsedRealtime();ArrayList<Piece> safe=new ArrayList<>();
         for(Piece p:pieces){if(!p.removed&&!p.moving&&p.hintUntil>now)return;if(!p.removed&&!p.moving&&isClear(p))safe.add(p);}
         if(safe.isEmpty()){showToast("Wait for the moving arrows");return;}
-        if(inventory.count(0)<=0){host.requestRewardedBooster(0);return;}
-        if(!inventory.consume(0)){showToast("Could not save booster use");return;}
+        if(hints>0)hints--;
+        else {if(inventory.count(0)<=0){host.requestRewardedBooster(0);return;}
+            if(!inventory.consume(0)){showToast("Could not save booster use");return;}}
         assistsUsed++;combo=0;
         Piece p=safe.get(rng.nextInt(safe.size()));p.hintUntil=now+2400;
         saveProgress();showToast("Safe arrow highlighted");invalidate();
@@ -2352,7 +2353,7 @@ public class ArrowGameView extends View {
                 dailyChallenge=true;weeklyChallenge=false;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(MAX_LEVEL,false);
             } else startLevel(savedLevel);
             runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
-            hints=Math.max(0,Math.min(2,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
+            hints=Math.max(0,Math.min(1,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
             assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));flowShield=state.optBoolean("flowShield",false);lastCorrectTapAt=0L;
             winBoosterAmount=state.optInt("winBoosterAmount",0);winBoosterKind=state.optInt("winBoosterKind",-1);finished=state.optBoolean("finished",false);failed=state.optBoolean("failed",false);winReward=state.optInt("winReward",0);
             org.json.JSONArray removed=state.getJSONArray("removed");java.util.HashSet<Integer> ids=new java.util.HashSet<>();
