@@ -2320,6 +2320,7 @@ public class ArrowGameView extends View {
         if(challengeActive())exitChallengeToCampaign();
         screen=Screen.PLAY;host.onGameplayStarted();invalidate();
     }
+    public boolean isResultScreen(){return screen==Screen.PLAY&&finished;}
     public int currentLevelNumber(){return challengeActive()?Math.max(1,Math.min(MAX_LEVEL,normalLevelBeforeChallenge)):level;}
     public int dailyPuzzleNumber(){return dailyChallengeNumberForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
     public int totalStarCount(){return totalStars();}

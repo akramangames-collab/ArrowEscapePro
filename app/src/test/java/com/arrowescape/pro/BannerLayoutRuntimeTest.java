@@ -55,5 +55,26 @@ public class BannerLayoutRuntimeTest {
    FrameLayout result=(FrameLayout)get(a,"resultBannerSlot");result.getLayoutParams().height=220;result.setVisibility(View.VISIBLE);call(a,"updateGameBottomInset");
    render(root,1280,800,"banner-safe-controls-landscape");assertTrue(game.getBottom()<=result.getTop());
   }
+ } @Test public void previousResultBannerCannotReviveDuringNextLevelOrNewResult()throws Exception{
+  try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
+   MainActivity a=c.get();Method finish=MainActivity.class.getDeclaredMethod("finishOnboarding");finish.setAccessible(true);finish.invoke(a);
+   FrameLayout root=(FrameLayout)get(a,"root");ArrowGameView game=(ArrowGameView)get(a,"game");game.openPlay();
+   FrameLayout slot=(FrameLayout)get(a,"resultBannerSlot");View oldAd=new View(a);slot.addView(oldAd,new FrameLayout.LayoutParams(-1,200));slot.setVisibility(View.VISIBLE);
+   set(game,"finished",true);
+   Method current=MainActivity.class.getDeclaredMethod("bannerRequestCurrent",View.class,FrameLayout.class);current.setAccessible(true);
+   assertEquals(true,current.invoke(a,oldAd,slot));
+   Method start=ArrowGameView.class.getDeclaredMethod("startLevel",int.class);start.setAccessible(true);start.invoke(game,4);
+   assertEquals(View.GONE,slot.getVisibility());assertNull(oldAd.getParent());assertEquals(false,current.invoke(a,oldAd,slot));
+   // A delayed result retry must reject gameplay even if a stale SDK view stayed attached.
+   slot.addView(oldAd,new FrameLayout.LayoutParams(-1,200));assertEquals(false,current.invoke(a,oldAd,slot));slot.removeAllViews();
+   call(a,"showResultBanner");assertEquals(View.GONE,slot.getVisibility());
+   render(root,720,1560,"next-level-four-visible-tools");
+   for(String name:new String[]{"hintHit","eraseHit","bombHit","rewardHit"}){RectF r=(RectF)get(game,name);assertTrue(r.top>=0);assertTrue(r.bottom<=game.getHeight());}
+   // A later win cannot make a callback belonging to the previous banner current.
+   set(game,"finished",true);View newAd=new View(a);slot.addView(newAd,new FrameLayout.LayoutParams(-1,200));
+   assertEquals(false,current.invoke(a,oldAd,slot));assertEquals(true,current.invoke(a,newAd,slot));
+   game.openLevels();assertEquals(View.GONE,slot.getVisibility());assertEquals(false,current.invoke(a,newAd,slot));
+  }
  }
+
 }

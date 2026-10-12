@@ -564,6 +564,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(root!=null)root.requestLayout();
     }
     @Override public void onGameplayStarted(){
+        hideResultBanner();
         if(routeNav!=null)routeNav.setVisibility(View.GONE);
         stopGameplayBanner();if(root!=null)root.requestLayout();
     }
@@ -1084,21 +1085,21 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         AdSize size=adaptiveBannerSize(horizontalMarginDp);
         int height=Math.max(dp(50),size.getHeightInPixels(this));
         android.view.ViewGroup.LayoutParams lp=slot.getLayoutParams();
-        if(lp!=null){lp.height=android.view.ViewGroup.LayoutParams.WRAP_CONTENT;slot.setLayoutParams(lp);}
+        if(lp!=null){lp.height=height+dp(24);slot.setLayoutParams(lp);}
         slot.setPadding(0,dp(24),0,0);
-        slot.setMinimumHeight(height+dp(24));
+        slot.setMinimumHeight(0);
         slot.setBackground(new AdRailBackdrop(dp(10),dp(16)));
         slot.removeAllViews();
         // Reserve the requested footprint before loading, so controls never move into
         // the ad area while the creative arrives. Buffer stays non-interactive.
         slot.setVisibility(View.VISIBLE);
         AdView ad=new AdView(this);ad.setVisibility(View.INVISIBLE);
-        slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL));
+        slot.addView(ad,new FrameLayout.LayoutParams(-2,height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL));
         BannerAdRequest request=new BannerAdRequest.Builder(BuildConfig.ADMOB_BANNER_ID,size).build();
         ad.loadAd(request,new AdLoadCallback<BannerAd>() {
             @Override public void onAdLoaded(BannerAd loadedAd) {
                 runOnUiThread(() -> {
-                if(isDestroyed()||ad.getParent()!=slot)return;
+                if(!bannerRequestCurrent(ad,slot))return;
                 bannerRetryCount=0;ad.setVisibility(View.VISIBLE);
                 loadedAd.setAdEventCallback(new BannerAdEventCallback() {});
                 slot.setVisibility(View.VISIBLE);
@@ -1116,8 +1117,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
                 runOnUiThread(() -> {
-                if(isDestroyed()||ad.getParent()!=slot)return;
-                slot.setVisibility(View.VISIBLE);ad.setVisibility(View.INVISIBLE);
+                if(!bannerRequestCurrent(ad,slot))return;
+                slot.setVisibility(View.GONE);ad.setVisibility(View.INVISIBLE);
                 if(slot==gameBannerSlot){
                     gameBannerHeightPx=0; updateGameBottomInset();
                 }else if(slot==resultBannerSlot){
@@ -1129,7 +1130,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 if (bannerRetryCount >= MAX_BANNER_RETRIES || isDestroyed()) return;
                 bannerRetryCount++;
                 slot.postDelayed(() -> {
-                    if (isDestroyed() || !canRequestAds()) return;
+                    if (!bannerRequestCurrent(ad,slot) || !canRequestAds()) return;
                     if (slot == gameBannerSlot) {
                         if (gameBanner != null) { gameBanner.destroy(); gameBanner=null; }
                         showGameBanner();
@@ -1145,6 +1146,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
         });
         return ad;
+    }
+
+    private boolean bannerRequestCurrent(View ad,FrameLayout slot){
+        if(isDestroyed()||ad.getParent()!=slot)return false;
+        if(slot==resultBannerSlot)return game!=null&&game.isResultScreen();
+        if(slot==gameBannerSlot)return gameplayBannerRequested;
+        return slot==menuBannerSlot&&menu!=null&&menu.isShowing();
     }
 
     private void updateGameBottomInset() {
@@ -1246,7 +1254,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void showResultBanner() {
         runOnUiThread(() -> {
-            if(resultBannerSlot==null||!canRequestAds()||isFinishing()||isDestroyed())return;
+            if(resultBannerSlot==null||game==null||!game.isResultScreen()||!canRequestAds()||isFinishing()||isDestroyed())return;
             hideResultBanner();
             suspendGameBanner();
             resultBanner=createAdaptiveBanner(resultBannerSlot,0);
