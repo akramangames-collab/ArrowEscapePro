@@ -117,3 +117,15 @@ The release build is unsigned: the existing private upload key is not present in
 the build environment. Existing key metadata was located, but no signing secret
 was read or printed. No key reset was requested. Real-device full-screen ad,
 Play Games login and Play pre-launch verification remain outstanding.
+
+## Startup hotfix 1.2.1 / versionCode 29
+
+Full MainActivity cold-launch testing reproduced a NullPointerException in
+PhoneWindow.getInsetsController: mDecor was null because window configuration
+ran before setContentView. The fix creates decor using window.getDecorView()
+before requesting the insets controller. No exception is suppressed.
+
+New full-Application/MainActivity cold-launch tests pass on API 30, 35 and 36
+through the delayed Home dialog (3 tests), alongside the existing 5 campaign
+runtime tests. API 36's Robolectric runtime requires Java 21, so CI now uses
+Java 21 while Android source/target compatibility remains Java 17.

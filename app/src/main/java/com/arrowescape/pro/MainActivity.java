@@ -286,6 +286,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void configurePlatformEdgeToEdge(android.view.Window window) {
         if (window == null) return;
+        // PhoneWindow.getInsetsController dereferences mDecor on API 30+.
+        // onCreate runs before setContentView, so explicitly create the decor
+        // before asking for the controller (also safe for dialog windows).
+        window.getDecorView();
         // Use the AndroidX compatibility entry point so edge-to-edge is explicitly
         // enabled on pre-Android-15 devices as well. This call does not require the
         // deprecated status/navigation bar color APIs.

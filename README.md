@@ -4,8 +4,8 @@ Current release-hardening line for the Android arrow puzzle game.
 
 ## Current build
 
-- Version: `1.2.0`
-- Version code: `28`
+- Version: `1.2.1`
+- Version code: `29`
 - Package: `com.arrowescape.pro`
 - Minimum SDK: `24`
 - Compile SDK: `36`
@@ -86,7 +86,7 @@ Debug builds use Google's official test ad IDs. Release builds keep the producti
 
 ## Play Store release rule
 
-Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.2.0` / code `28` is already configured for SDK 36.
+Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.2.1` / code `29` is already configured for SDK 36.
 
 ## 400-level campaign update
 
@@ -101,3 +101,10 @@ The debug APK is for testing and installs as `com.arrowescape.pro.debug`.
 Production sign-in requires completed OAuth/Android credentials in Play Console
 and `ARROW_PLAY_GAMES_READY=true`. Run `verifyPlayGamesConfiguration` before
 production distribution. Do not publish the unsigned review AAB.
+
+## Startup hotfix 1.2.1 / 29
+
+Creates the window decor before accessing its insets controller. The Android
+startup crash was reproduced by launching the full MainActivity; a full activity
+cold-launch test (Java 21 required by the API 36 test runtime) now covers API 30, 35 and 36 through the delayed Home screen.
+This fixes an initialization ordering error; it does not hide startup exceptions.
