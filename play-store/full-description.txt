@@ -1,6 +1,6 @@
 Find the way out, one arrow at a time.
 
-Arrow Escape: Puzzle Maze is an offline-friendly arrow puzzle and logic game with 200 handcrafted-style maze levels, Daily Challenges, rewards, achievements, unlockable arrow designs and board themes.
+Arrow Escape: Puzzle Maze is an offline-friendly arrow puzzle and logic game with 400 challenging maze levels, Daily Challenges, rewards, achievements, unlockable arrow designs and board themes.
 
 SOLVE ARROW LOGIC PUZZLES
 Study the maze, find an arrow with a completely clear escape path and tap to send it out. The arrowhead moves forward while its body follows the original bends like a snake. Arrows can block one another, and your own tail can block an escape too, so every move matters.
@@ -8,17 +8,17 @@ Study the maze, find an arrow with a completely clear escape path and tap to sen
 PLAN BEFORE YOU TAP
 A blocked move costs a heart. Look ahead, clear arrows in the right order and open safe escape routes through increasingly dense puzzle layouts.
 
-200 CHALLENGING LEVELS
-Progress through 200 arrow mazes with growing difficulty, special mechanics, milestone puzzles and boss-style challenges. Each campaign puzzle is validated to have a solution.
+400 CHALLENGING LEVELS
+Progress through 400 arrow mazes with growing difficulty, special mechanics, milestone puzzles and boss-style challenges. Each campaign puzzle is validated to have a solution.
 
 DAILY CHALLENGE
-Take on a separate super-hard Daily Challenge for a chance to earn 200 coins. Daily puzzles are separate from the 200-level campaign, giving you a fresh reason to return each day.
+Take on a separate super-hard Daily Challenge for a chance to earn 200 coins. Daily puzzles are separate from the 400-level campaign, giving you a fresh reason to return each day.
 
 EARN COINS & BUILD YOUR STREAK
-Complete puzzles, earn stars, collect level rewards, claim daily streak bonuses and watch optional rewarded ads for extra coins. Use coins for helpful gameplay options and cosmetic unlocks.
+Complete puzzles, earn stars, collect level rewards, claim daily streak bonuses and watch optional rewarded ads for extra coins. Use coins for cosmetic arrow designs and board themes.
 
 HINTS WHEN YOU NEED THEM
-Each level starts with free hints. Additional hints and optional assists are available when you get stuck, while the same full-clearance rules remain in force.
+Each level attempt starts with one free hint. Hint, Eraser, Area Bomb and Row Sweep are visible while playing. Earn saved tools at selected checkpoints or complete an optional rewarded ad for one chosen tool. Preview a bomb or sweep target before spending its saved use.
 
 CUSTOMIZE YOUR GAME
 Unlock different arrow types, arrow colors and board themes. Cosmetic choices change the look and feel of the game without changing puzzle difficulty.
@@ -30,7 +30,7 @@ BUILT-IN HOW TO PLAY
 New players are guided through the core controls, and the tutorial can be opened again from Settings whenever needed.
 
 PLAY OFFLINE
-Core puzzle gameplay works offline. Internet access is only needed for advertising, rewarded-ad bonuses and consent-related services. No player account is required.
+Core puzzle gameplay works offline. Internet access is needed for ads, consent services and optional Google Play Games sign-in. No player account is required to play.
 
 PRIVATE BY DEFAULT
 Your gameplay progress, coins and settings are stored on your device. Privacy controls and the privacy policy are available inside the app.

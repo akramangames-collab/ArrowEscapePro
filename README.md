@@ -4,20 +4,21 @@ Current release-hardening line for the Android arrow puzzle game.
 
 ## Current build
 
-- Version: `1.0.2`
-- Version code: `3`
-- Package: `com.arrowescape.pro`
+- Version: `1.3.0`
+- Version code: `31`
+- Production package: `com.arrowescape.pro`
+- Installable preview package: `com.arrowescape.pro.preview` (separate from earlier debug installs)
 - Minimum SDK: `24`
 - Compile SDK: `36`
 - Target SDK: `36`
 - Java: `17`
-- Active hardening branch: `v26-release-hardening`
+- Active branch: `feature/v28-400-level-trail-boosters`
 
 ## Gameplay baseline
 
 The approved V15 movement model remains the gameplay foundation: the arrow head travels forward while the body follows the original path like a snake. Later releases preserve that movement while adding full escape validation, including own-tail/body clearance and blocking by other live arrows.
 
-The current product line retains the 200-level campaign, persistent progression/economy, hearts, hints, Daily Challenge, streak rewards, achievements, store/settings surfaces, production AdMob IDs in release and Google test IDs in debug.
+The current product line has a redesigned 400-level campaign, persistent progression/economy, hearts, hints, Daily Challenge, streak rewards, achievements, store/settings surfaces, production AdMob IDs in release and Google test IDs in debug.
 
 ## Release signing
 
@@ -86,4 +87,33 @@ Debug builds use Google's official test ad IDs. Release builds keep the producti
 
 ## Play Store release rule
 
-Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.0.2` / code `3` is already configured for SDK 36.
+Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.2.1` / code `29` is already configured for SDK 36.
+
+## 400-level campaign update
+
+See `play-store/V28-RESEARCH-AND-READINESS.md` for difficulty cadence, boosters,
+Google Play Games configuration and the remaining vendor edge-to-edge warning.
+
+Validate Android runtime behavior locally with `gradle :app:testDebugUnitTest`.
+It solves all 400 campaign puzzles with the actual game logic and tests map
+selection, scrolling, migration and booster spending/persistence.
+
+The debug APK is for testing and installs as `com.arrowescape.pro.debug`.
+Production sign-in requires completed OAuth/Android credentials in Play Console
+and `ARROW_PLAY_GAMES_READY=true`. Run `verifyPlayGamesConfiguration` before
+production distribution. Do not publish the unsigned review AAB.
+
+## Startup hotfix 1.2.1 / 29
+
+Creates the window decor before accessing its insets controller. The Android
+startup crash was reproduced by launching the full MainActivity; a full activity
+cold-launch test (Java 21 required by the API 36 test runtime) now covers API 30, 35 and 36 through the delayed Home screen.
+This fixes an initialization ordering error; it does not hide startup exceptions.
+
+## v30 visual and layout update
+
+The escape trail now uses colourful gradient paths, dimensional level markers, soft landscape ridges and gentle firefly/current-level animations. Buttons respond to presses and wins celebrate with confetti. Original quiet offline music has a separate Settings toggle and pauses in the background or during full-screen ads. Banners occupy measured layout rows above system navigation, preserving game controls and menu navigation. Details: `play-store/V30-UI-AND-AUDIO.md`.
+
+## Approved route design (v31)
+
+First launch offers a skippable app/tools introduction and separate interactive practice, then opens the level Route. Later launches open Route directly. Store previews never spend coins; Daily, Awards, Me and Settings use the same arrow-route visual style. See `play-store/V31-APPROVED-ROUTE-DESIGN.md` for behavior, validation and preview-install signing details.

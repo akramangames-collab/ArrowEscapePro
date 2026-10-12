@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build V17 mazes in solve order with a bounded dependency frontier.
+"""Build V32 mazes in solve order with a bounded dependency frontier.
 
 New arrows aim through earlier arrows, while their bodies may not cross any
 earlier escape ray. Dependencies therefore only point backwards: cycles are
@@ -17,7 +17,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 LEVELS = ROOT / 'app/src/main/assets/levels.txt'
 DIRS = ((1, 0), (-1, 0), (0, 1), (0, -1))
-BOSSES = (25, 50, 100, 150, 200)
+COUNT = 400
+BOSSES = tuple(range(30, COUNT + 1, 30))
 
 
 def expand(pts):
@@ -74,12 +75,20 @@ def templates():
 TEMPLATES = templates()
 
 
+def tier(level):
+    return 3 if level % 30 == 0 else 2 if level % 12 == 0 else 1 if level % 6 == 0 else 0
+
+
 def opening_target(level):
-    return 1 if level % 5 == 0 else 3 if level == 1 else 2
+    return (2, 1, 1, 1)[tier(level)]
+
+
+def depth_target(level):
+    return (0.65, 0.80, 0.87, 0.94)[tier(level)]
 
 
 def arrow_target(level):
-    return 24 + round((level-1)*0.24) + (16 if level % 5 == 0 else 0) + (16 if level in BOSSES else 0)
+    return 32 + round((level-1)*0.18) + (0, 8, 18, 32)[tier(level)]
 
 
 def attempt(level, w, h, seed):
@@ -159,15 +168,16 @@ def summarize(level, w, h, pieces):
                 initial_safe_arrows=sum(not d for d in deps),
                 dependency_depth=max(depth.values()),
                 self_crossing_arrows=sum(self_profile(p, w, h)[1] > 0 for p in pieces),
-                occupied_nodes=len(owner), milestone=level % 5 == 0, boss=level in BOSSES)
+                occupied_nodes=len(owner), milestone=tier(level) >= 2, boss=level in BOSSES,
+                phase=("NORMAL", "HARD", "SUPER HARD", "EXTREME HARD")[tier(level)])
 
 
 def build_level(level):
-    fraction = (level-1)/199
-    w = 24 + round(fraction*24) + (4 if level % 5 == 0 else 0) + (6 if level in BOSSES else 0)
+    fraction = (level-1)/199 if level <= 200 else 1 + (level-200)/400
+    w = 24 + round(fraction*24) + (4 if tier(level) >= 2 else 0) + (6 if level in BOSSES else 0)
     h = w + 8
     for restart in range(160):
-        pieces = attempt(level, w, h, 17010000 + level*1009 + restart*7919)
+        pieces = attempt(level, w, h, 32400000 + level*1009 + restart*7919)
         if pieces is None:
             continue
         # Remove unused margins, then mirror to vary the opening location.
@@ -185,9 +195,9 @@ def build_level(level):
                 dy = -dy
             transformed.append((dx, dy, pts, set(expand(pts))))
         summary = summarize(level, cw, ch, transformed)
-        if summary['dependency_depth'] < len(pieces)*(0.75 if level % 5 == 0 else 0.50):
+        if summary['dependency_depth'] < len(pieces)*depth_target(level):
             continue
-        if summary['self_crossing_arrows'] < (2 if level % 5 == 0 else 1):
+        if summary['self_crossing_arrows'] < (2 if tier(level) >= 2 else 1):
             continue
         assert summary['initial_safe_arrows'] == opening_target(level)
         assert all(self_profile(p, cw, ch)[0] for p in transformed)
@@ -208,7 +218,7 @@ def main():
     args = parser.parse_args()
     started = time.monotonic()
     output, metrics = [], []
-    for level in range(1, 201):
+    for level in range(1, COUNT + 1):
         w, h, pieces, summary = build_level(level)
         output.append(pack(w, h, pieces))
         metrics.append(summary)
@@ -221,8 +231,8 @@ def main():
             assert path.read_text() == content, f'Generated asset drift: {path}'
         else:
             path.write_text(content)
-    print(f'Generated 200 constrained V17 mazes in {time.monotonic()-started:.1f}s; '
-          'all milestones/bosses have exactly one opening.', flush=True)
+    print(f'Generated 400 constrained V32 mazes in {time.monotonic()-started:.1f}s; '
+          '6/12/30 difficulty cadence verified by the independent solver.', flush=True)
 
 
 if __name__ == '__main__':
