@@ -325,7 +325,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void deliverPendingBoosterAd(){
         if(pendingBooster<0||!foreground||showingAd||!rewardReady())return;
         int kind=pendingBooster;cancelPendingBooster();String receipt=UUID.randomUUID().toString();
-        showRewarded(()->game.grantBooster(kind,receipt));
+        showRewarded(()->{
+            boolean granted=game.grantBooster(kind,receipt);
+            // Gameplay boosters activate directly after a completed reward. Shop rewards
+            // remain saved until the player returns to the board.
+            if(granted&&kind>=BoosterInventory.SCAN&&
+                    (menu==null||!menu.isShowing())&&game.canUseInstantBooster(kind)){
+                game.useInstantBooster(kind);
+            }
+        });
     }
     private void cancelPendingBooster(){
         pendingBooster=-1;boosterHandler.removeCallbacks(boosterTimeout);
