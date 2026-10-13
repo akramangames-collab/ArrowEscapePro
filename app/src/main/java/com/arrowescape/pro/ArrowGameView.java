@@ -1290,6 +1290,8 @@ public class ArrowGameView extends View {
         if(x<dp(65)&&y<top+dp(60)){if(challengeActive())leaveChallenge();else host.openHome();return true;}
         if(x>getWidth()-dp(65)&&y<top+dp(60)){host.openSettings();return true;}
         if(walletHit.contains(x,y)){host.openWallet();return true;}
+        if(moreBoosterHit.contains(x,y)){host.openBoosters();return true;}
+        if(autoMovesRemaining>0){showToast("Triple Escape is running");return true;}
         if(rewardHit.contains(x,y)){beginBooster(3);return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
         if(eraseHit.contains(x,y)){beginBooster(1);return true;}
@@ -1424,13 +1426,16 @@ public class ArrowGameView extends View {
             else if(combo>0&&combo%10==0)showToast("MASTER FLOW · x"+combo);
             playSound(ToneGenerator.TONE_PROP_BEEP,Math.min(130,65+combo*5));buzz(combo>=5?28:20);
         } else {
-            boolean protectedTap=flowShield;
-            flowShield=false;combo=0;lastCorrectTapAt=0L;
+
+            boolean protectedTap=flowShield||rewardedShield;
+            if(flowShield)flowShield=false;
+            else if(rewardedShield)rewardedShield=false;
+            combo=0;lastCorrectTapAt=0L;
             p.flashUntil=SystemClock.elapsedRealtime()+390;
             if(!protectedTap)hearts--;
             mistakes++;
             playSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,110);buzz(protectedTap?32:55);
-            if(protectedTap)showToast("FLOW SHIELD SAVED A HEART");
+            if(protectedTap)showToast("SHIELD SAVED A HEART");
             else showToast(specialBlock != null ? specialBlock : (selfBlocked ? "Tail blocks this escape" : "Blocked by another arrow"));
             if(hearts<=0)failed=true;
         }
@@ -1502,6 +1507,38 @@ public class ArrowGameView extends View {
             float bx=boardLeft+blastX*cell,by=boardTop+blastY*cell*boardStretchY,br=cell*(1+t*5);c.drawOval(new RectF(bx-br,by-br*boardStretchY,bx+br,by+br*boardStretchY),paint);
             paint.setStyle(Paint.Style.FILL);postInvalidateOnAnimation();
         }
+    }
+
+
+    public boolean canUseInstantBooster(int kind){
+        if(kind<BoosterInventory.SCAN||kind>BoosterInventory.TRIPLE || screen!=Screen.PLAY ||
+                failed||finished||tutorial||boosterMode!=0)return false;
+        if(kind==BoosterInventory.SHIELD)return !rewardedShield;
+        if(kind==BoosterInventory.TRIPLE&&autoMovesRemaining>0)return false;
+        for(Piece p:pieces)if(!p.removed&&!p.moving&&isClear(p))return true;
+        return false;
+    }
+    public void useInstantBooster(int kind){
+        if(!canUseInstantBooster(kind)){
+            showToast("Finish the current action before using this booster");
+            return;
+        }
+        if(inventory.count(kind)==0){host.requestRewardedBooster(kind);return;}
+        if(!inventory.consume(kind)){showToast("Booster unavailable · nothing spent");return;}
+        assistsUsed++;combo=0;lastCorrectTapAt=0L;
+        if(kind==BoosterInventory.SCAN){
+            long until=SystemClock.elapsedRealtime()+8000L;
+            int matches=0;
+            for(Piece p:pieces)if(!p.removed&&!p.moving&&isClear(p)){p.hintUntil=until;matches++;}
+            showToast(matches+" safe arrows highlighted for 8s");
+        }else if(kind==BoosterInventory.SHIELD){
+            rewardedShield=true;
+            showToast("Shield ready · next wrong tap costs no heart");
+        }else{
+            autoMovesRemaining=3;
+            showToast("Triple Escape · up to 3 legal arrows");
+        }
+        saveProgress();invalidate();
     }
 
     public void grantEraser(){grantBooster(1,java.util.UUID.randomUUID().toString());}
@@ -2368,7 +2405,7 @@ public class ArrowGameView extends View {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
             state.put("packVersion",LEVEL_PACK_VERSION).put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
-                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield)
+                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield).put("rewardedShield",rewardedShield).put("autoMovesRemaining",autoMovesRemaining)
                  .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("weeklyChallenge",weeklyChallenge).put("challengeWeek",challengeWeek).put("normalLevel",normalLevelBeforeChallenge)
                  .put("winBoosterAmount",winBoosterAmount).put("winBoosterKind",winBoosterKind).put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
             prefs.edit().putString("v16_progress",state.toString()).commit();
@@ -2391,7 +2428,7 @@ public class ArrowGameView extends View {
             } else startLevel(savedLevel);
             runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
             hints=Math.max(0,Math.min(1,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
-            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));flowShield=state.optBoolean("flowShield",false);lastCorrectTapAt=0L;
+            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));flowShield=state.optBoolean("flowShield",false);rewardedShield=state.optBoolean("rewardedShield",false);autoMovesRemaining=Math.max(0,Math.min(3,state.optInt("autoMovesRemaining",0)));lastCorrectTapAt=0L;
             winBoosterAmount=state.optInt("winBoosterAmount",0);winBoosterKind=state.optInt("winBoosterKind",-1);finished=state.optBoolean("finished",false);failed=state.optBoolean("failed",false);winReward=state.optInt("winReward",0);
             org.json.JSONArray removed=state.getJSONArray("removed");java.util.HashSet<Integer> ids=new java.util.HashSet<>();
             for(int i=0;i<removed.length();i++)ids.add(removed.getInt(i));for(Piece p:pieces)p.removed=ids.contains(p.id);
