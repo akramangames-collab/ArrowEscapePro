@@ -279,19 +279,30 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         ImageView icon=new ImageView(this);icon.setImageDrawable(new BoosterIcon(kind,accent));icon.setPadding(dp(7),dp(7),dp(7),dp(7));icon.setBackground(background(0xFF173954,15,accent));card.addView(icon,new LinearLayout.LayoutParams(dp(55),dp(55)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(6),0);TextView name=text(title,16,TEXT);name.setTypeface(AppTypography.bold(this));copy.addView(name);copy.addView(text(detail,12,MUTED));card.addView(copy,new LinearLayout.LayoutParams(0,-2,1));
         TextView cost=text(price,12,accent);cost.setTypeface(AppTypography.bold(this));cost.setGravity(Gravity.CENTER);card.addView(cost,new LinearLayout.LayoutParams(dp(60),dp(46)));
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(5),0,dp(5));card.setLayoutParams(lp);card.setMinimumHeight(dp(80));card.setContentDescription(title+", "+detail+", "+price+". Preview before confirming.");card.setOnClickListener(v->{menu.dismiss();game.beginBooster(kind);});return card;
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(5),0,dp(5));card.setLayoutParams(lp);card.setMinimumHeight(dp(80));card.setContentDescription(title+", "+detail+", "+price+(kind<=3?". Preview before confirming.":". Activate with one saved booster."));card.setOnClickListener(v->{menu.dismiss();if(kind<=3)game.beginBooster(kind);else game.useInstantBooster(kind);});return card;
     }
     @Override public void openBoosters() {
         if(menu!=null&&menu.isShowing())menu.dismiss();destroyBanner();clearMenuBannerSlot();game.setPaused(true);
         LinearLayout body=panel();body.setTag("booster_sheet");body.setPadding(dp(18),dp(16),dp(18),dp(18));
         LinearLayout heading=new LinearLayout(this);heading.setGravity(Gravity.CENTER_VERTICAL);TextView title=text("BOOSTERS",22,TEXT);title.setTypeface(AppTypography.bold(this));heading.addView(title,new LinearLayout.LayoutParams(0,-2,1));heading.addView(text("● "+wallet.balance(),15,GOLD));body.addView(heading);
-        body.addView(text("Choose a tool. Preview its target. Confirm.",13,MUTED));
+        body.addView(text("Tap a booster to use saved stock, or watch a rewarded ad when empty.",13,MUTED));
         body.addView(boosterCard(1,"Precise eraser","Remove one selected arrow","×"+game.boosterCount(1),0xFF67D8F6));
         body.addView(boosterCard(2,"Area bomb","Limited area · 4-cell radius","×"+game.boosterCount(2),0xFFB295FF));
         body.addView(boosterCard(3,"Row sweep","Clear arrows touching one row","×"+game.boosterCount(3),0xFF47E4D4));
-        body.addView(text("One saved booster is used only after confirmation. No coins.",12,MUTED));body.addView(button("Back to puzzle",()->menu.dismiss(),false));
-        menu=new AlertDialog.Builder(this).setView(body).create();menu.setOnDismissListener(d->{game.setPaused(false);game.invalidate();});menu.show();
-        if(menu.getWindow()!=null){menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));menu.getWindow().setGravity(Gravity.BOTTOM);menu.getWindow().setLayout(-1,-2);}
+        body.addView(section("REWARDED-AD BOOSTERS"));
+        body.addView(boosterCard(4,"Safe Scan","Reveal every legal arrow for 8 seconds","×"+game.boosterCount(4),0xFFFFCE69));
+        body.addView(boosterCard(5,"Mistake Shield","Protect one wrong tap from heart loss","×"+game.boosterCount(5),0xFF76EDAA));
+        body.addView(boosterCard(6,"Triple Escape","Automatically release up to 3 legal arrows","×"+game.boosterCount(6),0xFFDA9BFF));
+        body.addView(text("Existing targeted tools require confirmation. New boosters activate instantly, and never spend coins.",12,MUTED));
+        body.addView(button("Back to puzzle",()->menu.dismiss(),false));
+        ScrollView boosterScroll=new ScrollView(this);
+        boosterScroll.setFillViewport(false);
+        boosterScroll.setBackgroundColor(INK);
+        boosterScroll.addView(body);
+        menu=new AlertDialog.Builder(this).setView(boosterScroll).create();
+        menu.setOnDismissListener(d->{game.setPaused(false);game.invalidate();});
+        menu.show();
+        if(menu.getWindow()!=null){menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT)); menu.getWindow().setGravity(Gravity.BOTTOM);menu.getWindow().setLayout(-1,Math.min(dp(700),Math.max(dp(320),getResources().getDisplayMetrics().heightPixels-dp(95))));}
     }
     @Override public void shareChallenge(String text) {
         android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND);
@@ -301,7 +312,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     @Override public void requestRewardedErase() { requestRewardedBooster(1); }
     @Override public void requestRewardedBooster(int kind) {
-        if(kind<0||kind>3||showingAd||pendingBooster>=0)return;
+        if(kind<0||kind>=BoosterInventory.COUNT||showingAd||pendingBooster>=0)return;
         if(!canRequestAds()){toast("Reward ad unavailable. No booster used.");return;}
         pendingBooster=kind;
         if(rewardReady()){deliverPendingBoosterAd();return;}
@@ -314,7 +325,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void deliverPendingBoosterAd(){
         if(pendingBooster<0||!foreground||showingAd||!rewardReady())return;
         int kind=pendingBooster;cancelPendingBooster();String receipt=UUID.randomUUID().toString();
-        showRewarded(()->game.grantBooster(kind,receipt));
+        showRewarded(()->{
+            boolean granted=game.grantBooster(kind,receipt);
+            // Gameplay boosters activate directly after a completed reward. Shop rewards
+            // remain saved until the player returns to the board.
+            if(granted&&kind>=BoosterInventory.SCAN&&
+                    (menu==null||!menu.isShowing())&&game.canUseInstantBooster(kind)){
+                game.useInstantBooster(kind);
+            }
+        });
     }
     private void cancelPendingBooster(){
         pendingBooster=-1;boosterHandler.removeCallbacks(boosterTimeout);
@@ -668,7 +687,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
         }else{
             body.addView(section("YOUR BOOSTERS"));
-            for(int i=0;i<4;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
+            for(int i=0;i<BoosterInventory.COUNT;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
             body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             LinearLayout reward=panel();
@@ -988,7 +1007,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
 
             body.addView(section("YOUR BOOSTERS"));
-            for(int i=0;i<4;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
+            for(int i=0;i<BoosterInventory.COUNT;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
             body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             final Button[] daily=new Button[1];

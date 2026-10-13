@@ -80,11 +80,14 @@ public class ArrowGameView extends View {
     private int combo, bestCombo;
     private long lastCorrectTapAt = 0L;
     private boolean flowShield;
+    private boolean rewardedShield;
+    // Run legal moves sequentially, not through blockers or moving tails.
+    private int autoMovesRemaining;
     private boolean dailyChallenge, weeklyChallenge;
     private long challengeDay = -1L, challengeWeek = -1L, milestoneIntroUntil = 0L, comboFlashUntil = 0L;
     private int normalLevelBeforeChallenge = 1;
     private String runId;
-    private final RectF walletHit = new RectF(), hintHit = new RectF(), eraseHit = new RectF(), rewardHit = new RectF(), bombHit = new RectF();
+    private final RectF walletHit = new RectF(), hintHit = new RectF(), eraseHit = new RectF(), rewardHit = new RectF(), bombHit = new RectF(), moreBoosterHit = new RectF();
     private final RectF primaryHit = new RectF(), secondaryHit = new RectF(), tertiaryHit = new RectF(), shareHit = new RectF();
     private final Vibrator vibrator;
     private final ToneGenerator tone = new ToneGenerator(AudioManager.STREAM_MUSIC, 58);
@@ -294,6 +297,27 @@ public class ArrowGameView extends View {
             }
             if (p.flashUntil > now || p.hintUntil > now) any = true;
         }
+
+        if(autoMovesRemaining>0 && !finished && !failed && screen==Screen.PLAY && remaining()>0){
+            boolean moving=false;
+            for(Piece p:pieces)if(p.moving&&!p.removed){moving=true;break;}
+            if(!moving){
+                Piece next=null;
+                for(Piece p:pieces)if(!p.removed&&!p.moving&&isClear(p)){next=p;break;}
+                if(next==null){
+                    autoMovesRemaining=0;
+                    showToast("No further safe arrow · booster stopped");
+                    saveProgress();
+                }else{
+                    next.moving=true;
+                    next.moveT=0f;
+                    next.moveSteps=snakeTravelSteps(next);
+                    autoMovesRemaining--;
+                    any=true;
+                    saveProgress();
+                }
+            }
+        }
         if (!finished && !failed && remaining() == 0) {
             finished = true;
             earnedStars = computeStars();
@@ -354,7 +378,7 @@ public class ArrowGameView extends View {
         pill(c,walletHit,Color.rgb(58,42,8));strokeRound(c,walletHit,Color.rgb(143,106,19),dp(1)); drawCoin(c,walletHit.left+dp(19),statY,dp(10));
         String amount = wallet.balance()>99999 ? (wallet.balance()/1000)+"k" : String.valueOf(wallet.balance());
         label(c,amount,walletHit.centerX()+dp(10),statY+dp(6),16,NAVY,true);
-        float controlY=h-insetBottom-dp(65),gap=dp(7),controlW=(w-dp(32)-3*gap)/4;
+        float controlY=h-insetBottom-dp(85),gap=dp(7),controlW=(w-dp(32)-3*gap)/4;
         hintHit.set(dp(16),controlY-dp(35),dp(16)+controlW,controlY+dp(35));
         eraseHit.set(hintHit.right+gap,hintHit.top,hintHit.right+gap+controlW,hintHit.bottom);
         bombHit.set(eraseHit.right+gap,hintHit.top,eraseHit.right+gap+controlW,hintHit.bottom);
@@ -382,7 +406,11 @@ public class ArrowGameView extends View {
             label(c,BoosterInventory.name(i),r.centerX(),controlY+dp(10),11,NAVY,true);
             label(c,String.valueOf(inventory.count(i)+(i==0?hints:0)),r.centerX(),controlY+dp(26),9,colors[i],true);
         }
-        label(c,"0 = TAP FOR AD · +1 TOOL",w/2,h-insetBottom-dp(10),9,Color.rgb(96,132,184),false);
+
+        moreBoosterHit.set(dp(16),controlY+dp(39),w-dp(16),h-insetBottom-dp(3));
+        polishedPill(c,moreBoosterHit,0xFF173455,0xFF0B213C);
+        strokeRound(c,moreBoosterHit,0xFF6D95D9,dp(1));
+        label(c,"✦ MORE BOOSTERS · SCAN / SHIELD / TRIPLE",w/2,moreBoosterHit.centerY()+dp(4),10,NAVY,true);
         if(boosterMode!=0&&!finished&&!failed){
             for(RectF r:tools)pill(c,r,0xFF102A42);
             label(c,"CANCEL",hintHit.centerX(),controlY+dp(5),11,NAVY,true);
@@ -424,7 +452,7 @@ public class ArrowGameView extends View {
             paint.setColor(i<filled?themeAccent():Color.rgb(210,218,230));
             c.drawCircle(start+i*(r*2+gap),y,r,paint);
         }
-        if(flowShield){
+        if(flowShield||rewardedShield){
             paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.5f));paint.setColor(themeAccent());
             c.drawCircle(cx+dp(43),y,dp(6.5f),paint);paint.setStyle(Paint.Style.FILL);
             label(c,"S",cx+dp(43),y+dp(3),7,themeAccent(),true);
@@ -1262,6 +1290,8 @@ public class ArrowGameView extends View {
         if(x<dp(65)&&y<top+dp(60)){if(challengeActive())leaveChallenge();else host.openHome();return true;}
         if(x>getWidth()-dp(65)&&y<top+dp(60)){host.openSettings();return true;}
         if(walletHit.contains(x,y)){host.openWallet();return true;}
+        if(moreBoosterHit.contains(x,y)){host.openBoosters();return true;}
+        if(autoMovesRemaining>0){showToast("Triple Escape is running");return true;}
         if(rewardHit.contains(x,y)){beginBooster(3);return true;}
         if(hintHit.contains(x,y)){useHint();return true;}
         if(eraseHit.contains(x,y)){beginBooster(1);return true;}
@@ -1284,7 +1314,7 @@ public class ArrowGameView extends View {
         level=Math.max(1,Math.min(MAX_LEVEL,lv));
         if(persistNormal){prefs.edit().putInt("lastLevel",level).apply();normalLevelBeforeChallenge=level;}
         cancelBooster();blastUntil=0;screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=1;erasers=1;
-        mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;winBoosterAmount=0;winBoosterKind=-1;combo=0;bestCombo=0;lastCorrectTapAt=0L;flowShield=false;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
+        mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;winBoosterAmount=0;winBoosterKind=-1;combo=0;bestCombo=0;lastCorrectTapAt=0L;flowShield=false;rewardedShield=false;autoMovesRemaining=0;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         if(dailyChallenge) generateDailyChallenge(challengeDay);
         else generateLevel(level);
         configureSpecialMechanics();
@@ -1396,13 +1426,16 @@ public class ArrowGameView extends View {
             else if(combo>0&&combo%10==0)showToast("MASTER FLOW · x"+combo);
             playSound(ToneGenerator.TONE_PROP_BEEP,Math.min(130,65+combo*5));buzz(combo>=5?28:20);
         } else {
-            boolean protectedTap=flowShield;
-            flowShield=false;combo=0;lastCorrectTapAt=0L;
+
+            boolean protectedTap=flowShield||rewardedShield;
+            if(flowShield)flowShield=false;
+            else if(rewardedShield)rewardedShield=false;
+            combo=0;lastCorrectTapAt=0L;
             p.flashUntil=SystemClock.elapsedRealtime()+390;
             if(!protectedTap)hearts--;
             mistakes++;
             playSound(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,110);buzz(protectedTap?32:55);
-            if(protectedTap)showToast("FLOW SHIELD SAVED A HEART");
+            if(protectedTap)showToast("SHIELD SAVED A HEART");
             else showToast(specialBlock != null ? specialBlock : (selfBlocked ? "Tail blocks this escape" : "Blocked by another arrow"));
             if(hearts<=0)failed=true;
         }
@@ -1474,6 +1507,38 @@ public class ArrowGameView extends View {
             float bx=boardLeft+blastX*cell,by=boardTop+blastY*cell*boardStretchY,br=cell*(1+t*5);c.drawOval(new RectF(bx-br,by-br*boardStretchY,bx+br,by+br*boardStretchY),paint);
             paint.setStyle(Paint.Style.FILL);postInvalidateOnAnimation();
         }
+    }
+
+
+    public boolean canUseInstantBooster(int kind){
+        if(kind<BoosterInventory.SCAN||kind>BoosterInventory.TRIPLE || screen!=Screen.PLAY ||
+                failed||finished||tutorial||boosterMode!=0)return false;
+        if(kind==BoosterInventory.SHIELD)return !rewardedShield;
+        if(kind==BoosterInventory.TRIPLE&&autoMovesRemaining>0)return false;
+        for(Piece p:pieces)if(!p.removed&&!p.moving&&isClear(p))return true;
+        return false;
+    }
+    public void useInstantBooster(int kind){
+        if(!canUseInstantBooster(kind)){
+            showToast("Finish the current action before using this booster");
+            return;
+        }
+        if(inventory.count(kind)==0){host.requestRewardedBooster(kind);return;}
+        if(!inventory.consume(kind)){showToast("Booster unavailable · nothing spent");return;}
+        assistsUsed++;combo=0;lastCorrectTapAt=0L;
+        if(kind==BoosterInventory.SCAN){
+            long until=SystemClock.elapsedRealtime()+8000L;
+            int matches=0;
+            for(Piece p:pieces)if(!p.removed&&!p.moving&&isClear(p)){p.hintUntil=until;matches++;}
+            showToast(matches+" safe arrows highlighted for 8s");
+        }else if(kind==BoosterInventory.SHIELD){
+            rewardedShield=true;
+            showToast("Shield ready · next wrong tap costs no heart");
+        }else{
+            autoMovesRemaining=3;
+            showToast("Triple Escape · up to 3 legal arrows");
+        }
+        saveProgress();invalidate();
     }
 
     public void grantEraser(){grantBooster(1,java.util.UUID.randomUUID().toString());}
@@ -2340,7 +2405,7 @@ public class ArrowGameView extends View {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
             state.put("packVersion",LEVEL_PACK_VERSION).put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
-                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield)
+                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield).put("rewardedShield",rewardedShield).put("autoMovesRemaining",autoMovesRemaining)
                  .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("weeklyChallenge",weeklyChallenge).put("challengeWeek",challengeWeek).put("normalLevel",normalLevelBeforeChallenge)
                  .put("winBoosterAmount",winBoosterAmount).put("winBoosterKind",winBoosterKind).put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
             prefs.edit().putString("v16_progress",state.toString()).commit();
@@ -2363,7 +2428,7 @@ public class ArrowGameView extends View {
             } else startLevel(savedLevel);
             runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
             hints=Math.max(0,Math.min(1,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
-            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));flowShield=state.optBoolean("flowShield",false);lastCorrectTapAt=0L;
+            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));flowShield=state.optBoolean("flowShield",false);rewardedShield=state.optBoolean("rewardedShield",false);autoMovesRemaining=Math.max(0,Math.min(3,state.optInt("autoMovesRemaining",0)));lastCorrectTapAt=0L;
             winBoosterAmount=state.optInt("winBoosterAmount",0);winBoosterKind=state.optInt("winBoosterKind",-1);finished=state.optBoolean("finished",false);failed=state.optBoolean("failed",false);winReward=state.optInt("winReward",0);
             org.json.JSONArray removed=state.getJSONArray("removed");java.util.HashSet<Integer> ids=new java.util.HashSet<>();
             for(int i=0;i<removed.length();i++)ids.add(removed.getInt(i));for(Piece p:pieces)p.removed=ids.contains(p.id);

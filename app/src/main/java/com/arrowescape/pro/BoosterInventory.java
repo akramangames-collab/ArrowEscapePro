@@ -4,10 +4,11 @@ import android.content.SharedPreferences;
 
 /** Persistent consumables. Level gifts and ad receipts are recorded with the stock. */
 public final class BoosterInventory {
-    public static final int HINT=0, ERASER=1, BOMB=2, SWEEP=3;
+    public static final int HINT=0, ERASER=1, BOMB=2, SWEEP=3, SCAN=4, SHIELD=5, TRIPLE=6;
+    public static final int COUNT=7;
     private final SharedPreferences prefs;
     public BoosterInventory(SharedPreferences prefs){this.prefs=prefs;}
-    public static String name(int kind){return new String[]{"Hint","Eraser","Bomb","Sweep"}[kind];}
+    public static String name(int kind){check(kind);return new String[]{"Hint","Eraser","Bomb","Sweep","Safe Scan","Shield","Triple Escape"}[kind];}
     public synchronized int count(int kind){check(kind);return Math.max(0,prefs.getInt("boost_stock_"+kind,0));}
     public synchronized boolean consume(int kind){int stock=count(kind);return stock>0&&prefs.edit().putInt("boost_stock_"+kind,stock-1).commit();}
     public synchronized boolean rewardAd(int kind,String receipt){
@@ -21,5 +22,5 @@ public final class BoosterInventory {
         int kind=giftKind(level),amount=giftAmount(level);if(kind<0||prefs.getBoolean("boost_level_"+level,false))return 0;
         return prefs.edit().putInt("boost_stock_"+kind,count(kind)+amount).putBoolean("boost_level_"+level,true).commit()?amount:0;
     }
-    private static void check(int kind){if(kind<0||kind>3)throw new IllegalArgumentException("Unknown booster");}
+    private static void check(int kind){if(kind<0||kind>=COUNT)throw new IllegalArgumentException("Unknown booster");}
 }

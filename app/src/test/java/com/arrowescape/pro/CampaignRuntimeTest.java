@@ -132,6 +132,49 @@ public class CampaignRuntimeTest {
         }finally{g.release();}
     }
     @SuppressWarnings("unchecked")
+    @Test public void rewardedShieldSavesOneHeartAndSurvivesRecreation()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},30);
+            assertTrue(g.grantBooster(BoosterInventory.SHIELD,"shield-test"));
+            g.useInstantBooster(BoosterInventory.SHIELD);
+            assertTrue((Boolean)get(g,"rewardedShield"));
+            assertEquals(0,g.boosterCount(BoosterInventory.SHIELD));
+            g.saveProgress();g.release();g=game();
+            assertTrue((Boolean)get(g,"rewardedShield"));
+            ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");Object blocked=null;
+            for(Object p:all)if(!(Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){blocked=p;break;}
+            assertNotNull("Test requires a blocked arrow",blocked);
+            int hearts=(Integer)get(g,"hearts");
+            call(g,"tapPiece",new Class[]{blocked.getClass()},blocked);
+            assertEquals(hearts,get(g,"hearts"));
+            assertFalse((Boolean)get(g,"rewardedShield"));
+        }finally{g.release();}
+    }
+    @SuppressWarnings("unchecked")
+    @Test public void rewardedScanHighlightsOnlySafeArrowsAndTripleEscapesSequentially()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},30);
+            ArrayList<Object> pieces=(ArrayList<Object>)get(g,"pieces");
+            assertTrue(g.grantBooster(BoosterInventory.SCAN,"scan-test"));
+            g.useInstantBooster(BoosterInventory.SCAN);
+            long now=android.os.SystemClock.elapsedRealtime();
+            int safe=0,glowing=0;
+            for(Object p:pieces)if((Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){
+                safe++;
+                if((Long)get(p,"hintUntil")>now)glowing++;
+            }
+            assertTrue(safe>0);assertEquals(safe,glowing);
+            assertEquals(0,g.boosterCount(BoosterInventory.SCAN));
+            assertTrue(g.grantBooster(BoosterInventory.TRIPLE,"triple-test"));
+            int before=(Integer)call(g,"remaining",new Class[]{});
+            g.useInstantBooster(BoosterInventory.TRIPLE);
+            assertEquals(0,g.boosterCount(BoosterInventory.TRIPLE));
+            for(int i=0;i<5;i++)call(g,"updateAnimations",new Class[]{float.class,long.class},2f,now+1000L*(i+1));
+            assertEquals(before-3,call(g,"remaining",new Class[]{}));
+            assertEquals(0,get(g,"autoMovesRemaining"));
+        }finally{g.release();}
+    }
+    @SuppressWarnings("unchecked")
     @Test public void everyCampaignLevelSolvesUnderRuntimeSpecialAndTailRules()throws Exception{
         ArrowGameView g=game();try{
             for(int lv=1;lv<=400;lv++){
