@@ -440,8 +440,8 @@ public class ArrowGameView extends View {
             int stock=inventory.count(kind)+(kind==BoosterInventory.HINT?hints:0);
             label(c,stock>0?"×"+stock:"AD +1",hit.right-dp(26),hit.top+dp(23),
                     10,stock>0?colors[i]:0xFFFFD97A,true);
-            String title=kind==BoosterInventory.TRIPLE?"Triple Escape":BoosterInventory.name(kind);
-            label(c,title,hit.centerX(),hit.bottom-dp(10),10,NAVY,true);
+            String boosterTitle=kind==BoosterInventory.TRIPLE?"Triple Escape":BoosterInventory.name(kind);
+            label(c,boosterTitle,hit.centerX(),hit.bottom-dp(10),10,NAVY,true);
         }
         if(boosterMode!=0&&!finished&&!failed){
             for(RectF hit:visibleBoosterHits)pill(c,hit,0xFF102A42);
