@@ -275,10 +275,12 @@ public class ArrowGameView extends View {
         boolean any = false;
         for (Piece p : pieces) {
             if (p.moving && !p.removed) {
-                float travelPx = Math.max(cell, p.moveSteps * cell);
-        float flowBoost=1f+Math.min(10,combo)*0.035f;
-        float speedPxPerSec =
-                Math.max(getWidth() * 1.30f, cell * 9f) * flowBoost;
+                // Before the first layout pass both width and cell may be zero.
+                // Clamp both values so auto-escape never enters a NaN animation.
+                float travelPx = Math.max(1f, Math.max(cell, p.moveSteps * cell));
+                float flowBoost = 1f + Math.min(10,combo) * 0.035f;
+                float speedPxPerSec = Math.max(1f,
+                        Math.max(getWidth() * 1.30f, cell * 9f) * flowBoost);
 
         float travelSec =
                 Math.max(0.30f,
