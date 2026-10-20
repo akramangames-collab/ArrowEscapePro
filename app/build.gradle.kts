@@ -30,8 +30,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 35
-        versionName = "1.4.1"
+        versionCode = 43
+        versionName = "1.4.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resValue("string", "game_services_project_id", playGamesProjectId)
         buildConfigField("boolean", "PLAY_GAMES_CONFIGURED", (playGamesReady && !playGamesProjectId.isEmpty()).toString())
@@ -66,16 +66,8 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-                "ads-r8-functional-rules.pro"
+                "proguard-rules.pro"
             )
-            @Suppress("UnstableApiUsage")
-            optimization.keepRules {
-                // GMA 1.5.0 contains one broad rule that intentionally preserves the
-                // already-obfuscated ads_mobile_sdk.* names only for vendor debugging.
-                // Ignore the SDK consumer file and re-add every functional rule locally.
-                ignoreFrom("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk")
-            }
             if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
             manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2475015099415787~6197424406"
             buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-2475015099415787~6197424406\"")
@@ -116,22 +108,14 @@ dependencies {
         }
     }
 
-    implementation("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.5.0")
-    // Keep the HSDP API because GMA references it. We remove only its optional
-    // shim Activity entry point from the merged manifest; the SDK has an
-    // explicit fallback when that Activity is unavailable.
-    implementation("com.google.android.play:hsdp:2.2.0")
+    // This classic Google AdMob artifact is explicitly on Google Play\'s Families
+    // Self-Certified Ads SDK list. Next-Gen ads-mobile-sdk is not listed there.
+    implementation("com.google.android.gms:play-services-ads:25.5.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
-}
-
-// Prevent UMP or another transitive dependency from bringing the legacy GMA SDK back.
-configurations.configureEach {
-    exclude(group = "com.google.android.gms", module = "play-services-ads")
-    exclude(group = "com.google.android.gms", module = "play-services-ads-lite")
 }
 
 // Run this before distributing a production build with Google Play Games sign-in.

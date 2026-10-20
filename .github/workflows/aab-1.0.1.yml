@@ -1,7 +1,11 @@
-name: Arrow Escape 1.4.1 Stable Release
+name: Arrow Escape 1.4.3 Families-Safe Candidate
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - feature/v28-400-level-trail-boosters
+      - main
   push:
     branches:
       - main
@@ -52,19 +56,26 @@ jobs:
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 30' app/build.gradle.kts
-          grep -q 'versionName = "1.4.1"' app/build.gradle.kts
+          grep -q 'versionCode = 43' app/build.gradle.kts
+          grep -q 'versionName = "1.4.3"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
-          grep -q 'ignoreFrom("com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk")' app/build.gradle.kts
-          grep -q '"ads-r8-functional-rules.pro"' app/build.gradle.kts
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
           grep -q 'androidx.core:core:1.18.0' app/build.gradle.kts
           grep -q 'androidx.fragment:fragment:1.9.1' app/build.gradle.kts
           grep -q 'WindowCompat.setDecorFitsSystemWindows(window, false)' app/src/main/java/com/arrowescape/pro/MainActivity.java
           grep -q 'LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS' app/src/main/java/com/arrowescape/pro/MainActivity.java
-          grep -q 'ads-mobile-sdk:1.5.0' app/build.gradle.kts
-          grep -q 'com.google.android.play:hsdp:2.2.0' app/build.gradle.kts
+          grep -q 'play-services-ads:25.5.0' app/build.gradle.kts
+          grep -q 'setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'setTagForChildDirectedTreatment(RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'MobileAds.setRequestConfiguration(familiesAdConfiguration)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -q 'com.google.android.gms.permission.AD_ID" tools:node="remove"' app/src/main/AndroidManifest.xml
+          if grep -Rq 'com.google.android.libraries.ads.mobile.sdk' app/src/main/java; then
+            echo "ERROR: non-Families-certified Next-Gen GMA references found"; exit 1
+          fi
+          if grep -q 'ads-mobile-sdk:' app/build.gradle.kts; then
+            echo "ERROR: non-listed GMA artifact found"; exit 1
+          fi
           if grep -R -E 'WindowCompat\.enableEdgeToEdge|setStatusBarColor\(|setNavigationBarColor\(|setSystemUiVisibility\(' app/src/main/java; then
             echo "ERROR: app source contains deprecated edge-to-edge APIs"; exit 1
           fi
@@ -85,7 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           RAW_AAB="app/build/outputs/bundle/release/app-release.aab"
-          OUT_AAB="dist/Arrow-Escape-1.4.1-v35-UNSIGNED.aab"
+          OUT_AAB="dist/Arrow-Escape-1.4.3-v43-UNSIGNED.aab"
           test -s "$RAW_AAB"
           unzip -t "$RAW_AAB" >/dev/null
           unzip -p "$RAW_AAB" BUNDLE-METADATA/com.android.tools/r8.json > /tmp/r8.json
@@ -96,24 +107,23 @@ jobs:
           mkdir -p dist
           WINDOW_API_SCAN_OUT=dist/deprecated-window-api-inputs.json python3 scripts/scan-deprecated-window-apis.py
           gradle :app:dependencies --configuration releaseRuntimeClasspath > dist/releaseRuntimeClasspath.txt
-          grep -q 'com.google.android.play:hsdp:2.2.0' dist/releaseRuntimeClasspath.txt
+          grep -q 'com.google.android.gms:play-services-ads:25.5.0' dist/releaseRuntimeClasspath.txt
           cp "$RAW_AAB" "$OUT_AAB"
           unzip -t "$OUT_AAB" >/dev/null
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           cp app/build/outputs/mapping/release/configuration.txt dist/r8-configuration.txt
           cp app/build/outputs/mapping/release/usage.txt dist/r8-usage.txt || true
           printf '%s\n' \
-            'Arrow Escape app-owned code does not use SHORT_EDGES, deprecated status/navigation' \
-            'bar color APIs, or the legacy bitmap/network path. GMA Next-Gen 1.5.0 currently' \
-            'depends on Google Play HSDP 2.2.0; HsdpShimActivity in that Google dependency' \
-            'contains SHORT_EDGES. Removing or stubbing HSDP breaks GMA references, so the' \
-            'vendor dependency is intentionally left intact until Google publishes a fixed SDK.' \
-            > dist/PLAY-WARNING-NOTE.txt
+            'Families policy mitigation: classic Google Play Families self-certified' \
+            'Google Mobile Ads 25.5.0, G content cap and child-directed treatment.' \
+            'Advertising ID permission removed. AdMob blocking controls, Play Console' \
+            'declarations and Google review MUST be confirmed before rollout.' \
+            > dist/FAMILIES-POLICY-REVIEW-NOTE.txt
           sha256sum "$OUT_AAB" > dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.4.1-v35-UNSIGNED-AAB
+          name: Arrow-Escape-1.4.3-v43-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 7
