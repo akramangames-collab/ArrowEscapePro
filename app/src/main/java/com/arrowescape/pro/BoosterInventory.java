@@ -4,15 +4,18 @@ import android.content.SharedPreferences;
 
 /** Persistent consumables. Level gifts and ad receipts are recorded with the stock. */
 public final class BoosterInventory {
+    // Slot 5 is reserved for migration of old stock; Mistake Shield is retired.
+    // Keep its integer ID so saved Triple Escape (6) and other inventory stay intact.
     public static final int HINT=0, ERASER=1, BOMB=2, SWEEP=3, SCAN=4, SHIELD=5, TRIPLE=6;
     public static final int COUNT=7;
     private final SharedPreferences prefs;
     public BoosterInventory(SharedPreferences prefs){this.prefs=prefs;}
-    public static String name(int kind){check(kind);return new String[]{"Hint","Eraser","Bomb","Sweep","Safe Scan","Shield","Triple Escape"}[kind];}
+    public static boolean available(int kind){return kind>=0&&kind<COUNT&&kind!=SHIELD;}
+    public static String name(int kind){check(kind);return new String[]{"Hint","Eraser","Bomb","Sweep","Safe Scan","Retired","Triple Escape"}[kind];}
     public synchronized int count(int kind){check(kind);return Math.max(0,prefs.getInt("boost_stock_"+kind,0));}
-    public synchronized boolean consume(int kind){int stock=count(kind);return stock>0&&prefs.edit().putInt("boost_stock_"+kind,stock-1).commit();}
+    public synchronized boolean consume(int kind){if(!available(kind))return false;int stock=count(kind);return stock>0&&prefs.edit().putInt("boost_stock_"+kind,stock-1).commit();}
     public synchronized boolean rewardAd(int kind,String receipt){
-        check(kind);if(receipt==null||receipt.isEmpty()||prefs.getBoolean("boost_ad_"+receipt,false))return false;
+        check(kind);if(!available(kind)||receipt==null||receipt.isEmpty()||prefs.getBoolean("boost_ad_"+receipt,false))return false;
         return prefs.edit().putInt("boost_stock_"+kind,count(kind)+1).putBoolean("boost_ad_"+receipt,true).commit();
     }
     /** Sparse, reproducible gifts: a small gift every fifth clear; two bombs at extreme checkpoints. */
