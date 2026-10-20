@@ -290,11 +290,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         body.addView(boosterCard(1,"Precise eraser","Remove one selected arrow","×"+game.boosterCount(1),0xFF67D8F6));
         body.addView(boosterCard(2,"Area bomb","Limited area · 4-cell radius","×"+game.boosterCount(2),0xFFB295FF));
         body.addView(boosterCard(3,"Row sweep","Clear arrows touching one row","×"+game.boosterCount(3),0xFF47E4D4));
-        body.addView(section("REWARDED-AD BOOSTERS"));
+        body.addView(section("INSTANT BOOSTERS"));
         body.addView(boosterCard(4,"Safe Scan","Reveal every legal arrow for 8 seconds","×"+game.boosterCount(4),0xFFFFCE69));
-        body.addView(boosterCard(5,"Mistake Shield","Protect one wrong tap from heart loss","×"+game.boosterCount(5),0xFF76EDAA));
         body.addView(boosterCard(6,"Triple Escape","Automatically release up to 3 legal arrows","×"+game.boosterCount(6),0xFFDA9BFF));
-        body.addView(text("Existing targeted tools require confirmation. New boosters activate instantly, and never spend coins.",12,MUTED));
+        body.addView(text("All six boosters are visible on the level screen. Flow Shield is earned automatically once per level attempt.",12,MUTED));
         body.addView(button("Back to puzzle",()->menu.dismiss(),false));
         ScrollView boosterScroll=new ScrollView(this);
         boosterScroll.setFillViewport(false);
@@ -313,7 +312,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     @Override public void requestRewardedErase() { requestRewardedBooster(1); }
     @Override public void requestRewardedBooster(int kind) {
-        if(kind<0||kind>=BoosterInventory.COUNT||showingAd||pendingBooster>=0)return;
+        if(kind<0||kind>=BoosterInventory.COUNT||kind==BoosterInventory.SHIELD||showingAd||pendingBooster>=0)return;
         if(!canRequestAds()){toast("Reward ad unavailable. No booster used.");return;}
         pendingBooster=kind;
         if(rewardReady()){deliverPendingBoosterAd();return;}
@@ -688,7 +687,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
         }else{
             body.addView(section("YOUR BOOSTERS"));
-            for(int i=0;i<BoosterInventory.COUNT;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
+            for(int i=0;i<BoosterInventory.COUNT;i++){if(i==BoosterInventory.SHIELD)continue;final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
             body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             LinearLayout reward=panel();
@@ -1008,7 +1007,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
 
             body.addView(section("YOUR BOOSTERS"));
-            for(int i=0;i<BoosterInventory.COUNT;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
+            for(int i=0;i<BoosterInventory.COUNT;i++){if(i==BoosterInventory.SHIELD)continue;final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD +1",()->requestRewardedBooster(kind),false));}
             body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             final Button[] daily=new Button[1];
