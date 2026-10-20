@@ -1,10 +1,11 @@
-name: Arrow Escape v43 Unsigned APK For Original Local Signing
+name: Arrow Escape v46 Unsigned APK For Original Local Signing
 on:
   workflow_dispatch:
   push:
     branches:
       - feature/v28-400-level-trail-boosters
     paths:
+      - app/**
       - .github/workflows/build-v43-unsigned-apk-for-local-signing.yml
 permissions:
   contents: read
@@ -27,11 +28,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '9.6.0'
-      - name: Build unsigned v43 APK
+      - name: Build unsigned v46 APK
         run: |
           set -euo pipefail
-          grep -Fq 'versionCode = 43' app/build.gradle.kts
-          grep -Fq 'versionName = "1.4.3"' app/build.gradle.kts
+          grep -Fq 'versionCode = 46' app/build.gradle.kts
+          grep -Fq 'versionName = "1.4.4"' app/build.gradle.kts
           grep -Fq 'applicationId = "com.arrowescape.pro"' app/build.gradle.kts
           bash scripts/test-wallet.sh
           gradle :app:testDebugUnitTest :app:assembleRelease --stacktrace
@@ -39,14 +40,14 @@ jobs:
           mkdir -p dist/tools
           APK=$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)
           test -n "$APK" && test -s "$APK"
-          cp "$APK" dist/Arrow-Escape-1.4.3-v43-UNSIGNED.apk
+          cp "$APK" dist/Arrow-Escape-1.4.4-v46-UNSIGNED.apk
           cp /usr/local/lib/android/sdk/build-tools/36.0.0/lib/apksigner.jar dist/tools/apksigner.jar
           cp /usr/local/lib/android/sdk/build-tools/36.0.0/zipalign dist/tools/zipalign
-          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='43' versionName='1.4.3'"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='46' versionName='1.4.4'"
           sha256sum dist/*.apk > dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-v43-UNSIGNED-APK-and-local-signing-tools
+          name: Arrow-Escape-v46-UNSIGNED-APK-and-local-signing-tools
           path: dist/
           retention-days: 5
           if-no-files-found: error
