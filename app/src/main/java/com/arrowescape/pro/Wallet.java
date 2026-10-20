@@ -11,13 +11,13 @@ public final class Wallet {
     public static final class State {
         public int coins = STARTER, streak, arrowTypeMask = 1, themeMask = 1;
         public long dailyDay = -1, challengeDay = -1, weeklyChallengeWeek = -1;
-        public String levelToken = "", adToken = "";
+        public String levelToken = "", adToken = "", rewardedLevels = ",";
         public boolean initialized;
         public State copy() {
             State s = new State();
             s.coins = coins; s.streak = streak; s.arrowTypeMask = arrowTypeMask; s.themeMask = themeMask;
             s.dailyDay = dailyDay; s.challengeDay = challengeDay; s.weeklyChallengeWeek = weeklyChallengeWeek;
-            s.levelToken = levelToken; s.adToken = adToken; s.initialized = initialized;
+            s.levelToken = levelToken; s.adToken = adToken; s.rewardedLevels = rewardedLevels; s.initialized = initialized;
             return s;
         }
     }
@@ -142,8 +142,12 @@ public final class Wallet {
     public synchronized int rewardLevel(String token, int level, int stars) {
         state = storage.load().copy();
         if (token == null || token.isEmpty() || token.equals(state.levelToken) || level < 1 || level > 400 || stars < 1 || stars > 3) return 0;
+        // A new run ID must never pay again for an already rewarded level.
+        String awarded = state.rewardedLevels == null ? "," : state.rewardedLevels;
+        if (awarded.contains("," + level + ",")) return 0;
         int amount = 15 + (stars == 3 ? 10 : stars == 2 ? 5 : 0) + CampaignRules.bonus(level);
         State next = state.copy(); next.coins = add(next.coins, amount); next.levelToken = token;
+        next.rewardedLevels = awarded + level + ",";
         return commit(next) ? amount : 0;
     }
     public synchronized int rewardLevel(String token, int level, boolean perfect) {
