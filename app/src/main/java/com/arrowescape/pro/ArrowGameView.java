@@ -88,7 +88,7 @@ public class ArrowGameView extends View {
     private long challengeDay = -1L, challengeWeek = -1L, milestoneIntroUntil = 0L, comboFlashUntil = 0L;
     private int normalLevelBeforeChallenge = 1;
     private String runId;
-    private final RectF walletHit = new RectF(), hintHit = new RectF(), eraseHit = new RectF(), rewardHit = new RectF(), bombHit = new RectF(), moreBoosterHit = new RectF();
+    private final RectF walletHit = new RectF(), hintHit = new RectF(), eraseHit = new RectF(), rewardHit = new RectF(), bombHit = new RectF();
     private final RectF[] visibleBoosterHits={hintHit,eraseHit,bombHit,rewardHit,new RectF(),new RectF()};
     private static final int[] VISIBLE_BOOSTERS={
             BoosterInventory.HINT,BoosterInventory.ERASER,BoosterInventory.BOMB,
@@ -553,7 +553,7 @@ public class ArrowGameView extends View {
             paint.setColor(i<filled?themeAccent():Color.rgb(210,218,230));
             c.drawCircle(start+i*(r*2+gap),y,r,paint);
         }
-        if(flowShield||rewardedShield){
+        if(flowShield){
             paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.5f));paint.setColor(themeAccent());
             c.drawCircle(cx+dp(43),y,dp(6.5f),paint);paint.setStyle(Paint.Style.FILL);
             label(c,"S",cx+dp(43),y+dp(3),7,themeAccent(),true);
