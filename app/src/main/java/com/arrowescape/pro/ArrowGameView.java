@@ -333,8 +333,11 @@ public class ArrowGameView extends View {
                     prefs.edit().putInt("maxUnlocked", maxUnlocked).apply();
                 }
                 prefs.edit().putInt("lastLevel", Math.min(MAX_LEVEL, level + 1)).apply();
+                // Existing users may have finished this level before the wallet-level
+                // one-time reward ledger was introduced. Keep prior clears unpaid.
+                boolean firstClear = bestStars(level) == 0;
                 saveBestStars(level, earnedStars);
-                winReward = wallet.rewardLevel(runId, level, earnedStars);
+                winReward = firstClear ? wallet.rewardLevel(runId, level, earnedStars) : 0;
                 winBoosterKind=BoosterInventory.giftKind(level);
                 winBoosterAmount=inventory.rewardLevel(level);
             }
