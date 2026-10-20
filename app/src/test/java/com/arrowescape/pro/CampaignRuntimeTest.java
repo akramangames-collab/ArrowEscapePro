@@ -121,33 +121,123 @@ public class CampaignRuntimeTest {
             assertEquals(2,g.boosterCount(2));assertEquals(0,get(g,"winBoosterAmount"));
         }finally{g.release();}
     }
-    @Test public void allFourFrontToolsStayVisibleAndEnterPreviewWithoutSpendingCoins()throws Exception{
+    @Test public void sixBoostersAreVisibleInTwoRowsAndRetiredShieldCannotBeGranted()throws Exception{
         ArrowGameView g=game();try{
-            render(g,720,1280,"four-front-boosters");
-            String[] names={"hintHit","eraseHit","bombHit","rewardHit"};float previous=0;
-            for(int i=0;i<4;i++){RectF r=(RectF)get(g,names[i]);assertTrue(r.width()>=48);assertTrue(r.height()>=48);assertTrue(r.left>=previous);assertTrue(r.bottom<=1280);previous=r.right;g.grantBooster(i,"front-"+i);}
+            render(g,720,1280,"six-visible-boosters");
+            RectF[] hits=(RectF[])get(g,"visibleBoosterHits");
+            int[] kinds=(int[])get(g,"VISIBLE_BOOSTERS");
+            assertEquals(6,hits.length);
+            assertArrayEquals(new int[]{BoosterInventory.HINT,BoosterInventory.ERASER,
+                BoosterInventory.BOMB,BoosterInventory.SWEEP,BoosterInventory.SCAN,
+                BoosterInventory.TRIPLE},kinds);
+            for(int i=0;i<hits.length;i++){
+                RectF r=hits[i];
+                assertTrue("Booster "+i+" width",r.width()>=48);
+                assertTrue("Booster "+i+" height",r.height()>=48);
+                assertTrue("Booster "+i+" on screen",r.left>=0&&r.right<=720&&r.top>=0&&r.bottom<=1280);
+                if(i%3!=0)assertTrue("Columns do not overlap",r.left>=hits[i-1].right);
+                if(i>=3)assertTrue("Rows do not overlap",r.top>=hits[i-3].bottom);
+                assertTrue(g.grantBooster(kinds[i],"visible-"+i));
+            }
+            assertFalse(g.grantBooster(BoosterInventory.SHIELD,"retired"));
+            assertEquals(0,g.boosterCount(BoosterInventory.SHIELD));
             int coins=((Wallet)get(g,"wallet")).balance();
-            for(int mode=1;mode<=3;mode++){g.beginBooster(mode);assertEquals(mode,get(g,"boosterMode"));g.cancelBooster();assertEquals(1,g.boosterCount(mode));}
+            for(int mode=1;mode<=3;mode++){
+                g.beginBooster(mode);
+                assertEquals(mode,get(g,"boosterMode"));
+                g.cancelBooster();assertEquals(1,g.boosterCount(mode));
+            }
             assertEquals(coins,((Wallet)get(g,"wallet")).balance());
         }finally{g.release();}
     }
+
     @SuppressWarnings("unchecked")
-    @Test public void rewardedShieldSavesOneHeartAndSurvivesRecreation()throws Exception{
+    @Test public void automaticFlowShieldIsOneUseAndSurvivesGameRecreation()throws Exception{
         ArrowGameView g=game();try{
             call(g,"startLevel",new Class[]{int.class},30);
-            assertTrue(g.grantBooster(BoosterInventory.SHIELD,"shield-test"));
-            g.useInstantBooster(BoosterInventory.SHIELD);
-            assertTrue((Boolean)get(g,"rewardedShield"));
-            assertEquals(0,g.boosterCount(BoosterInventory.SHIELD));
+            assertFalse(g.grantBooster(BoosterInventory.SHIELD,"retired-shield"));
+            ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");
+            Object safe=null;
+            for(Object p:all)if((Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){safe=p;break;}
+            assertNotNull(safe);
+            set(g,"combo",4);
+            set(g,"lastCorrectTapAt",android.os.SystemClock.elapsedRealtime());
+            call(g,"tapPiece",new Class[]{safe.getClass()},safe);
+            assertTrue((Boolean)get(g,"flowShield"));
+            assertTrue((Boolean)get(g,"flowShieldUsed"));
             g.saveProgress();g.release();g=game();
-            assertTrue((Boolean)get(g,"rewardedShield"));
-            ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");Object blocked=null;
-            for(Object p:all)if(!(Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){blocked=p;break;}
-            assertNotNull("Test requires a blocked arrow",blocked);
+            assertTrue((Boolean)get(g,"flowShield"));
+            assertTrue((Boolean)get(g,"flowShieldUsed"));
+            Object blocked=null;
+            for(Object p:(ArrayList<Object>)get(g,"pieces")){
+                if((Boolean)get(p,"removed")||(Boolean)get(p,"moving"))continue;
+                if(!(Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){blocked=p;break;}
+            }
+            assertNotNull(blocked);
             int hearts=(Integer)get(g,"hearts");
             call(g,"tapPiece",new Class[]{blocked.getClass()},blocked);
             assertEquals(hearts,get(g,"hearts"));
-            assertFalse((Boolean)get(g,"rewardedShield"));
+            assertFalse((Boolean)get(g,"flowShield"));
+            assertTrue((Boolean)get(g,"flowShieldUsed"));
+            set(g,"combo",4);
+            Object another=null;
+            for(Object p:(ArrayList<Object>)get(g,"pieces"))
+                if(!(Boolean)get(p,"removed") && !(Boolean)get(p,"moving") &&
+                    (Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){another=p;break;}
+            assertNotNull(another);
+            set(g,"lastCorrectTapAt",android.os.SystemClock.elapsedRealtime());
+            call(g,"tapPiece",new Class[]{another.getClass()},another);
+            assertFalse("Flow Shield cannot recharge this attempt",(Boolean)get(g,"flowShield"));
+            call(g,"tapPiece",new Class[]{blocked.getClass()},blocked);
+            assertEquals(hearts-1,get(g,"hearts"));
+            g.restartCurrentLevel();
+            assertFalse((Boolean)get(g,"flowShieldUsed"));
+        }finally{g.release();}
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test public void cageKeyArrowIsLastOnEveryCampaignLevelAndCannotBeBombed()throws Exception{
+        ArrowGameView g=game();try{
+            for(int lv=1;lv<=400;lv++){
+                call(g,"startLevel",new Class[]{int.class},lv);
+                assertTrue("Missing rescue cage at "+lv,(Boolean)get(g,"rescueBoard"));
+                CageRescue rescue=(CageRescue)get(g,"cageRescue");
+                int keyId=rescue.arrowId();
+                ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");
+                assertTrue(keyId>=0);
+                int pending=all.size();
+                Object last=null,key=null;
+                for(Object p:all)if((Integer)get(p,"id")==keyId){key=p;break;}
+                assertNotNull(key);
+                assertFalse("Key escapes before other arrows in level "+lv,
+                        (Boolean)call(g,"isClear",new Class[]{key.getClass()},key));
+                if(lv==11){
+                    render(g,720,1280,"cage-key-11");
+                    assertTrue(g.grantBooster(BoosterInventory.BOMB,"bomb-for-cage"));
+                    g.beginBooster(BoosterInventory.BOMB);
+                    Object pt=((ArrayList<Point>)get(key,"pts")).get(0);
+                    float cell=(Float)get(g,"cell");
+                    Point head=(Point)pt;
+                    call(g,"selectBoosterTarget",new Class[]{float.class,float.class},
+                        (Float)get(g,"boardLeft")+head.x*cell,
+                        (Float)get(g,"boardTop")+head.y*cell*(Float)get(g,"boardStretchY"));
+                    assertFalse(((ArrayList<?>)get(g,"boosterTargets")).contains(key));
+                    g.cancelBooster();
+                }
+                while(pending>0){
+                    Object safe=null;
+                    for(Object p:all)if(!(Boolean)get(p,"removed")&&
+                            (Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){
+                        safe=p;break;
+                    }
+                    assertNotNull("Unsolvable with final key: level "+lv,safe);
+                    if(pending>1)assertNotSame("Key escaped prematurely on "+lv,key,safe);
+                    set(safe,"removed",true);last=safe;pending--;
+                }
+                assertSame("Wrong final arrow on level "+lv,key,last);
+                call(g,"syncRescueKey",new Class[]{});
+                assertTrue("Final key failed to open box "+lv,rescue.boxOpened());
+            }
         }finally{g.release();}
     }
     @SuppressWarnings("unchecked")
@@ -172,23 +262,6 @@ public class CampaignRuntimeTest {
             for(int i=0;i<5;i++)call(g,"updateAnimations",new Class[]{float.class,long.class},2f,now+1000L*(i+1));
             assertEquals(before-3,call(g,"remaining",new Class[]{}));
             assertEquals(0,get(g,"autoMovesRemaining"));
-        }finally{g.release();}
-    }
-    @SuppressWarnings("unchecked")
-    @Test public void everyCampaignLevelSolvesUnderRuntimeSpecialAndTailRules()throws Exception{
-        ArrowGameView g=game();try{
-            for(int lv=1;lv<=400;lv++){
-                call(g,"startLevel",new Class[]{int.class},lv);
-                ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");
-                int pending=all.size();
-                while(pending>0){
-                    Object safe=null;
-                    for(Object piece:all)if(!(Boolean)get(piece,"removed")&&
-                        (Boolean)call(g,"isClear",new Class[]{piece.getClass()},piece)){safe=piece;break;}
-                    assertNotNull("Runtime deadlock at level "+lv,safe);
-                    set(safe,"removed",true);pending--;
-                }
-            }
         }finally{g.release();}
     }
     @Test public void insufficientBalanceKeepsBombTargetsAndBoardIntact()throws Exception{
