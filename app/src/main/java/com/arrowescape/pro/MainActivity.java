@@ -24,23 +24,19 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.google.android.libraries.ads.mobile.sdk.MobileAds;
-import com.google.android.libraries.ads.mobile.sdk.banner.AdSize;
-import com.google.android.libraries.ads.mobile.sdk.banner.AdView;
-import com.google.android.libraries.ads.mobile.sdk.banner.BannerAd;
-import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdEventCallback;
-import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRequest;
-import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback;
-import com.google.android.libraries.ads.mobile.sdk.common.AdRequest;
-import com.google.android.libraries.ads.mobile.sdk.common.AgeRestrictedTreatment;
-import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError;
-import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError;
-import com.google.android.libraries.ads.mobile.sdk.common.RequestConfiguration;
-import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig;
-import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAd;
-import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAdEventCallback;
-import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAd;
-import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdEventCallback;
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.ump.*;
 import java.util.UUID;
 
@@ -143,14 +139,16 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private RequestConfiguration familiesAdConfiguration;
 
     /**
-     * Families-policy safety net supplied to the Next-Gen GMA SDK at initialization.
-     * Every ad request is child-directed and capped at G-rated creative.
+     * G-rated non-personalized child-directed requests on every ad surface.
+     * AdMob account-side creative blocking and Play Console declarations are
+     * required in addition to this SDK configuration.
      */
     private void configureFamiliesAdPolicy() {
         familiesAdConfiguration = new RequestConfiguration.Builder()
-            .setMaxAdContentRating(RequestConfiguration.MaxAdContentRating.MAX_AD_CONTENT_RATING_G)
-            .setAgeRestrictedTreatment(AgeRestrictedTreatment.CHILD)
+            .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
+            .setTagForChildDirectedTreatment(RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
             .build();
+        MobileAds.setRequestConfiguration(familiesAdConfiguration);
     }
 
     private void requestConsentAndStartAds() {
@@ -179,17 +177,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         final android.content.Context appContext = getApplicationContext();
         new Thread(() -> {
             try {
-                InitializationConfig initConfig = new InitializationConfig.Builder(BuildConfig.ADMOB_APP_ID)
-                    .setRequestConfiguration(familiesAdConfiguration)
-                    .build();
-                MobileAds.initialize(appContext, initConfig, status -> runOnUiThread(() -> {
+                // Global G-rated/child-directed settings were set before any load.
+                MobileAds.initialize(appContext, status -> runOnUiThread(() -> {
                     if (isDestroyed()) return;
                     loadInterstitial(); loadRewarded();
                     if (gameplayBannerRequested && (menu == null || !menu.isShowing())) showGameBanner();
                     else showVisibleMenuBanner();
                 }));
             } catch (Throwable t) {
-                Log.e("ArrowAds","Next-Gen GMA init failed",t);
+                Log.e("ArrowAds","Families-certified GMA init failed",t);
                 runOnUiThread(() -> adsStarted = false);
             }
         }, "ArrowAdsInit").start();
@@ -198,24 +194,29 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void loadInterstitial() {
         if (!canRequestAds() || loadingInterstitial || interstitial != null) return;
         loadingInterstitial = true;
-        InterstitialAd.load(new AdRequest.Builder(BuildConfig.ADMOB_INTERSTITIAL_ID).build(), new AdLoadCallback<InterstitialAd>() {
+        InterstitialAd.load(this, BuildConfig.ADMOB_INTERSTITIAL_ID,
+            new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
             @Override public void onAdLoaded(InterstitialAd ad) {
                 loadingInterstitial = false;
                 if (!isDestroyed()) { interstitial = ad; interstitialLoadedAt = SystemClock.elapsedRealtime(); }
             }
-            @Override public void onAdFailedToLoad(LoadAdError error) { loadingInterstitial = false; interstitial = null; }
+            @Override public void onAdFailedToLoad(LoadAdError error) {
+                loadingInterstitial = false; interstitial = null;
+            }
         });
     }
     private void loadRewarded() {
         if (!canRequestAds() || loadingReward || rewarded != null) return;
         loadingReward = true; updateRewardStatus();
-        RewardedAd.load(new AdRequest.Builder(BuildConfig.ADMOB_REWARDED_ID).build(), new AdLoadCallback<RewardedAd>() {
+        RewardedAd.load(this, BuildConfig.ADMOB_REWARDED_ID,
+            new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
             @Override public void onAdLoaded(RewardedAd ad) {
                 loadingReward = false;
                 if (!isDestroyed()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); deliverPendingBoosterAd(); }
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
-                loadingReward = false; rewarded = null; updateRewardStatus(); if(pendingBooster>=0){cancelPendingBooster();toast("Ad unavailable. No booster used.");}
+                loadingReward = false; rewarded = null; updateRewardStatus();
+                if(pendingBooster>=0){cancelPendingBooster();toast("Ad unavailable. No booster used.");}
             }
         });
     }
@@ -239,7 +240,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         }
         InterstitialAd ad = interstitial; interstitial = null;
         showingAd = true; music.suspend(); game.setPaused(true);
-        ad.setAdEventCallback(new InterstitialAdEventCallback() {
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
             boolean handled;
             private void finish() {
                 if (handled) return; handled = true; showingAd = false;if(foreground&&music!=null)music.resume();
@@ -247,7 +248,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
             @Override public void onAdShowedFullScreenContent() { completedSinceAd = 0; }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
-            @Override public void onAdFailedToShowFullScreenContent(FullScreenContentError error) { finish(); }
+            @Override public void onAdFailedToShowFullScreenContent(AdError error) { finish(); }
         });
         ad.show(this);
     }
@@ -258,14 +259,14 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         }
         RewardedAd ad = rewarded; rewarded = null; showingAd = true; music.suspend();
         pausedForAd = menu != null && menu.isShowing(); game.setPaused(true);
-        ad.setAdEventCallback(new RewardedAdEventCallback() {
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
             boolean finished;
             private void finish() {
                 if (finished) return; finished = true; showingAd = false;if(foreground&&music!=null)music.resume();
                 if (!isDestroyed()) { game.setPaused(pausedForAd && menu != null && menu.isShowing()); loadRewarded(); updateRewardStatus(); }
             }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
-            @Override public void onAdFailedToShowFullScreenContent(FullScreenContentError error) { finish(); toast("Ad could not open. No reward was charged."); }
+            @Override public void onAdFailedToShowFullScreenContent(AdError error) { finish(); toast("Ad could not open. No reward was charged."); }
         });
         final boolean[] granted = {false};
         ad.show(this, rewardItem -> {
@@ -1112,58 +1113,58 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         // Reserve the requested footprint before loading, so controls never move into
         // the ad area while the creative arrives. Buffer stays non-interactive.
         slot.setVisibility(View.VISIBLE);
-        AdView ad=new AdView(this);ad.setVisibility(View.INVISIBLE);
+        AdView ad=new AdView(this);
+        ad.setVisibility(View.INVISIBLE);
+        ad.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+        ad.setAdSize(size);
         slot.addView(ad,new FrameLayout.LayoutParams(-2,height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL));
-        BannerAdRequest request=new BannerAdRequest.Builder(BuildConfig.ADMOB_BANNER_ID,size).build();
-        ad.loadAd(request,new AdLoadCallback<BannerAd>() {
-            @Override public void onAdLoaded(BannerAd loadedAd) {
+        ad.setAdListener(new AdListener() {
+            @Override public void onAdLoaded() {
                 runOnUiThread(() -> {
-                if(!bannerRequestCurrent(ad,slot))return;
-                bannerRetryCount=0;ad.setVisibility(View.VISIBLE);
-                loadedAd.setAdEventCallback(new BannerAdEventCallback() {});
-                slot.setVisibility(View.VISIBLE);
-                if(slot==gameBannerSlot){
-                    gameBannerHeightPx=height;
-                    updateGameBottomInset();
-                }else if(slot==resultBannerSlot){
-                    resultBannerHeightPx=height;
-                    updateGameBottomInset();
-                }else if(slot==menuBannerSlot){
-                    setMenuBannerSpace(height,true);
-                }
-                Log.d("ArrowAds","Banner loaded");
+                    if(!bannerRequestCurrent(ad,slot))return;
+                    bannerRetryCount=0;ad.setVisibility(View.VISIBLE);
+                    slot.setVisibility(View.VISIBLE);
+                    if(slot==gameBannerSlot){
+                        gameBannerHeightPx=height;updateGameBottomInset();
+                    }else if(slot==resultBannerSlot){
+                        resultBannerHeightPx=height;updateGameBottomInset();
+                    }else if(slot==menuBannerSlot){
+                        setMenuBannerSpace(height,true);
+                    }
+                    Log.d("ArrowAds","Families-safe banner loaded");
                 });
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
                 runOnUiThread(() -> {
-                if(!bannerRequestCurrent(ad,slot))return;
-                slot.setVisibility(View.GONE);ad.setVisibility(View.INVISIBLE);
-                if(slot==gameBannerSlot){
-                    gameBannerHeightPx=0; updateGameBottomInset();
-                }else if(slot==resultBannerSlot){
-                    resultBannerHeightPx=0; updateGameBottomInset();
-                }else if(slot==menuBannerSlot){
-                    setMenuBannerSpace(0,false);
-                }
-                Log.w("ArrowAds","Banner failed code="+error.getCode()+" message="+error.getMessage());
-                if (bannerRetryCount >= MAX_BANNER_RETRIES || isDestroyed()) return;
-                bannerRetryCount++;
-                slot.postDelayed(() -> {
-                    if (!bannerRequestCurrent(ad,slot) || !canRequestAds()) return;
-                    if (slot == gameBannerSlot) {
-                        if (gameBanner != null) { gameBanner.destroy(); gameBanner=null; }
-                        showGameBanner();
-                    } else if (slot == resultBannerSlot) {
-                        if (resultBanner != null) { resultBanner.destroy(); resultBanner=null; }
-                        showResultBanner();
-                    } else if (slot == menuBannerSlot) {
-                        if (banner != null) { banner.destroy(); banner=null; }
-                        showVisibleMenuBanner();
+                    if(!bannerRequestCurrent(ad,slot))return;
+                    slot.setVisibility(View.GONE);ad.setVisibility(View.INVISIBLE);
+                    if(slot==gameBannerSlot){
+                        gameBannerHeightPx=0;updateGameBottomInset();
+                    }else if(slot==resultBannerSlot){
+                        resultBannerHeightPx=0;updateGameBottomInset();
+                    }else if(slot==menuBannerSlot){
+                        setMenuBannerSpace(0,false);
                     }
-                }, BANNER_RETRY_DELAY_MS);
+                    Log.w("ArrowAds","Banner failed code="+error.getCode()+" message="+error.getMessage());
+                    if (bannerRetryCount >= MAX_BANNER_RETRIES || isDestroyed()) return;
+                    bannerRetryCount++;
+                    slot.postDelayed(() -> {
+                        if (!bannerRequestCurrent(ad,slot) || !canRequestAds()) return;
+                        if (slot == gameBannerSlot) {
+                            if (gameBanner != null) { gameBanner.destroy(); gameBanner=null; }
+                            showGameBanner();
+                        } else if (slot == resultBannerSlot) {
+                            if (resultBanner != null) { resultBanner.destroy(); resultBanner=null; }
+                            showResultBanner();
+                        } else if (slot == menuBannerSlot) {
+                            if (banner != null) { banner.destroy(); banner=null; }
+                            showVisibleMenuBanner();
+                        }
+                    }, BANNER_RETRY_DELAY_MS);
                 });
             }
         });
+        ad.loadAd(new AdRequest.Builder().build());
         return ad;
     }
 
