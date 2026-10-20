@@ -58,7 +58,7 @@ jobs:
           printf '%s' "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/arrow-original-upload.jks"
           test -s "$RUNNER_TEMP/arrow-original-upload.jks"
           EXPECTED="C0F5B84B375B4775BCC67C37E057A26CB3D654FE7938D48B658EB423E441429F"
-          CERT_SHA256="$(keytool -list -v -keystore "$RUNNER_TEMP/arrow-original-upload.jks" -alias arrowescape-upload -storepass "$ARROW_RELEASE_STORE_PASSWORD" | grep 'SHA256:' | head -1 | sed 's/.*SHA256: //' | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
+          CERT_SHA256="$(keytool -list -v -keystore "$RUNNER_TEMP/arrow-original-upload.jks" -alias arrowescape_upload -storepass "$ARROW_RELEASE_STORE_PASSWORD" | grep 'SHA256:' | head -1 | sed 's/.*SHA256: //' | tr -d ':[:space:]' | tr '[:lower:]' '[:upper:]')"
           if [ "$CERT_SHA256" != "$EXPECTED" ]; then
             echo "::error::Wrong keystore fingerprint. Refusing to sign."
             exit 1
@@ -69,7 +69,7 @@ jobs:
         env:
           ARROW_RELEASE_STORE_FILE: ${{ runner.temp }}/arrow-original-upload.jks
           ARROW_RELEASE_STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
-          ARROW_RELEASE_KEY_ALIAS: arrowescape-upload
+          ARROW_RELEASE_KEY_ALIAS: arrowescape_upload
           ARROW_RELEASE_KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
         run: |
           set -euo pipefail
