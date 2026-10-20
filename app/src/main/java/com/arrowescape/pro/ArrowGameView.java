@@ -459,7 +459,7 @@ public class ArrowGameView extends View {
     // the geometric centre. The puzzle arrows themselves remain unchanged.
     private void configureRescueCage(){
         rescueBoard=false;cageRescue.reset(-1);
-        if(challengeActive()||pieces.isEmpty()||level<6)return;
+        if(challengeActive()||pieces.isEmpty())return;
         java.util.HashSet<Long> occupied=new java.util.HashSet<>();
         for(Piece p:pieces)occupied.addAll(p.nodes);
         int bestScore=Integer.MAX_VALUE,bx=-1,by=-1;
@@ -470,7 +470,9 @@ public class ArrowGameView extends View {
             int score=conflicts*100+Math.abs(x-gridW/2)+Math.abs(y-gridH/2);
             if(score<bestScore){bestScore=score;bx=x;by=y;}
         }
-        if(bx<0||bestScore>=100)return; // Never cover a playable arrow.
+        if(bx<0)return;
+        // Render behind arrows in unusually crowded levels, but never silently
+        // omit the cage or last key arrow from a campaign level.
         rescueX=bx;rescueY=by;rescueBoard=true;
         // Pick a late-route arrow to unlock the box, as in v42.
         java.util.HashMap<Integer,Integer> depth=new java.util.HashMap<>();
@@ -492,21 +494,59 @@ public class ArrowGameView extends View {
             }
             pending.removeAll(ready);
         }
-        Piece chosen=pieces.get(0);int maxDepth=-1,minDistance=Integer.MAX_VALUE;
-        for(Piece p:pieces){
-            int d=depth.getOrDefault(p.id,0);
-            Point head=p.pts.get(p.pts.size()-1);
-            int dist=Math.abs(head.x-rescueX)+Math.abs(head.y-rescueY);
-            if(d>maxDepth||(d==maxDepth&&dist<minDistance)){
-                chosen=p;maxDepth=d;minDistance=dist;
+        // Physical and special dependencies are monotonic. Simulate the full
+        // puzzle with each candidate held until the end, and only use a key
+        // arrow that still gives every other arrow a legal escape route.
+        // This avoids deadlocking the v42 cage rescue in dense levels.
+        java.util.ArrayList<Piece> candidates=new java.util.ArrayList<>(pieces);
+        candidates.sort((a,b)->{
+            int score=Integer.compare(depth.getOrDefault(b.id,0),depth.getOrDefault(a.id,0));
+            if(score!=0)return score;
+            Point pa=a.pts.get(a.pts.size()-1),pb=b.pts.get(b.pts.size()-1);
+            int da=Math.abs(pa.x-rescueX)+Math.abs(pa.y-rescueY);
+            int db=Math.abs(pb.x-rescueX)+Math.abs(pb.y-rescueY);
+            return da==db?Integer.compare(a.id,b.id):Integer.compare(da,db);
+        });
+        Piece chosen=null;
+        for(Piece candidate:candidates){
+            if(canKeepKeyUntilLast(candidate)){chosen=candidate;break;}
+        }
+        if(chosen==null)throw new IllegalStateException("No playable last key arrow in level "+level);
+        cageRescue.reset(chosen.id);
+    }
+
+    private boolean canKeepKeyUntilLast(Piece key){
+        boolean[] savedRemoved=new boolean[pieces.size()];
+        boolean[] savedMoving=new boolean[pieces.size()];
+        for(int i=0;i<pieces.size();i++){
+            Piece p=pieces.get(i);savedRemoved[i]=p.removed;
+            savedMoving[i]=p.moving;p.moving=false;
+        }
+        try{
+            int pending=pieces.size()-1;
+            while(pending>0){
+                Piece next=null;
+                for(Piece p:pieces)if(p!=key&&!p.removed&&isClear(p)){next=p;break;}
+                if(next==null)return false;
+                next.removed=true;pending--;
+            }
+            return isClear(key);
+        }finally{
+            for(int i=0;i<pieces.size();i++){
+                Piece p=pieces.get(i);p.removed=savedRemoved[i];p.moving=savedMoving[i];
             }
         }
-        cageRescue.reset(chosen.id);
+    }
+
+    private boolean rescueKeyMustWait(Piece p){
+        if(!rescueBoard||challengeActive()||p.id!=cageRescue.arrowId())return false;
+        for(Piece other:pieces)if(other!=p&&!other.removed)return true;
+        return false;
     }
 
     private void syncRescueKey(){
         if(!rescueBoard||cageRescue.boxOpened())return;
-        for(Piece p:pieces)if(p.id==cageRescue.arrowId()&&p.removed){
+        for(Piece p:pieces)if(p.id==cageRescue.arrowId()&&p.removed&&!rescueKeyMustWait(p)){
             cageRescue.arrowRemoved(p.id,settings.getBoolean("reduce_motion",false));
             showToast("Key box unlocked · opening the cage");
             return;
@@ -1573,24 +1613,32 @@ public class ArrowGameView extends View {
         boosterX=Math.max(0,Math.min(gridW,(screenX-boardLeft)/cell));
         boosterY=Math.max(0,Math.min(gridH,(screenY-boardTop)/(cell*boardStretchY)));
         boosterTargeted=true;boosterTargets.clear();
-        if(boosterMode==1){Piece p=findPieceAt(screenX,screenY);if(p!=null)boosterTargets.add(p);}
+        if(boosterMode==1){Piece p=findPieceAt(screenX,screenY);
+            if(p!=null&&(!rescueBoard||challengeActive()||p.id!=cageRescue.arrowId()))boosterTargets.add(p);
+        }
         else for(Piece p:pieces)if(!p.removed&&!p.moving){
             for(int i=1;i<p.pts.size();i++){
                 Point a=p.pts.get(i-1),b=p.pts.get(i);
                 boolean hit=boosterMode==2?BoosterGeometry.circleTouchesSegment(boosterX,boosterY,4,a.x,a.y,b.x,b.y)
                     :BoosterGeometry.rowTouchesSegment(boosterY,.5f,a.y,b.y);
-                if(hit){boosterTargets.add(p);break;}
+                if(hit){
+                    if(!rescueBoard||challengeActive()||p.id!=cageRescue.arrowId())boosterTargets.add(p);
+                    break;
+                }
             }
         }
         invalidate();
     }
     private void confirmBooster() {
-        boosterTargets.removeIf(p->p.removed||p.moving);
+        // Bomb, Sweep and Eraser can never eliminate the final rescue key.
+        // It must be released by a legal arrow move after the rest have escaped.
+        boosterTargets.removeIf(p->p.removed||p.moving||
+                rescueBoard&&!challengeActive()&&p.id==cageRescue.arrowId());
         if(!boosterTargeted||boosterTargets.isEmpty()){showToast("Choose an area with arrows first");return;}
         if(!inventory.consume(boosterMode)){showToast("No booster used · stock unavailable");return;}
         int count=boosterTargets.size();
         for(Piece p:boosterTargets){p.removed=true;p.moving=false;p.hintUntil=0;}
-        assistsUsed++;combo=0;flowShield=false;lastCorrectTapAt=0;
+        assistsUsed++;combo=0;lastCorrectTapAt=0; // Preserve the earned Flow Shield.
         blastX=boosterX;blastY=boosterY;blastUntil=SystemClock.elapsedRealtime()+500;
         cancelBooster();playSound(ToneGenerator.TONE_PROP_ACK,120);buzz(50);
         saveProgress();showToast(count+" arrows removed");invalidate();
@@ -2091,6 +2139,7 @@ public class ArrowGameView extends View {
     }
 
     private String specialBlockedMessage(Piece p) {
+        if(rescueKeyMustWait(p))return "Gold key arrow must escape LAST";
         if (specialUnlocked(p)) return null;
         if (p.specialType == 2) return "Locked · clear the key arrow first";
         if (p.specialType == 3) return "Frozen · clear both blocking arrows";
@@ -2371,6 +2420,7 @@ public class ArrowGameView extends View {
     }
 
     private boolean isClear(Piece target) {
+        if(rescueKeyMustWait(target))return false;
         if(!specialUnlocked(target))return false;
         if(!hasSelfClearance(target))return false;
 
