@@ -23,13 +23,16 @@ public class BoosterInventoryRuntimeTest {
         assertTrue(inventory.consume(2));assertFalse(inventory.consume(2));assertEquals(0,inventory.count(2));
         assertFalse(inventory.rewardAd(2,"receipt"));
     }
-    @Test public void allThreeNewRewardedBoostersPersistAndRequireUniqueReceipts(){
+    @Test public void scanAndTriplePersistWhileRetiredShieldCannotBeGrantedOrConsumed(){
         BoosterInventory inventory=new BoosterInventory(prefs);
-        assertEquals(7,BoosterInventory.COUNT);
+        assertEquals(7,BoosterInventory.COUNT); // Keep old numeric IDs for safe migration.
         assertEquals("Safe Scan",BoosterInventory.name(BoosterInventory.SCAN));
-        assertEquals("Shield",BoosterInventory.name(BoosterInventory.SHIELD));
+        assertEquals("Retired",BoosterInventory.name(BoosterInventory.SHIELD));
         assertEquals("Triple Escape",BoosterInventory.name(BoosterInventory.TRIPLE));
-        for(int kind=BoosterInventory.SCAN;kind<=BoosterInventory.TRIPLE;kind++){
+        assertFalse(BoosterInventory.available(BoosterInventory.SHIELD));
+        assertFalse(inventory.rewardAd(BoosterInventory.SHIELD,"unused-retired"));
+        assertFalse(inventory.consume(BoosterInventory.SHIELD));
+        for(int kind:new int[]{BoosterInventory.SCAN,BoosterInventory.TRIPLE}){
             String token="unique-"+kind;
             assertTrue(inventory.rewardAd(kind,token));
             assertFalse(inventory.rewardAd(kind,token));
@@ -38,8 +41,7 @@ public class BoosterInventoryRuntimeTest {
             assertEquals(0,inventory.count(kind));
             assertFalse(inventory.consume(kind));
         }
-        // Receipts are unique across all booster types, not just within a type.
-        assertFalse(inventory.rewardAd(BoosterInventory.SCAN,"unique-5"));
+        assertFalse(inventory.rewardAd(BoosterInventory.SCAN,"unique-6"));
         assertEquals(0,inventory.count(BoosterInventory.SCAN));
     }
     @Test public void newBoostersDoNotAlterExistingCheckpointGifts(){
