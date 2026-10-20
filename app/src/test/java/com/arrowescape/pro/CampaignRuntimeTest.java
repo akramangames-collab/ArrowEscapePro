@@ -111,13 +111,16 @@ public class CampaignRuntimeTest {
         ArrowGameView g=game();try{
             call(g,"startLevel",new Class[]{int.class},30);
             for(Object piece:(ArrayList<Object>)get(g,"pieces"))set(piece,"removed",true);
-            call(g,"updateAnimations",new Class[]{float.class,long.class},.1f,10000L);
+            // v42 rescue: wait for the key-box/door opening before the result is shown.
+            for(int frame=0;frame<6;frame++)
+                call(g,"updateAnimations",new Class[]{float.class,long.class},.5f,10000L+frame*500L);
             assertEquals(2,g.boosterCount(2));assertEquals(2,get(g,"winBoosterAmount"));
             render(g,720,1560,"extreme-gift-result");assertTrue(g.challengeShareText().contains("Level 30"));
             g.saveProgress();g.release();g=game();assertEquals(2,g.boosterCount(2));assertEquals(2,get(g,"winBoosterAmount"));
             call(g,"startLevel",new Class[]{int.class},30);
             for(Object piece:(ArrayList<Object>)get(g,"pieces"))set(piece,"removed",true);
-            call(g,"updateAnimations",new Class[]{float.class,long.class},.1f,10001L);
+            for(int frame=0;frame<6;frame++)
+                call(g,"updateAnimations",new Class[]{float.class,long.class},.5f,12000L+frame*500L);
             assertEquals(2,g.boosterCount(2));assertEquals(0,get(g,"winBoosterAmount"));
         }finally{g.release();}
     }
