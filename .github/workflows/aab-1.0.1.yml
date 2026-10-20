@@ -1,4 +1,4 @@
-name: Arrow Escape 1.4.2 Families-Safe Candidate
+name: Arrow Escape 1.4.3 Families-Safe Candidate
 
 on:
   workflow_dispatch:
@@ -56,8 +56,8 @@ jobs:
           grep -q 'version = release(36)' app/build.gradle.kts
           grep -q 'minorApiLevel = 1' app/build.gradle.kts
           grep -q 'targetSdk = 36' app/build.gradle.kts
-          grep -q 'versionCode = 36' app/build.gradle.kts
-          grep -q 'versionName = "1.4.2"' app/build.gradle.kts
+          grep -q 'versionCode = 43' app/build.gradle.kts
+          grep -q 'versionName = "1.4.3"' app/build.gradle.kts
           grep -q 'isMinifyEnabled = true' app/build.gradle.kts
           grep -q 'isShrinkResources = true' app/build.gradle.kts
           grep -q 'androidx.activity:activity:1.13.0' app/build.gradle.kts
@@ -96,7 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           RAW_AAB="app/build/outputs/bundle/release/app-release.aab"
-          OUT_AAB="dist/Arrow-Escape-1.4.2-v36-UNSIGNED.aab"
+          OUT_AAB="dist/Arrow-Escape-1.4.3-v43-UNSIGNED.aab"
           test -s "$RAW_AAB"
           unzip -t "$RAW_AAB" >/dev/null
           unzip -p "$RAW_AAB" BUNDLE-METADATA/com.android.tools/r8.json > /tmp/r8.json
@@ -123,7 +123,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-1.4.2-v36-UNSIGNED-AAB
+          name: Arrow-Escape-1.4.3-v43-UNSIGNED-AAB
           path: dist/
           if-no-files-found: error
           retention-days: 7
