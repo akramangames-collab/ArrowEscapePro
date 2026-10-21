@@ -80,6 +80,8 @@ public class ArrowGameView extends View {
     private int combo, bestCombo;
     private long lastCorrectTapAt = 0L;
     private boolean flowShield;
+    // One combo-earned shield per level attempt, including after checkpoint restore.
+    private boolean flowShieldEarned;
     private int autoMovesRemaining;
     private boolean dailyChallenge, weeklyChallenge;
     private long challengeDay = -1L, challengeWeek = -1L, milestoneIntroUntil = 0L, comboFlashUntil = 0L;
@@ -1494,7 +1496,7 @@ public class ArrowGameView extends View {
         level=Math.max(1,Math.min(MAX_LEVEL,lv));
         if(persistNormal){prefs.edit().putInt("lastLevel",level).apply();normalLevelBeforeChallenge=level;}
         cancelBooster();blastUntil=0;rescueReactionUntil=0;rescueEncouragementUntil=0;screen=Screen.PLAY;settingsOpen=false;finished=false;failed=false;hearts=3;hints=1;erasers=1;
-        mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;winBoosterAmount=0;winBoosterKind=-1;combo=0;bestCombo=0;lastCorrectTapAt=0L;flowShield=false;autoMovesRemaining=0;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
+        mistakes=0;assistsUsed=0;earnedStars=0;winReward=0;winBoosterAmount=0;winBoosterKind=-1;combo=0;bestCombo=0;lastCorrectTapAt=0L;flowShield=false;flowShieldEarned=false;autoMovesRemaining=0;comboFlashUntil=0L;runId=java.util.UUID.randomUUID().toString();lastFrame=0;
         if(dailyChallenge) generateDailyChallenge(challengeDay);
         else generateLevel(level);
         configureSpecialMechanics();
@@ -1600,7 +1602,8 @@ public class ArrowGameView extends View {
             lastCorrectTapAt=now;
             bestCombo=Math.max(bestCombo,combo);comboFlashUntil=now+1400L;
             if(combo==3)showToast("FLOW x3 · keep moving");
-            else if(combo==5){
+            else if(combo==5&&!flowShieldEarned){
+                flowShieldEarned=true;
                 flowShield=true;
                 showToast("FLOW SHIELD READY · next mistake is protected");
                 buzz(42);
@@ -2580,7 +2583,7 @@ public class ArrowGameView extends View {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
             state.put("packVersion",LEVEL_PACK_VERSION).put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
-                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield).put("autoMovesRemaining",autoMovesRemaining)
+                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield).put("flowShieldEarned",flowShieldEarned).put("autoMovesRemaining",autoMovesRemaining)
                  .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("weeklyChallenge",weeklyChallenge).put("challengeWeek",challengeWeek).put("normalLevel",normalLevelBeforeChallenge)
                  .put("winBoosterAmount",winBoosterAmount).put("winBoosterKind",winBoosterKind).put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
             prefs.edit().putString("v16_progress",state.toString()).commit();
@@ -2603,7 +2606,7 @@ public class ArrowGameView extends View {
             } else startLevel(savedLevel);
             runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
             hints=Math.max(0,Math.min(1,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);
-            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));flowShield=state.optBoolean("flowShield",false);autoMovesRemaining=Math.max(0,Math.min(3,state.optInt("autoMovesRemaining",0)));lastCorrectTapAt=0L;
+            assistsUsed=state.optInt("assists",0);earnedStars=state.optInt("earnedStars",0);combo=Math.max(0,state.optInt("combo",0));bestCombo=Math.max(combo,state.optInt("bestCombo",combo));flowShield=state.optBoolean("flowShield",false);flowShieldEarned=flowShield||state.optBoolean("flowShieldEarned",bestCombo>=5);autoMovesRemaining=Math.max(0,Math.min(3,state.optInt("autoMovesRemaining",0)));lastCorrectTapAt=0L;
             winBoosterAmount=state.optInt("winBoosterAmount",0);winBoosterKind=state.optInt("winBoosterKind",-1);finished=state.optBoolean("finished",false);failed=state.optBoolean("failed",false);winReward=state.optInt("winReward",0);
             org.json.JSONArray removed=state.getJSONArray("removed");java.util.HashSet<Integer> ids=new java.util.HashSet<>();
             for(int i=0;i<removed.length();i++)ids.add(removed.getInt(i));for(Piece p:pieces)p.removed=ids.contains(p.id);
