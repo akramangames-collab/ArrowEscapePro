@@ -23,6 +23,31 @@ public class BoosterInventoryRuntimeTest {
         assertTrue(inventory.consume(2));assertFalse(inventory.consume(2));assertEquals(0,inventory.count(2));
         assertFalse(inventory.rewardAd(2,"receipt"));
     }
+    @Test public void onlyScanAndTripleCanBeGrantedAndRetiredMistakeShieldIsBlocked(){
+        BoosterInventory stock=new BoosterInventory(prefs);
+        assertEquals(7,BoosterInventory.COUNT);
+        assertEquals("Safe Scan",BoosterInventory.name(BoosterInventory.SCAN));
+        assertEquals("Triple Escape",BoosterInventory.name(BoosterInventory.TRIPLE));
+        assertFalse(BoosterInventory.available(BoosterInventory.RETIRED_MISTAKE_SHIELD));
+        assertFalse(stock.rewardAd(BoosterInventory.RETIRED_MISTAKE_SHIELD,"shield-receipt"));
+        assertFalse(stock.consume(BoosterInventory.RETIRED_MISTAKE_SHIELD));
+        for(int kind:new int[]{BoosterInventory.SCAN,BoosterInventory.TRIPLE}){
+            String receipt="test-"+kind;
+            assertTrue(stock.rewardAd(kind,receipt));
+            assertFalse(stock.rewardAd(kind,receipt));
+            assertEquals(1,new BoosterInventory(prefs).count(kind));
+            assertTrue(stock.consume(kind));
+            assertEquals(0,stock.count(kind));
+            assertFalse(stock.consume(kind));
+        }
+        // Old v46 stock in slot 6 remains valid; slot 5 is unreachable.
+        prefs.edit().putInt("boost_stock_5",7).putInt("boost_stock_6",2).commit();
+        assertFalse(stock.consume(5));
+        assertEquals(7,stock.count(5));
+        assertEquals(2,stock.count(6));
+        assertTrue(stock.consume(6));
+        assertEquals(1,stock.count(6));
+    }
     @Test public void sparseGiftsAreOncePerLevelAndExtremeClearGivesTwoBombs(){
         BoosterInventory inventory=new BoosterInventory(prefs);int checkpoints=0;
         for(int level=1;level<=400;level++){
