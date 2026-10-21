@@ -18,7 +18,7 @@ jobs:
         run: |
           set -euo pipefail
           base64 --decode .github/v42-original-restore-payload.base64 > "$RUNNER_TEMP/v42-original-overlay.zip"
-          echo "a4ba0518439756096274d6f83332cac20310e4d047e8b9ae257bf79b459ab3a2  $RUNNER_TEMP/v42-original-overlay.zip" | sha256sum -c -
+          echo "f5682c03734042e48382334350c24d02d47b358270abe335074b80625cc72380  $RUNNER_TEMP/v42-original-overlay.zip" | sha256sum -c -
           unzip -oq "$RUNNER_TEMP/v42-original-overlay.zip" -d .
           rm -f app/src/main/java/com/arrowescape/pro/RescueCageScene.java
           rm -f .github/v42-original-restore-payload.base64
