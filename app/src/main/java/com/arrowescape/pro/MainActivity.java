@@ -274,7 +274,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         ImageView icon=new ImageView(this);icon.setImageDrawable(new BoosterIcon(kind,accent));icon.setPadding(dp(7),dp(7),dp(7),dp(7));icon.setBackground(background(0xFF173954,15,accent));card.addView(icon,new LinearLayout.LayoutParams(dp(55),dp(55)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(6),0);TextView name=text(title,16,TEXT);name.setTypeface(AppTypography.bold(this));copy.addView(name);copy.addView(text(detail,12,MUTED));card.addView(copy,new LinearLayout.LayoutParams(0,-2,1));
         TextView cost=text(price,12,accent);cost.setTypeface(AppTypography.bold(this));cost.setGravity(Gravity.CENTER);card.addView(cost,new LinearLayout.LayoutParams(dp(60),dp(46)));
-        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(5),0,dp(5));card.setLayoutParams(lp);card.setMinimumHeight(dp(80));card.setContentDescription(title+", "+detail+", "+price+". Preview before confirming.");card.setOnClickListener(v->{menu.dismiss();game.beginBooster(kind);});return card;
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(5),0,dp(5));card.setLayoutParams(lp);card.setMinimumHeight(dp(80));card.setContentDescription(title+", "+detail+", "+price+". Preview before confirming.");card.setOnClickListener(v->{menu.dismiss();if(kind==BoosterInventory.SCAN||kind==BoosterInventory.TRIPLE)game.useInstantBooster(kind);else game.beginBooster(kind);});return card;
     }
     @Override public void openBoosters() {
         if(menu!=null&&menu.isShowing())menu.dismiss();destroyBanner();clearMenuBannerSlot();game.setPaused(true);
@@ -284,8 +284,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         body.addView(boosterCard(1,"Precise eraser","Remove one selected arrow","×"+game.boosterCount(1),0xFF67D8F6));
         body.addView(boosterCard(2,"Area bomb","Limited area · 4-cell radius","×"+game.boosterCount(2),0xFFB295FF));
         body.addView(boosterCard(3,"Row sweep","Clear arrows touching one row","×"+game.boosterCount(3),0xFF47E4D4));
-        body.addView(text("One saved booster is used only after confirmation. No coins.",12,MUTED));body.addView(button("Back to puzzle",()->menu.dismiss(),false));
-        menu=new AlertDialog.Builder(this).setView(body).create();menu.setOnDismissListener(d->{game.setPaused(false);game.invalidate();});menu.show();
+        body.addView(boosterCard(BoosterInventory.SCAN,"Safe Scan","Highlight every legal arrow for 8 seconds","×"+game.boosterCount(BoosterInventory.SCAN),0xFFFFCE69));
+        body.addView(boosterCard(BoosterInventory.TRIPLE,"Triple Escape","Release up to 3 legal arrows in order","×"+game.boosterCount(BoosterInventory.TRIPLE),0xFFDDA8FF));
+        body.addView(text("Original four tools retained. Only Scan and Triple are new; Mistake Shield is not available.",12,MUTED));
+        body.addView(button("Back to puzzle",()->menu.dismiss(),false));
+        ScrollView boosterScroll=new ScrollView(this);
+        boosterScroll.setFillViewport(false);boosterScroll.addView(body);
+        menu=new AlertDialog.Builder(this).setView(boosterScroll).create();menu.setOnDismissListener(d->{game.setPaused(false);game.invalidate();});menu.show();
         if(menu.getWindow()!=null){menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));menu.getWindow().setGravity(Gravity.BOTTOM);menu.getWindow().setLayout(-1,-2);}
     }
     @Override public void shareChallenge(String text) {
@@ -296,7 +301,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     @Override public void requestRewardedErase() { requestRewardedBooster(1); }
     @Override public void requestRewardedBooster(int kind) {
-        if(kind<0||kind>3||showingAd||pendingBooster>=0)return;
+        if(!BoosterInventory.available(kind)||showingAd||pendingBooster>=0)return;
         if(!canRequestAds()){toast("Reward ad unavailable. No booster used.");return;}
         pendingBooster=kind;
         if(rewardReady()){deliverPendingBoosterAd();return;}
@@ -663,7 +668,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
         }else{
             body.addView(section("YOUR BOOSTERS"));
-            for(int i=0;i<4;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD",()->requestRewardedBooster(kind),false));}
+            for(int kind:new int[]{0,1,2,3,BoosterInventory.SCAN,BoosterInventory.TRIPLE}){final int selected=kind;body.addView(button(BoosterInventory.name(selected)+"  ×"+game.boosterCount(selected)+"  ·  WATCH AD",()->requestRewardedBooster(selected),false));}
             body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             LinearLayout reward=panel();
@@ -983,7 +988,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             }
 
             body.addView(section("YOUR BOOSTERS"));
-            for(int i=0;i<4;i++){final int kind=i;body.addView(button(BoosterInventory.name(i)+"  ×"+game.boosterCount(i)+"  ·  WATCH AD",()->requestRewardedBooster(kind),false));}
+            for(int kind:new int[]{0,1,2,3,BoosterInventory.SCAN,BoosterInventory.TRIPLE}){final int selected=kind;body.addView(button(BoosterInventory.name(selected)+"  ×"+game.boosterCount(selected)+"  ·  WATCH AD",()->requestRewardedBooster(selected),false));}
             body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             final Button[] daily=new Button[1];
