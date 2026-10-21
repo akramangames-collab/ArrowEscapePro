@@ -90,9 +90,33 @@ jobs:
           mkdir -p dist
           cp "$APK" dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.apk
           cp "$AAB" dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.aab
+      - name: Sign with existing Play upload key
+        env:
+          UPLOAD_KEYSTORE_B64: ${{ secrets.ARROW_RELEASE_KEYSTORE_B64 }}
+          UPLOAD_STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$UPLOAD_KEYSTORE_B64" && test -n "$UPLOAD_STORE_PASSWORD" && test -n "$UPLOAD_KEY_PASSWORD" || { echo "::error::Existing Play upload signing secrets are unavailable; do not upload unsigned files."; exit 1; }
+          umask 077
+          UPLOAD_KEY_PATH="$RUNNER_TEMP/arrow-original-upload.jks"
+          trap 'rm -f "$UPLOAD_KEY_PATH"' EXIT
+          printf '%s' "$UPLOAD_KEYSTORE_B64" | base64 --decode > "$UPLOAD_KEY_PATH"
+          CERT_SHA=$(keytool -list -v -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -alias arrowescape-upload | sed -n 's/.*SHA256: //p' | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          test "$CERT_SHA" = "c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f"
+          BT="/usr/local/lib/android/sdk/build-tools/36.0.0"
+          "$BT/zipalign" -p -f 4 dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          "$BT/apksigner" sign --ks "$UPLOAD_KEY_PATH" --ks-key-alias arrowescape-upload --ks-pass env:UPLOAD_STORE_PASSWORD --key-pass env:UPLOAD_KEY_PASSWORD --out dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          cp dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.aab dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.aab
+          jarsigner -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -keypass:env UPLOAD_KEY_PASSWORD dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.aab arrowescape-upload
+          "$BT/apksigner" verify --verbose --print-certs dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.apk
+          jarsigner -verify dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.aab
+          rm dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.apk dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.aab
+          cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
+          sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-v50-V42-Original-Unsigned-APK-AAB
+          name: Arrow-Escape-v50-Original-Signed-APK-AAB
           path: dist/
           retention-days: 7
           if-no-files-found: error
