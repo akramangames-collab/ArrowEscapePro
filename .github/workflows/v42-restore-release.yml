@@ -79,6 +79,13 @@ jobs:
           AAB="app/build/outputs/bundle/release/app-release.aab"
           test -n "$APK" && test -s "$APK" && test -s "$AAB"
           /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='49' versionName='1.6.10'"
+          # The *merged* APK, not only the source manifest, must omit AD_ID.
+          if /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump permissions "$APK" | grep -Fq 'com.google.android.gms.permission.AD_ID'; then
+            echo "::error::Merged release APK still requests advertising ID permission"
+            exit 1
+          fi
+          echo "RELEASE_APK_AD_ID_PERMISSION_ABSENT"
+
           unzip -t "$AAB" > /dev/null
           mkdir -p dist
           cp "$APK" dist/Arrow-Escape-1.6.10-v49-V42-UNSIGNED.apk
