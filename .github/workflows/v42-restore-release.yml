@@ -6,7 +6,7 @@ on:
       - main
   push:
     branches:
-      - restore/v42-original-families-policy-v48
+      - restore/v42-original-families-policy-v47
       - main
       - feature/v48-v42-scan-triple-no-shield
   workflow_dispatch:
