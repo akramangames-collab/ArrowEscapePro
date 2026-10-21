@@ -134,6 +134,73 @@ public class CampaignRuntimeTest {
             assertEquals(coins,((Wallet)get(g,"wallet")).balance());
         }finally{g.release();}
     }
+    @Test public void originalFourButtonsRemainAndScanTripleAppearWithoutAdPlusOne()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},11);
+            render(g,720,1560,"v42-cage-plus-two-boosters");
+            RectF[] old={(RectF)get(g,"hintHit"),(RectF)get(g,"eraseHit"),
+                (RectF)get(g,"bombHit"),(RectF)get(g,"rewardHit")};
+            RectF scan=(RectF)get(g,"scanHit"),triple=(RectF)get(g,"tripleHit");
+            assertTrue(scan.width()>=48);assertTrue(scan.height()>=32);
+            assertTrue(triple.width()>=48);assertTrue(triple.height()>=32);
+            assertTrue(scan.bottom<old[0].top);assertTrue(triple.bottom<old[0].top);
+            assertEquals(old[0].top,old[1].top,0.1f);
+            assertEquals(old[1].top,old[2].top,0.1f);
+            assertEquals(old[2].top,old[3].top,0.1f);
+            assertTrue(scan.left>=0&&triple.right<=720);
+            assertTrue((Boolean)get(g,"rescueBoard"));
+            assertFalse(g.grantBooster(BoosterInventory.RETIRED_MISTAKE_SHIELD,"retired"));
+        }finally{g.release();}
+    }
+    @SuppressWarnings("unchecked")
+    @Test public void safeScanOnlyHighlightsLegalArrowsAndNeverChangesCageOrCoinBalance()throws Exception{
+        Host host=new Host();ArrowGameView g=new ArrowGameView(context,host,new Wallet(new PreferenceWalletStorage(context)));
+        try{
+            call(g,"startLevel",new Class[]{int.class},11);
+            render(g,720,1560,"v42-cage-before-scan");
+            int coins=((Wallet)get(g,"wallet")).balance(),before=(Integer)call(g,"remaining",new Class[]{});
+            CageRescue cage=(CageRescue)get(g,"cageRescue");int keyId=cage.arrowId();
+            g.useInstantBooster(BoosterInventory.SCAN);
+            assertEquals(BoosterInventory.SCAN,host.requested);
+            assertTrue(g.grantBooster(BoosterInventory.SCAN,"scan-once"));
+            assertFalse(g.grantBooster(BoosterInventory.SCAN,"scan-once"));
+            g.useInstantBooster(BoosterInventory.SCAN);
+            assertEquals(0,g.boosterCount(BoosterInventory.SCAN));
+            long now=android.os.SystemClock.elapsedRealtime();int safe=0,highlighted=0;
+            for(Object piece:(ArrayList<Object>)get(g,"pieces")){
+                if((Boolean)call(g,"isClear",new Class[]{piece.getClass()},piece)){
+                    safe++;if((Long)get(piece,"hintUntil")>now)highlighted++;
+                }
+            }
+            assertTrue(safe>0);assertEquals(safe,highlighted);
+            assertEquals(before,call(g,"remaining",new Class[]{}));
+            assertEquals(coins,((Wallet)get(g,"wallet")).balance());
+            assertEquals(keyId,cage.arrowId());assertFalse(cage.boxOpened());
+        }finally{g.release();}
+    }
+    @SuppressWarnings("unchecked")
+    @Test public void tripleEscapeReleasesOnlyThreeSequentialLegalArrowsAndRetainsV42Cage()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},11);
+            render(g,720,1560,"v42-cage-before-triple");
+            int before=(Integer)call(g,"remaining",new Class[]{});
+            int coins=((Wallet)get(g,"wallet")).balance();
+            int cageArrow=((CageRescue)get(g,"cageRescue")).arrowId();
+            assertTrue(g.grantBooster(BoosterInventory.TRIPLE,"triple-once"));
+            assertEquals(1,g.boosterCount(BoosterInventory.TRIPLE));
+            g.useInstantBooster(BoosterInventory.TRIPLE);
+            assertEquals(0,g.boosterCount(BoosterInventory.TRIPLE));
+            assertEquals(3,get(g,"autoMovesRemaining"));
+            for(int i=0;i<25;i++)call(g,"updateAnimations",new Class[]{float.class,long.class},.5f,10000L+i*500L);
+            assertEquals(0,get(g,"autoMovesRemaining"));
+            assertEquals(before-3,call(g,"remaining",new Class[]{}));
+            assertEquals(coins,((Wallet)get(g,"wallet")).balance());
+            assertEquals(cageArrow,((CageRescue)get(g,"cageRescue")).arrowId());
+            g.saveProgress();g.release();g=game();
+            assertEquals(before-3,call(g,"remaining",new Class[]{}));
+            assertEquals(0,g.boosterCount(BoosterInventory.TRIPLE));
+        }finally{g.release();}
+    }
     @SuppressWarnings("unchecked")
     @Test public void everyCampaignLevelSolvesUnderRuntimeSpecialAndTailRules()throws Exception{
         context.getSharedPreferences("arrow_escape_pro",0).edit().putBoolean("reduce_motion",true).commit();
