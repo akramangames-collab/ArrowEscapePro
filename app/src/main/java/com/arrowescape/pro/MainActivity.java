@@ -156,22 +156,51 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         consent.requestConsentInfoUpdate(this, parameters,
             () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, error -> {
                 if (error != null) Log.w("ArrowAds","Consent form: "+error.getMessage());
-                startAdsIfAllowed();
+                applyConsentPrivacyState();
             }),
             error -> {
                 Log.w("ArrowAds","Consent update failed: "+error.getMessage());
-                startAdsIfAllowed();
+                applyConsentPrivacyState();
                 if (!adsStarted && game != null) {
                     game.postDelayed(() -> {
                         if (!adsStarted && !isDestroyed()) requestConsentAndStartAds();
                     }, 30000L);
                 }
             });
+        applyConsentPrivacyState();
+    }
+
+    /**
+     * Fail closed on consent withdrawal. Cached fullscreen ads must never be
+     * displayed after consent changes, including ads that load asynchronously.
+     */
+    private void applyConsentPrivacyState() {
+        if(isDestroyed())return;
+        if(consent==null||!consent.canRequestAds()){
+            interstitial=null;
+            rewarded=null;
+            cancelPendingBooster();
+            destroyBanner();
+            if(menuBannerSlot!=null){menuBannerSlot.removeAllViews();menuBannerSlot.setVisibility(View.GONE);}
+            suspendGameBanner();
+            hideResultBanner();
+            updateRewardStatus();
+            return;
+        }
         startAdsIfAllowed();
     }
 
     private void startAdsIfAllowed() {
-        if (adsStarted || consent == null || !consent.canRequestAds() || isDestroyed()) return;
+        if (consent == null || !consent.canRequestAds() || isDestroyed()) return;
+        // Ads SDK initialization is one-time, but advertisements may need
+        // reloading when the consent state changes during this activity.
+        if(adsStarted){
+            if(!loadingInterstitial&&interstitial==null)loadInterstitial();
+            if(!loadingReward&&rewarded==null)loadRewarded();
+            if(gameplayBannerRequested&&gameBanner==null)showGameBanner();
+            else if(menu!=null&&menu.isShowing()&&banner==null)showVisibleMenuBanner();
+            return;
+        }
         adsStarted = true;
         final android.content.Context appContext = getApplicationContext();
         new Thread(() -> {
@@ -196,7 +225,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         InterstitialAd.load(this, BuildConfig.ADMOB_INTERSTITIAL_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
             @Override public void onAdLoaded(InterstitialAd ad) {
                 loadingInterstitial = false;
-                if (!isDestroyed()) { interstitial = ad; interstitialLoadedAt = SystemClock.elapsedRealtime(); }
+                if (canRequestAds()) { interstitial = ad; interstitialLoadedAt = SystemClock.elapsedRealtime(); }
             }
             @Override public void onAdFailedToLoad(LoadAdError error) { loadingInterstitial = false; interstitial = null; }
         });
@@ -207,7 +236,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         RewardedAd.load(this, BuildConfig.ADMOB_REWARDED_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
             @Override public void onAdLoaded(RewardedAd ad) {
                 loadingReward = false;
-                if (!isDestroyed()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); deliverPendingBoosterAd(); }
+                if (canRequestAds()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); deliverPendingBoosterAd(); }
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
                 loadingReward = false; rewarded = null; updateRewardStatus(); if(pendingBooster>=0){cancelPendingBooster();toast("Ad unavailable. No booster used.");}
@@ -1045,7 +1074,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             if(consent!=null && consent.getPrivacyOptionsRequirementStatus()==ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
                 body.addView(button("Privacy choices",()-> UserMessagingPlatform.showPrivacyOptionsForm(this,error->{
                     if(error!=null)toast("Privacy choices are unavailable right now.");
-                    if(!consent.canRequestAds()){interstitial=null;rewarded=null;destroyBanner();}else startAdsIfAllowed();
+                    applyConsentPrivacyState();
                 }),false));
             }
             body.addView(text("Version "+BuildConfig.VERSION_NAME,12,MUTED));
@@ -1101,6 +1130,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             @Override public void onAdLoaded() {
                 runOnUiThread(() -> {
                 if(!bannerRequestCurrent(ad,slot))return;
+                if(!canRequestAds()){
+                    ad.destroy();
+                    slot.removeView(ad);
+                    slot.setVisibility(View.GONE);
+                    return;
+                }
                 bannerRetryCount=0;ad.setVisibility(View.VISIBLE);
                 slot.setVisibility(View.VISIBLE);
                 if(slot==gameBannerSlot){
