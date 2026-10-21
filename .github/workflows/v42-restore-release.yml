@@ -1,0 +1,85 @@
+name: Original v42 Restore - Families Safe v47
+on:
+  push:
+    branches:
+      - restore/v42-original-families-policy-v47
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: true
+      - name: Restore exactly original v42 source and assets with policy-only fixes
+        run: |
+          set -euo pipefail
+          base64 --decode .github/v42-original-restore-payload.base64 > "$RUNNER_TEMP/v42-original-overlay.zip"
+          echo "a4ba0518439756096274d6f83332cac20310e4d047e8b9ae257bf79b459ab3a2  $RUNNER_TEMP/v42-original-overlay.zip" | sha256sum -c -
+          unzip -oq "$RUNNER_TEMP/v42-original-overlay.zip" -d .
+          rm -f app/src/main/java/com/arrowescape/pro/RescueCageScene.java
+          rm -f .github/v42-original-restore-payload.base64
+          printf '%s\n' \
+            '486625d0a21dff79bd5058a6ccd223a772e11a2b350a22317b62cc9b6b0ad3c9  app/src/main/java/com/arrowescape/pro/ArrowGameView.java' \
+            'a757b5d40dacf601442092d1253143791bf9d7edcfd958bcb51bde50259811a4  app/src/main/java/com/arrowescape/pro/CageRescue.java' \
+            '3daf6cde999a0f0b81f8c534b58a7b45984ab3ffe54eed6454bb2040474b9460  app/src/main/java/com/arrowescape/pro/RescueCharacterArt.java' \
+            '9b23bd016fa6c220c7a76f6d9f7ddc61bc544cc6b4eeec08e5ed358ab2d50b50  app/src/main/assets/characters/rescue-boy-expressions.png' \
+            '4a8468ac871ef3b7cb523016ba919888c7bf6dd6225cf2a51c0cd89fd909eb01  app/src/main/assets/levels.txt' | sha256sum -c -
+          grep -Fq 'versionCode = 47' app/build.gradle.kts
+          grep -Fq 'versionName = "1.6.8"' app/build.gradle.kts
+          grep -Fq 'play-services-ads:25.5.0' app/build.gradle.kts
+          grep -Fq 'MAX_AD_CONTENT_RATING_G' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'WATCH AD +1' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'AD +1' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          echo 'V42_ORIGINAL_CAGE_CHARACTER_LEVELS_AND_HUD_SHA256_VERIFIED'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android 36.1 and tools
+        run: |
+          set -euo pipefail
+          SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36.1" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Compile test lint and build original v42 UI version 47
+        run: |
+          set -euo pipefail
+          bash scripts/test-wallet.sh
+          gradle :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease --stacktrace
+          APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -n "$APK" && test -s "$APK" && test -s "$AAB"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='47' versionName='1.6.8'"
+          unzip -t "$AAB" > /dev/null
+          mkdir -p dist
+          cp "$APK" dist/Arrow-Escape-1.6.8-v47-ORIGINAL-V42-UNSIGNED.apk
+          cp "$AAB" dist/Arrow-Escape-1.6.8-v47-ORIGINAL-V42-UNSIGNED.aab
+          cp /usr/local/lib/android/sdk/build-tools/36.0.0/lib/apksigner.jar dist/apksigner.jar
+          cp /usr/local/lib/android/sdk/build-tools/36.0.0/zipalign dist/zipalign
+          sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
+      - name: Upload build artifacts for local original-key signing
+        uses: actions/upload-artifact@v4
+        with:
+          name: Arrow-Escape-v47-ORIGINAL-V42-unsigned-APK-AAB-tools
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Commit validated v42 restoration to branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore exact original v42 cage, art and gameplay; only Families-safe ads and label fix"
+            git push origin HEAD:restore/v42-original-families-policy-v47
+          fi
