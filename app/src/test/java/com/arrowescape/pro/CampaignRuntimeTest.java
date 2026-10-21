@@ -45,6 +45,60 @@ public class CampaignRuntimeTest {
         if(name!=null){File dir=new File("build/game-previews");dir.mkdirs();try(FileOutputStream out=new FileOutputStream(new File(dir,name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,out);}}
         b.recycle();
     }
+
+    private Object shieldTestPiece(ArrowGameView g,boolean clear)throws Exception{
+        for(Object p:(ArrayList<?>)get(g,"pieces"))
+            if(!(Boolean)get(p,"removed")&&!(Boolean)get(p,"moving")
+                &&(Boolean)call(g,"isClear",new Class[]{p.getClass()},p)==clear)return p;
+        throw new AssertionError("Expected "+(clear?"clear":"blocked")+" arrow");
+    }
+    private void earnFiveArrowCombo(ArrowGameView g)throws Exception{
+        set(g,"combo",4);set(g,"lastCorrectTapAt",android.os.SystemClock.elapsedRealtime()+1L);
+        Object p=shieldTestPiece(g,true);call(g,"tapPiece",new Class[]{p.getClass()},p);
+        set(p,"moving",false);
+    }
+    private void blockedShieldTap(ArrowGameView g)throws Exception{
+        Object p=shieldTestPiece(g,false);call(g,"tapPiece",new Class[]{p.getClass()},p);
+    }
+    @Test public void flowShieldProtectsOnlyOneMistakeAndCannotRechargeInSameLevel()throws Exception{
+        ArrowGameView g=game();try{
+            assertEquals(false,get(g,"flowShield"));assertEquals(false,get(g,"flowShieldEarned"));
+            earnFiveArrowCombo(g);assertEquals(true,get(g,"flowShield"));
+            blockedShieldTap(g);assertEquals(3,get(g,"hearts"));assertEquals(false,get(g,"flowShield"));
+            earnFiveArrowCombo(g);assertEquals(false,get(g,"flowShield"));
+            blockedShieldTap(g);assertEquals(2,get(g,"hearts"));
+            earnFiveArrowCombo(g);assertEquals(false,get(g,"flowShield"));
+        }finally{g.release();}
+    }
+    @Test public void flowShieldConsumptionSurvivesSaveAndResume()throws Exception{
+        ArrowGameView g=game();try{
+            earnFiveArrowCombo(g);blockedShieldTap(g);g.saveProgress();g.release();g=game();
+            assertEquals(true,get(g,"flowShieldEarned"));assertEquals(false,get(g,"flowShield"));
+            earnFiveArrowCombo(g);assertEquals(false,get(g,"flowShield"));
+            blockedShieldTap(g);assertEquals(2,get(g,"hearts"));
+        }finally{g.release();}
+    }
+    @Test public void chargedFlowShieldSurvivesResumeButNewLevelStartsUncharged()throws Exception{
+        ArrowGameView g=game();try{
+            earnFiveArrowCombo(g);g.saveProgress();g.release();g=game();
+            assertEquals(true,get(g,"flowShield"));assertEquals(true,get(g,"flowShieldEarned"));
+            blockedShieldTap(g);assertEquals(3,get(g,"hearts"));
+            call(g,"startLevel",new Class[]{int.class},2);
+            assertEquals(false,get(g,"flowShield"));assertEquals(false,get(g,"flowShieldEarned"));
+            earnFiveArrowCombo(g);assertEquals(true,get(g,"flowShield"));
+        }finally{g.release();}
+    }
+    @Test public void legacyCheckpointWithPriorFiveComboCannotGrantAnotherShield()throws Exception{
+        ArrowGameView g=game();try{
+            earnFiveArrowCombo(g);blockedShieldTap(g);g.saveProgress();g.release();
+            android.content.SharedPreferences p=context.getSharedPreferences("arrow_puzzle_faithful",0);
+            org.json.JSONObject state=new org.json.JSONObject(p.getString("v16_progress",""));
+            state.remove("flowShieldEarned");p.edit().putString("v16_progress",state.toString()).commit();
+            g=game();assertEquals(true,get(g,"flowShieldEarned"));assertEquals(false,get(g,"flowShield"));
+            earnFiveArrowCombo(g);assertEquals(false,get(g,"flowShield"));
+        }finally{g.release();}
+    }
+
     @Test public void campaignLoads400DistinctPuzzlesAndPreservesOldCapProgress()throws Exception{
         context.getSharedPreferences("arrow_puzzle_faithful",0).edit().putInt("maxUnlocked",200).putInt("stars_200",3).putInt("lastLevel",200).commit();
         ArrowGameView g=game();try{
