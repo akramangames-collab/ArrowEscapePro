@@ -1,4 +1,4 @@
-name: Arrow Escape v49 Families Ads & Data Safety Audit CI
+name: Arrow Escape v50 Families Ads & Data Safety Audit CI
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
       - restore/v42-original-families-policy-v47
       - main
       - feature/v48-v42-scan-triple-no-shield
-      - fix/v49-ads-policy-and-data-safety
+      - fix/v50-single-flow-shield
   workflow_dispatch:
 
 permissions:
@@ -30,8 +30,8 @@ jobs:
             '3daf6cde999a0f0b81f8c534b58a7b45984ab3ffe54eed6454bb2040474b9460  app/src/main/java/com/arrowescape/pro/RescueCharacterArt.java' \
             '9b23bd016fa6c220c7a76f6d9f7ddc61bc544cc6b4eeec08e5ed358ab2d50b50  app/src/main/assets/characters/rescue-boy-expressions.png' \
             '4a8468ac871ef3b7cb523016ba919888c7bf6dd6225cf2a51c0cd89fd909eb01  app/src/main/assets/levels.txt' | sha256sum -c -
-          grep -Fq 'versionCode = 49' app/build.gradle.kts
-          grep -Fq 'versionName = "1.6.10"' app/build.gradle.kts
+          grep -Fq 'versionCode = 50' app/build.gradle.kts
+          grep -Fq 'versionName = "1.6.11"' app/build.gradle.kts
           grep -Fq 'play-services-ads:25.5.0' app/build.gradle.kts
           grep -Fq 'MAX_AD_CONTENT_RATING_G' app/src/main/java/com/arrowescape/pro/MainActivity.java
           grep -Fq 'TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE' app/src/main/java/com/arrowescape/pro/MainActivity.java
@@ -78,7 +78,7 @@ jobs:
           APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
           AAB="app/build/outputs/bundle/release/app-release.aab"
           test -n "$APK" && test -s "$APK" && test -s "$AAB"
-          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='49' versionName='1.6.10'"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='50' versionName='1.6.11'"
           # The *merged* APK, not only the source manifest, must omit AD_ID.
           if /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump permissions "$APK" | grep -Fq 'com.google.android.gms.permission.AD_ID'; then
             echo "::error::Merged release APK still requests advertising ID permission"
@@ -88,11 +88,11 @@ jobs:
 
           unzip -t "$AAB" > /dev/null
           mkdir -p dist
-          cp "$APK" dist/Arrow-Escape-1.6.10-v49-V42-UNSIGNED.apk
-          cp "$AAB" dist/Arrow-Escape-1.6.10-v49-V42-UNSIGNED.aab
+          cp "$APK" dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.apk
+          cp "$AAB" dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.aab
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-v49-V42-Original-Unsigned-APK-AAB
+          name: Arrow-Escape-v50-V42-Original-Unsigned-APK-AAB
           path: dist/
           retention-days: 7
           if-no-files-found: error
