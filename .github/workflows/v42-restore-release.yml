@@ -1,0 +1,72 @@
+name: Arrow Escape Original v42 - Policy-only v47 CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - restore/v42-original-families-policy-v47
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-original-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify original v42 cage, character, HUD and 400 level assets
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            '486625d0a21dff79bd5058a6ccd223a772e11a2b350a22317b62cc9b6b0ad3c9  app/src/main/java/com/arrowescape/pro/ArrowGameView.java' \
+            'a757b5d40dacf601442092d1253143791bf9d7edcfd958bcb51bde50259811a4  app/src/main/java/com/arrowescape/pro/CageRescue.java' \
+            '3daf6cde999a0f0b81f8c534b58a7b45984ab3ffe54eed6454bb2040474b9460  app/src/main/java/com/arrowescape/pro/RescueCharacterArt.java' \
+            '9b23bd016fa6c220c7a76f6d9f7ddc61bc544cc6b4eeec08e5ed358ab2d50b50  app/src/main/assets/characters/rescue-boy-expressions.png' \
+            '4a8468ac871ef3b7cb523016ba919888c7bf6dd6225cf2a51c0cd89fd909eb01  app/src/main/assets/levels.txt' | sha256sum -c -
+          grep -Fq 'versionCode = 47' app/build.gradle.kts
+          grep -Fq 'versionName = "1.6.8"' app/build.gradle.kts
+          grep -Fq 'play-services-ads:25.5.0' app/build.gradle.kts
+          grep -Fq 'MAX_AD_CONTENT_RATING_G' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'WATCH AD +1' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'AD +1' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          test ! -e app/src/main/java/com/arrowescape/pro/RescueCageScene.java
+          test ! -e .github/v42-original-restore-payload.base64
+          echo 'RESTORED_ORIGINAL_V42_GAMEPLAY_AND_ART_VERIFIED'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android 36.1
+        run: |
+          set -euo pipefail
+          SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36.1" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Test lint APK and AAB
+        run: |
+          set -euo pipefail
+          bash scripts/test-wallet.sh
+          gradle :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease --stacktrace
+          APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -n "$APK" && test -s "$APK" && test -s "$AAB"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='47' versionName='1.6.8'"
+          unzip -t "$AAB" > /dev/null
+          mkdir -p dist
+          cp "$APK" dist/Arrow-Escape-1.6.8-v47-V42-UNSIGNED.apk
+          cp "$AAB" dist/Arrow-Escape-1.6.8-v47-V42-UNSIGNED.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Arrow-Escape-v47-V42-Original-Unsigned-APK-AAB
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error

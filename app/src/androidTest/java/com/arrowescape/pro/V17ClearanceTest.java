@@ -131,7 +131,7 @@ public class V17ClearanceTest {
     @Test public void solveEveryShippedLevelWithIndependentOracle() throws Exception {onMain(()->{
         ArrowGameView g=fresh();StringBuilder report=new StringBuilder();int total=0;
         try {
-            for(int lv=1;lv<=200;lv++){
+            for(int lv=1;lv<=400;lv++){
                 call(g,"startLevel",new Class[]{int.class},lv);
                 int w=(Integer)get(g,"gridW"),h=(Integer)get(g,"gridH");
                 ArrayList<Object> all=new ArrayList<>(pieces(g));HashMap<Point,Object> owner=new HashMap<>();
@@ -148,7 +148,7 @@ public class V17ClearanceTest {
                     deps.put(p,blocked);assertEquals("Runtime/oracle mismatch at level "+lv,blocked.isEmpty(),clear(g,p));
                     if(blocked.isEmpty())openings++;
                 }
-                int expected=lv%5==0?1:lv==1?3:2;assertEquals("Openings at level "+lv,expected,openings);
+                int expected=CampaignRules.tier(lv)>=2?1:CampaignRules.tier(lv)==1?2:3;assertEquals("Openings at level "+lv,expected,openings);
                 call(g,"useHint",new Class[]{});int highlighted=0;
                 for(Object p:all)if((Long)get(p,"hintUntil")>0L){assertTrue(deps.get(p).isEmpty());highlighted++;}
                 assertEquals(1,highlighted);
@@ -165,7 +165,7 @@ public class V17ClearanceTest {
                 }
                 report.append("Level ").append(lv).append(": ").append(all.size()).append(" arrows solved; ").append(openings).append(" openings\n");
             }
-            report.append("PASS: all 200 levels solved through the Android runtime; ").append(total).append(" validated escapes.\n");
+            report.append("PASS: all 400 levels solved through the Android runtime; ").append(total).append(" validated escapes.\n");
             File dir=new File(context().getExternalFilesDir(null),"screenshots");dir.mkdirs();
             try(FileOutputStream out=new FileOutputStream(new File(dir,"v17-level-validation.txt"))){out.write(report.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));}
         } finally {g.release();}

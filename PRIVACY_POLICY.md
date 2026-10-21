@@ -1,12 +1,16 @@
 # Privacy Policy — Arrow Escape: Puzzle Maze
 
-**Effective date: 7 September 2026**
+**Effective date: 12 October 2026**
 
 This policy covers Arrow Escape: Puzzle Maze (Android package `com.arrowescape.pro`), maintained through the developer repository `akramangames-collab/ArrowEscapePro`.
 
 ## Game data on your device
 
-The game saves your coin balance, level progress, hearts, hints, erasers, reward claims and settings in the app's private Android storage. These records let you resume playing and prevent duplicate rewards. The game has no player account system and no developer-operated server for synchronizing these records. Android may include app data in device backups when backup is enabled in your device or Google account settings.
+The game saves your coin balance, level progress, hearts, free hints, saved booster counts, reward claims and settings in the app's private Android storage. These records let you resume playing and prevent duplicate rewards. Google Play Games sign-in is optional. There is no developer-operated server or cloud-save synchronization for these records. Android may include app data in device backups when backup is enabled in your device or Google account settings.
+
+## Google Play Games
+
+Google Play Games handles optional platform authentication. The app retrieves your Play Games display name to show connection status; it does not ask for your Google password or add another sign-in provider. Profile data is handled by Google and is not stored on a developer-operated server. Signing in does not synchronize this game’s local progress. Manage the Play Games account through Google’s account controls.
 
 ## Advertising and consent
 
@@ -30,7 +34,7 @@ Use the issue tracker for technical issues only. It is public, so do not include
 
 - Google Privacy Policy: https://policies.google.com/privacy
 - Google advertising privacy and controls: https://myadcenter.google.com/
-- Google Mobile Ads data disclosure: https://developers.google.com/admob/android/privacy/play-data-disclosure
+- Google Mobile Ads data disclosure: https://developers.google.com/admob/android/next-gen/privacy/play-data-disclosure
 
 ## Changes
 
