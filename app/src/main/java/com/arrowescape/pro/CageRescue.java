@@ -1,6 +1,6 @@
 package com.arrowescape.pro;
 
-/** Restored v42 rescue lifecycle: gold arrow -> key box -> flying key -> opening cage. */
+/** The marked arrow opens the box; its key then unlocks the cage. */
 final class CageRescue {
     static final float BOX_SECONDS=.35f, KEY_SECONDS=.65f, DOOR_SECONDS=.60f;
     static final float CELEBRATE_SECONDS=.65f;

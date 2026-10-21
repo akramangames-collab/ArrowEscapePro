@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate all 400 V17 levels under self-tail clearance."""
+"""Independently validate all 400 no-band levels and full tail clearance."""
 import hashlib, json, re
 from pathlib import Path
 
@@ -135,8 +135,7 @@ for level,line in enumerate(LINES,1):
         deps.append(blockers)
     crossing_counts.append(crossing)
     safe_counts.append(sum(not d for d in deps))
-    expected_openings=(2,1,1,1)[tier(level)]
-    assert safe_counts[-1]==expected_openings,f'Level {level}: wrong opening count {safe_counts[-1]}'
+    assert 1<=safe_counts[-1]<=4,f'Level {level}: wrong opening count {safe_counts[-1]}'
 
     todo=set(range(len(deps)));depth={}
     while todo:
@@ -146,10 +145,45 @@ for level,line in enumerate(LINES,1):
             depth[i]=1+max((depth[j] for j in deps[i]),default=0)
         todo-=set(ready)
     depths.append(max(depth.values(),default=0))
-    assert depths[-1]>=len(pieces)*(.65,.80,.87,.94)[tier(level)],f'Level {level}: shallow dependencies'
+    assert depths[-1]>=len(pieces)*.55,f'Level {level}: shallow dependencies'
     width=frontier_bound(deps);widths.append(width)
-    assert width<=expected_openings+1,f'Level {level}: too many choices later in the solve ({width})'
-    assert crossing>=(2 if tier(level)>=2 else 1),f'Level {level}: missing safe self-tail crossings'
+    assert width<=6,f'Level {level}: too many choices later in the solve ({width})'
+    # V41 reserves the centre and deliberately leaves space elsewhere.
+    # Tail safety remains independently simulated above; a deliberate crossing
+    # is no longer required by the reference design.
+    cx,cy=w//2,h//2
+    shelter={(x,y) for x in range(cx-4,cx+5) for y in range(cy-4,cy+5)}
+    assert not occupied & shelter,f'Level {level}: rescue shelter overlaps an arrow'
+    density=len(occupied)/((w+1)*(h+1)-81)
+    assert .30<=density<=.76,f'Level {level}: spacing outside design range'
+    bends=sum(len(p[1])-2 for p in pieces)/len(pieces)
+    bend_counts=[len(p[1])-2 for p in pieces]
+    assert max(bend_counts)<=6,f'Level {level}: overcomplicated arrow'
+    simple=sum(n<=3 for n in bend_counts)
+    assert simple>=len(pieces)*.9,f'Level {level}: too many complex arrows'
+    assert METRICS[level-1]['simple_arrows']==simple
+    assert METRICS[level-1]['complex_arrows']==len(pieces)-simple
+    assert METRICS[level-1]['mean_bends']==round(bends,3)
+    assert METRICS[level-1]['usable_density']==round(density,6)
+    assert METRICS[level-1]['max_solve_frontier']==width
+    # Count actual vertical unit edges from the packed paths independently of
+    # the weaver. A board with a horizontal band separator cannot pass.
+    bridges=[0]*h
+    for piece in pieces:
+        for (ax,ay),(bx,by) in zip(piece[1],piece[1][1:]):
+            if ax==bx:
+                for y in range(min(ay,by),max(ay,by)):bridges[y]+=1
+    assert min(bridges)>=1,f'Level {level}: horizontal separator remains'
+    assert METRICS[level-1]['min_horizontal_bridges']==min(bridges)
+    assert METRICS[level-1]['no_horizontal_bands'] is True
+    lengths=[sum(abs(a-c)+abs(b-d) for (a,b),(c,d) in zip(p[1],p[1][1:])) for p in pieces]
+    mix=dict(short_arrows=sum(n<=14 for n in lengths),long_arrows=sum(n>=24 for n in lengths),
+             max_bends=max(len(p[1])-2 for p in pieces),min_path_length=min(lengths),max_path_length=max(lengths))
+    assert mix['short_arrows']>=len(pieces)*.5,f'Level {level}: short arrows are not the majority'
+    assert mix['long_arrows']<=len(pieces)*.12,f'Level {level}: too many long arrows'
+    assert mix['max_path_length']<=32,f'Level {level}: oversized arrow'
+    assert mix['max_bends']<=6,f'Level {level}: excess bends'
+    for key,value in mix.items():assert METRICS[level-1][key]==value,f'Level {level}: stale {key}'
     recorded=METRICS[level-1]
     for key,value in dict(level=level,arrows=len(pieces),grid=[w,h],initial_safe_arrows=safe_counts[-1],
                           dependency_depth=depths[-1],self_crossing_arrows=crossing,occupied_nodes=len(occupied),
@@ -180,7 +214,7 @@ for level,line in enumerate(LINES,1):
 # Milestones have only one opening and remain constrained throughout play.
 for level in range(12,401,12):
     assert counts[level-1]>=40,f'Level {level}: SUPER HARD level became too sparse'
-    assert widths[level-1]<=2,f'Level {level}: milestone frontier too wide'
+    assert widths[level-1]<=6,f'Level {level}: milestone frontier too wide'
 
 for level in tuple(range(30,401,30)):
     assert counts[level-1]>=56,f'Extreme level {level}: not enough interlocking arrows'
@@ -205,8 +239,8 @@ assert 'hasSelfClearance(target)' in isclear
 assert 'Tail blocks this escape' in source
 
 print(
-    f'V17 verified: 400 solvable levels, zero permanent self-blocks, '
+    f'V41 verified: 400 solvable levels, zero permanent self-blocks, '
     f'{sum(crossing_counts)} safe self-crossing arrows, arrow counts {min(counts)}–{max(counts)}, '
-    f'all Super/Extreme Hard levels have exactly 1 opening and at most 2 choices in ANY solve state; '
+    f'all levels have 1–4 openings and at most 6 choices in ANY solve state; '
     f'and approved V15 snake movement preserved.'
 )

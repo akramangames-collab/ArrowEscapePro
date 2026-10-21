@@ -18,7 +18,6 @@ final class PreferenceWalletStorage implements Wallet.Storage {
         s.challengeDay = prefs.getLong("daily_challenge_reward_day", -1);
         s.weeklyChallengeWeek = prefs.getLong("weekly_challenge_reward_week", -1);
         s.levelToken = prefs.getString("wallet_level_token", "");
-        s.rewardedLevels = prefs.getString("wallet_rewarded_levels", ",");
         s.adToken = prefs.getString("wallet_ad_token", "");
         s.initialized = prefs.getBoolean("wallet_v16_ready", false);
         return s;
@@ -29,8 +28,7 @@ final class PreferenceWalletStorage implements Wallet.Storage {
             .putInt("wallet_theme_mask", s.themeMask | 1)
             .putLong("reward_day", s.dailyDay).putLong("daily_challenge_reward_day", s.challengeDay)
             .putLong("weekly_challenge_reward_week", s.weeklyChallengeWeek)
-            .putString("wallet_level_token", s.levelToken).putString("wallet_rewarded_levels", s.rewardedLevels)
-            .putString("wallet_ad_token", s.adToken)
+            .putString("wallet_level_token", s.levelToken).putString("wallet_ad_token", s.adToken)
             .putBoolean("wallet_v16_ready", s.initialized).commit();
     }
 }

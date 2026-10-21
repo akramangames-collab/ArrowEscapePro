@@ -15,13 +15,8 @@ public class WalletTest {
         yes(w.ownsArrowType(0));no(w.ownsArrowType(1));
         no(w.purchaseArrowType(1,200));eq(75,w.balance());
         eq(25,w.rewardLevel("run1",1,3));eq(0,w.rewardLevel("run1",1,3));
-        eq(0,w.rewardLevel("replay-run",1,2));
-        eq(0,new Wallet(s).rewardLevel("third-run",1,3));
         eq(90,w.rewardLevel("run12",12,1));eq(100,w.rewardLevel("run24",24,3));
         eq(175,w.rewardLevel("boss30",30,3));eq(465,w.balance());
-        eq(0,w.rewardLevel("another-12",12,3));
-        eq(0,w.rewardLevel("another-30",30,3));
-        eq(465,w.balance());
 
         eq(10,w.nextDailyReward(10*Wallet.DAY_MS));
         eq(10,w.claimDaily(10*Wallet.DAY_MS));eq(0,new Wallet(s).claimDaily(10*Wallet.DAY_MS));eq(1,w.currentStreak(10*Wallet.DAY_MS));
@@ -49,11 +44,7 @@ public class WalletTest {
         int beforeTheme=w.balance();
         yes(w.purchaseTheme(5,650));yes(w.ownsTheme(5));eq(beforeTheme-650,w.balance());
         int afterTheme=w.balance();yes(w.purchaseTheme(5,650));eq(afterTheme,w.balance());
-        s.fail=true;int balance=w.balance();
-        eq(0,w.rewardLevel("new-level-failed",2,3));
-        s.fail=false;eq(25,w.rewardLevel("new-level-retry",2,3));
-        eq(0,w.rewardLevel("new-level-again",2,3));
-        s.fail=true;balance=w.balance();eq(0,w.rewardAd("failed"));eq(balance,w.balance());s.fail=false;eq(75,w.rewardAd("failed"));
+        s.fail=true;int balance=w.balance();eq(0,w.rewardAd("failed"));eq(balance,w.balance());s.fail=false;eq(75,w.rewardAd("failed"));
 
         Storage legacy=new Storage();legacy.state.coins=460;legacy.state.dailyDay=20;legacy.state.streak=4;
         Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(40,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.currentStreak(21*Wallet.DAY_MS));

@@ -30,8 +30,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 46
-        versionName = "1.4.4"
+        versionCode = 47
+        versionName = "1.6.8"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resValue("string", "game_services_project_id", playGamesProjectId)
         buildConfigField("boolean", "PLAY_GAMES_CONFIGURED", (playGamesReady && !playGamesProjectId.isEmpty()).toString())
@@ -108,8 +108,6 @@ dependencies {
         }
     }
 
-    // This classic Google AdMob artifact is explicitly on Google Play\'s Families
-    // Self-Certified Ads SDK list. Next-Gen ads-mobile-sdk is not listed there.
     implementation("com.google.android.gms:play-services-ads:25.5.0")
     implementation("com.google.android.ump:user-messaging-platform:4.0.0")
     testImplementation("junit:junit:4.13.2")
