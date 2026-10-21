@@ -97,7 +97,10 @@ jobs:
           UPLOAD_KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          test -n "$UPLOAD_KEYSTORE_B64" && test -n "$UPLOAD_STORE_PASSWORD" && test -n "$UPLOAD_KEY_PASSWORD" || { echo "::error::Existing Play upload signing secrets are unavailable; do not upload unsigned files."; exit 1; }
+          if [ -z "$UPLOAD_KEYSTORE_B64" ] || [ -z "$UPLOAD_STORE_PASSWORD" ] || [ -z "$UPLOAD_KEY_PASSWORD" ]; then
+            echo "Signing secrets unavailable: preserving verified UNSIGNED artifacts for separate original-key signing. Never upload these directly to Play."
+            exit 0
+          fi
           umask 077
           UPLOAD_KEY_PATH="$RUNNER_TEMP/arrow-original-upload.jks"
           trap 'rm -f "$UPLOAD_KEY_PATH"' EXIT
@@ -116,7 +119,7 @@ jobs:
           sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-v50-Original-Signed-APK-AAB
+          name: Arrow-Escape-v50-Verified-APK-AAB
           path: dist/
           retention-days: 7
           if-no-files-found: error
