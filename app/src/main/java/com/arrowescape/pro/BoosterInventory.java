@@ -20,7 +20,7 @@ public final class BoosterInventory {
         return prefs.edit().putInt("boost_stock_"+kind,count(kind)+1).putBoolean("boost_ad_"+receipt,true).commit();
     }
     /** Sparse, reproducible gifts: a small gift every fifth clear; two bombs at extreme checkpoints. */
-    public static int giftKind(int level){if(level<1||level>400)return -1;if(level%30==0)return BOMB;if(level%5!=0)return -1;return new int[]{HINT,ERASER,BOMB,SWEEP}[(level/5-1)%4];}
+    public static int giftKind(int level){if(level<1||level>CampaignRules.LEVEL_COUNT)return -1;if(level%30==0)return BOMB;if(level%5!=0)return -1;return new int[]{HINT,ERASER,BOMB,SWEEP}[(level/5-1)%4];}
     public static int giftAmount(int level){return giftKind(level)<0?0:level%30==0?2:1;}
     public synchronized int rewardLevel(int level){
         int kind=giftKind(level),amount=giftAmount(level);if(kind<0||prefs.getBoolean("boost_level_"+level,false))return 0;

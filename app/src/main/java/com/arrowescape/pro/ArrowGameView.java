@@ -53,7 +53,8 @@ public class ArrowGameView extends View {
     }
 
     private static final int MAX_LEVEL = CampaignRules.LEVEL_COUNT;
-    private static final String LEVEL_PACK_VERSION = "v41-readable-400-1";
+    private static final int CHAPTER_COUNT=8+(MAX_LEVEL-200+39)/40;
+    private static final String LEVEL_PACK_VERSION = "v51-water-1000-1";
     private static final int NAVY = Color.rgb(248, 251, 255);
     private static final int MUTED = Color.rgb(142,177,218);
     private static final int BLUE = Color.rgb(34, 211, 238);
@@ -114,6 +115,8 @@ public class ArrowGameView extends View {
     private boolean rescueBoard;
     private RescueCharacterArt rescueArt;
     private final CageRescue cageRescue=new CageRescue();
+    private final CageWater cageWater=new CageWater();
+    private int savedWaterSecond;
     private long rescueReactionUntil, rescueEncouragementUntil;
     private boolean finished = false;
     private boolean failed = false;
@@ -255,10 +258,14 @@ public class ArrowGameView extends View {
     @Override protected void onDraw(Canvas c) {
         super.onDraw(c);
         long now = SystemClock.elapsedRealtime();
-        float dt = lastFrame == 0 ? 0f : Math.min(0.05f, (now - lastFrame) / 1000f);
+        float activeDt=lastFrame==0?0f:Math.max(0,(now-lastFrame)/1000f);
+        float dt=Math.min(.05f,activeDt);
         lastFrame = now;
         if (screen == Screen.PLAY) {
-            if (!paused && !tutorial) updateAnimations(dt, now);
+            if(!paused&&!tutorial&&!settingsOpen){
+                if(now>=milestoneIntroUntil)updateWater(activeDt);
+                updateAnimations(dt,now);
+            }
             drawPlay(c, now);
         } else {
             drawLevels(c);
@@ -277,6 +284,23 @@ public class ArrowGameView extends View {
         }
     }
 
+    private boolean isCageKey(Piece p){return rescueBoard&&!challengeActive()&&p.id==cageRescue.arrowId();}
+    private boolean goldWaiting(Piece target){
+        if(!isCageKey(target))return false;
+        for(Piece p:pieces)if(p!=target&&!p.removed)return true;
+        return false;
+    }
+    private boolean keyEscaping(){
+        for(Piece p:pieces)if(p.id==cageRescue.arrowId())return p.moving||p.removed;
+        return false;
+    }
+    private void updateWater(float dt){
+        if(!rescueBoard||challengeActive()||finished||failed||keyEscaping())return;
+        cageWater.advance(dt);
+        if(cageWater.full()){
+            failed=true;autoMovesRemaining=0;cancelBooster();showToast("Cage full · time ran out");buzz(150);saveProgress();
+        }else if((int)cageWater.elapsed()!=savedWaterSecond){savedWaterSecond=(int)cageWater.elapsed();saveProgress();}
+    }
     private void updateAnimations(float dt, long now) {
         boolean any = false;
         for (Piece p : pieces) {
@@ -308,8 +332,8 @@ public class ArrowGameView extends View {
             for(Piece p:pieces)if(p.moving&&!p.removed){moving=true;break;}
             if(!moving){
                 Piece next=null;
-                for(Piece p:pieces)if(!p.removed&&!p.moving&&isClear(p)){next=p;break;}
-                if(next==null){autoMovesRemaining=0;showToast("No safe arrow · Triple Escape stopped");saveProgress();}
+                for(Piece p:pieces)if(!p.removed&&!p.moving&&!isCageKey(p)&&isClear(p)){next=p;break;}
+                if(next==null){autoMovesRemaining=0;showToast("Tap the gold key yourself · Triple Escape stopped");saveProgress();}
                 else{
                     next.moving=true;next.moveT=0f;next.moveSteps=snakeTravelSteps(next);
                     autoMovesRemaining--;any=true;saveProgress();
@@ -337,15 +361,16 @@ public class ArrowGameView extends View {
                     prefs.edit().putInt("maxUnlocked", maxUnlocked).apply();
                 }
                 prefs.edit().putInt("lastLevel", Math.min(MAX_LEVEL, level + 1)).apply();
+                boolean firstClear=bestStars(level)==0;
                 saveBestStars(level, earnedStars);
-                winReward = wallet.rewardLevel(runId, level, earnedStars);
+                winReward=firstClear?wallet.rewardLevel(runId,level,earnedStars):0;
                 winBoosterKind=BoosterInventory.giftKind(level);
                 winBoosterAmount=inventory.rewardLevel(level);
             }
             playSound(ToneGenerator.TONE_PROP_ACK, 180);
             buzz(isBoss(level) ? 140 : 70);
             saveProgress();
-            host.onLevelCompleted();
+            toastUntil=0;host.onLevelCompleted();
             any = true;
         }
         if (any) invalidate();
@@ -370,7 +395,8 @@ public class ArrowGameView extends View {
             : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + difficulty();
         if (!challengeActive() && combo >= 2) sub += " · STREAK x" + combo;
         label(c, sub, w/2, top + dp(49), 11, difficultyColor, challengeActive() || isSuperHard(level) || combo >= 3);
-        if(combo>=2)label(c,"FLOW ×"+combo,w/2,top+dp(65),10,BLUE,true);
+        if(rescueBoard&&!challengeActive())label(c,"WATER "+Math.round(cageWater.fraction()*100)+"%  ·  "+cageWater.remainingSeconds()+"s",w/2,top+dp(65),11,cageWater.danger()==2?RED:BLUE,true);
+        else if(combo>=2)label(c,"FLOW ×"+combo,w/2,top+dp(65),10,BLUE,true);
         drawGear(c, w-dp(31), top+dp(30));
         float statY = top + dp(84);
         RectF remainingCard=new RectF(dp(16),statY-dp(21),dp(94),statY+dp(21));
@@ -660,8 +686,9 @@ public class ArrowGameView extends View {
         if(finished)return RescueCharacterArt.HAPPY;
         if(failed||now<rescueReactionUntil)return RescueCharacterArt.STARTLED;
         if(cageRescue.cageOpened())return RescueCharacterArt.HAPPY;
-        if(now<rescueEncouragementUntil||rescueProgress()>=.35f)return RescueCharacterArt.HOPEFUL;
-        return RescueCharacterArt.WORRIED;
+        if(cageWater.danger()==2)return RescueCharacterArt.STARTLED;
+        if(cageWater.danger()==1)return RescueCharacterArt.WORRIED;
+        return RescueCharacterArt.HOPEFUL;
     }
 
     /** Progress and expressions make the visual rescue goal respond to actual play. */
@@ -688,6 +715,7 @@ public class ArrowGameView extends View {
         int expression=rescueExpression(now);
         float bounce=motion?pulse*sy*.055f:0f;
         rescueArt.draw(c,expression,cx,cy+sy*2.26f+bounce,sy*5.35f,unit*5.4f);
+        drawCageWater(c,cx,cy,unit,sy,now);
         drawRescueCage(c,cx,cy,unit,sy);
         // The message, platform and gold route stay inside the reserved shelter.
         String[] messages={"Find the key!","That way's blocked!","Find the gold arrow!","I'm free!"};
@@ -695,7 +723,7 @@ public class ArrowGameView extends View {
         paint.setColor(0xFF233E55);c.drawRoundRect(bubble,unit*.3f,unit*.3f,paint);
         paint.setColor(expression==RescueCharacterArt.STARTLED?RED:NAVY);paint.setTextAlign(Paint.Align.CENTER);
         paint.setTypeface(AppTypography.bold(getContext()));paint.setTextSize(unit*.45f);
-        String message=messages[expression];
+        String message=cageRescue.cageOpened()?"I’m free!":cageWater.danger()==2?"Hurry! Water is rising!":cageWater.danger()==1?"Water is getting high!":"Find the gold key!";
         if(expression!=RescueCharacterArt.STARTLED&&cageRescue.boxOpened()&&!cageRescue.cageOpened())
             message=cageRescue.keyProgress()>0?"Here comes the key!":"Key box unlocked!";
         c.drawText(message,cx,bubble.centerY()+unit*.15f,paint);
@@ -703,9 +731,10 @@ public class ArrowGameView extends View {
         paint.setColor(cageRescue.cageOpened()?BOSS_GOLD:MUTED);paint.setTextAlign(Paint.Align.LEFT);paint.setTextSize(unit*.40f);
         c.drawText(cageRescue.cageOpened()?"Cage open!":cageRescue.boxOpened()?"Unlocking cage…":"Find gold arrow",cx-unit*3.65f,cy+sy*3.25f,paint);
         paint.setColor(MUTED);paint.setTextSize(unit*.35f);
-        c.drawText(Math.round(progress*100)+"% CLEAR",cx-unit*3.65f,cy+sy*3.85f,paint);
+        paint.setColor(cageWater.danger()==2?RED:BLUE);
+        c.drawText(Math.round(cageWater.fraction()*100)+"% WATER · "+cageWater.remainingSeconds()+"s",cx-unit*3.65f,cy+sy*3.85f,paint);
         // A low frame rate is enough for idle breathing and a soft platform pulse.
-        if(isShown()&&motion&&!tutorial&&!finished&&!failed)postInvalidateDelayed(80);
+        if(isShown()&&!paused&&!tutorial&&!finished&&!failed)postInvalidateDelayed(80);
         else if(isShown()&&!paused){
             long expressionUntil=Math.max(rescueReactionUntil,rescueEncouragementUntil);
             if(now<expressionUntil)postInvalidateDelayed(expressionUntil-now+1);
@@ -738,11 +767,27 @@ public class ArrowGameView extends View {
     }
 
     private void syncRescueKey(){
-        if(cageRescue.boxOpened())return;
+        if(cageRescue.boxOpened()||remaining()>0)return;
         for(Piece p:pieces)if(p.id==cageRescue.arrowId()&&p.removed){
             cageRescue.arrowRemoved(p.id,settings.getBoolean("reduce_motion",false));
             showToast("Key box unlocked · opening the cage");return;
         }
+    }
+
+    private void drawCageWater(Canvas c,float cx,float cy,float unit,float sy,long now){
+        float left=cx-unit*3.4f,right=cx+unit*3.4f,top=cy-sy*2.86f,bottom=cy+sy*2.55f;
+        float fill=cageRescue.cageOpened()?0:cageWater.fraction(),surface=bottom-(bottom-top)*fill;
+        c.save();c.clipRect(left,top,right,bottom);
+        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(145,20,163,235));c.drawRect(left,surface,right,bottom,paint);
+        if(fill>0){
+            Path wave=new Path();wave.moveTo(left,surface);boolean animate=!settings.getBoolean("reduce_motion",false)&&!paused;
+            for(int i=0;i<=24;i++)wave.lineTo(left+(right-left)*i/24f,surface+(float)Math.sin(i*.65+(animate?now/240.0:0))*sy*.055f);
+            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(unit*.08f);paint.setColor(0xFF88E6FF);c.drawPath(wave,paint);
+        }
+        c.restore();paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeWidth(unit*.35f);paint.setColor(0xFF8AA3B7);
+        Path pipe=new Path();pipe.moveTo(cx+unit*4f,cy-sy*3.05f);pipe.lineTo(cx+unit*2.6f,cy-sy*3.05f);pipe.lineTo(cx+unit*2.6f,top+sy*.35f);c.drawPath(pipe,paint);
+        if(!cageRescue.cageOpened()){paint.setColor(0xFF46CBFF);paint.setStrokeWidth(unit*.16f);c.drawLine(cx+unit*2.6f,top+sy*.35f,cx+unit*2.6f,Math.max(top+sy*.35f,surface),paint);}
+        paint.setStyle(Paint.Style.FILL);paint.setStrokeCap(Paint.Cap.SQUARE);
     }
 
     private void drawRescueCage(Canvas c,float cx,float cy,float unit,float sy){
@@ -1181,7 +1226,7 @@ public class ArrowGameView extends View {
         Path demo=new Path();demo.moveTo(r.centerX()-dp(72),y+dp(25));demo.lineTo(r.centerX()-dp(14),y+dp(25));demo.lineTo(r.centerX()-dp(14),y);demo.lineTo(r.centerX()+dp(62),y);c.drawPath(demo,paint);paint.setStyle(Paint.Style.FILL);drawMiniArrow(c,r.centerX()+dp(63),y,dp(15),NAVY,0);
         label(c,"Blocked taps cost one heart.",r.centerX(),r.top+dp(253),14,TEXT,false);
         label(c,"Earn tools from gifts or optional reward ads.",r.centerX(),r.top+dp(280),14,TEXT,false);
-        label(c,"Clear cleanly for 3★ and bigger rewards.",r.centerX(),r.top+dp(306),14,TEXT,false);
+        label(c,"Rescue before the cage fills with water!",r.centerX(),r.top+dp(306),14,TEXT,false);
         primaryHit.set(r.left+dp(22),r.bottom-dp(72),r.right-dp(22),r.bottom-dp(22));
         action(c,primaryHit,"Let's play",BLUE,Color.WHITE);
     }
@@ -1190,38 +1235,29 @@ public class ArrowGameView extends View {
 
     private void drawWin(Canvas c) {
         drawScenicBackdrop(c);if(!settings.getBoolean("reduce_motion",false))drawCelebration(c);
-        float w=getWidth(),h=getHeight(),top=insetTop+dp(18),bottom=h-insetBottom;
-        label(c,"LEVEL COMPLETE",w/2,top+dp(24),24,NAVY,true);
-        label(c,challengeActive()?"Challenge cleared":"Level "+level+" cleared",w/2,top+dp(52),14,MUTED,false);
-        label(c,starString(earnedStars),w/2,top+dp(97),34,BOSS_GOLD,true);
+        float w=getWidth(),top=insetTop+dp(16),bottom=getHeight()-insetBottom;
+        boolean rescue=rescueBoard&&!challengeActive();
         primaryHit.set(dp(24),bottom-dp(168),w-dp(24),bottom-dp(118));
         secondaryHit.set(dp(24),bottom-dp(106),w-dp(24),bottom-dp(56));
-        shareHit.set(dp(24),bottom-dp(52),w/2-dp(5),bottom-dp(4));
-        tertiaryHit.set(w/2+dp(5),bottom-dp(52),w-dp(24),bottom-dp(4));
-        RectF card=new RectF(dp(24),top+dp(120),w-dp(24),Math.min(top+dp(250),primaryHit.top-dp(12)));
-        if(card.height()>=dp(60)){polishedPill(c,card,0xFF142C4B,0xFF0A1A31);strokeRound(c,card,0xFF2A5678,dp(1));label(c,winReward>0?"+"+winReward+" COINS":"REWARD ALREADY CLAIMED",w/2,card.top+dp(29),18,BOSS_GOLD,true);label(c,winBoosterAmount>0?"GIFT · +"+winBoosterAmount+" "+BoosterInventory.name(winBoosterKind)+" · SAVED":"Wallet: "+wallet.balance()+" coins",w/2,card.top+dp(53),13,winBoosterAmount>0?BLUE:MUTED,winBoosterAmount>0);if(dailyChallenge&&card.height()>=dp(92))label(c,"Daily challenge · +200 coins · once per day",w/2,card.top+dp(82),12,MUTED,false);}
-        if(card.height()>=dp(115)&&!dailyChallenge){
-            for(int i=0;i<4;i++){
-                float x=card.left+card.width()*(i+.5f)/4f,y=card.top+dp(83);
-                if(i==0)drawBulb(c,x,y,dp(9));else{BoosterIcon icon=new BoosterIcon(i,i==2?DAILY_PURPLE:BLUE);icon.setBounds((int)(x-dp(11)),(int)(y-dp(11)),(int)(x+dp(11)),(int)(y+dp(11)));icon.draw(c);}
-                label(c,BoosterInventory.name(i)+" ×"+inventory.count(i),x,card.top+dp(112),10,NAVY,true);
-            }
-        }
-        if(!challengeActive()&&level<MAX_LEVEL&&primaryHit.top-card.bottom>dp(65)){
-            int nextGift=Math.min(MAX_LEVEL,((level/5)+1)*5);
-            label(c,"NEXT GIFT · LEVEL "+nextGift,w/2,card.bottom+dp(34),13,BLUE,true);
-            label(c,BoosterInventory.name(BoosterInventory.giftKind(nextGift))+" ×"+BoosterInventory.giftAmount(nextGift)+" · "+(nextGift-level)+" levels away",w/2,card.bottom+dp(57),12,MUTED,false);
-        }
-        if(rescueBoard&&!challengeActive()){
-            float portraitTop=card.bottom+dp(80),portraitBottom=primaryHit.top-dp(12);
-            if(portraitBottom-portraitTop>=dp(100)){
-                float height=Math.min(dp(320),(portraitBottom-portraitTop)*.72f);
-                rescueArt.draw(c,RescueCharacterArt.HAPPY,w/2,(portraitTop+portraitBottom+height)/2,height,w*.46f);
-            }
-        }
-        action(c,primaryHit,challengeActive()?"Back to Route":level<MAX_LEVEL?"NEXT LEVEL  ›":"ALL LEVELS",BLUE,0xFF001822);
-        action(c,secondaryHit,"▶  WATCH AD · +1 BOMB",DAILY_PURPLE,NAVY);
-        action(c,shareHit,"Challenge friend",PALE,NAVY);
+        shareHit.set(dp(24),bottom-dp(52),w/2-dp(5),bottom-dp(4));tertiaryHit.set(w/2+dp(5),bottom-dp(52),w-dp(24),bottom-dp(4));
+        float available=primaryHit.top-top-dp(12),actualWidth=w;w=Math.min(w,dp(400));
+        float scale=Math.min(available/dp(470),actualWidth/(w+dp(24))),heroTop=top+Math.max(0,(available-dp(470)*scale)/2);
+        c.save();c.translate(actualWidth/2,heroTop);c.scale(scale,scale);c.translate(-w/2,0);
+        label(c,rescue?"RESCUED!":"CHALLENGE CLEARED",w/2,dp(30),30,BOSS_GOLD,true);
+        label(c,(challengeActive()?"Challenge":"Level "+level)+" · "+(mistakes==0?"Flawless escape!":"You found the way!"),w/2,dp(57),13,MUTED,false);
+        label(c,starString(earnedStars),w/2,dp(104),38,BOSS_GOLD,true);
+        if(rescue){
+            float cy=dp(217),unit=dp(23),sy=dp(23);
+            paint.setShader(new android.graphics.RadialGradient(w/2,cy,dp(110),new int[]{0x5534D5A3,0x00102A36},null,Shader.TileMode.CLAMP));c.drawCircle(w/2,cy,dp(110),paint);paint.setShader(null);
+            drawRescueCage(c,w/2,cy,unit,sy);rescueArt.draw(c,RescueCharacterArt.HAPPY,w/2,cy+dp(62),dp(160),dp(125));label(c,"SAFE & SOUND",w/2,dp(303),12,BLUE,true);
+        }else{drawCoin(c,w/2,dp(218),dp(57));label(c,"CHALLENGE COMPLETE",w/2,dp(303),12,BLUE,true);}
+        RectF rewards=new RectF(dp(24),dp(323),w-dp(24),dp(441));polishedPill(c,rewards,0xFF173D46,0xFF10243B);strokeRound(c,rewards,0xFF36736E,dp(1));
+        label(c,winReward>0?"+"+winReward+" COINS":"REWARD ALREADY CLAIMED",w/2,dp(354),21,BOSS_GOLD,true);
+        label(c,rescue?cageWater.remainingSeconds()+"s TO SPARE  ·  "+mistakes+" MISTAKES":"Wallet: "+wallet.balance()+" coins",w/2,dp(382),12,NAVY,true);
+        label(c,winBoosterAmount>0?"GIFT +"+winBoosterAmount+" "+BoosterInventory.name(winBoosterKind):"Your rescue is saved. Ready for the next?",w/2,dp(413),12,MUTED,false);
+        c.restore();w=actualWidth;
+        action(c,primaryHit,challengeActive()?"BACK TO ROUTE":level<MAX_LEVEL?"NEXT RESCUE  ›":"ALL 1000 RESCUED!",BLUE,0xFF001822);
+        action(c,secondaryHit,"▶  WATCH AD · +1 BOMB",DAILY_PURPLE,NAVY);action(c,shareHit,"Share rescue",PALE,NAVY);
         label(c,challengeActive()?"Replay":"Route",tertiaryHit.centerX(),tertiaryHit.centerY()+dp(5),14,NAVY,true);
     }
 
@@ -1233,7 +1269,7 @@ public class ArrowGameView extends View {
     private void drawFail(Canvas c) {
         drawScenicBackdrop(c);float w=getWidth(),h=getHeight(),top=insetTop+dp(18),bottom=h-insetBottom;
         label(c,"TRY AGAIN",w/2,top+dp(28),27,NAVY,true);
-        label(c,"Your coins are safe. Find a fresh way out.",w/2,top+dp(56),13,MUTED,false);
+        label(c,cageWater.full()?"Cage filled with water. Try the rescue again.":"Your coins are safe. Find a fresh way out.",w/2,top+dp(56),13,MUTED,false);
         primaryHit.set(dp(24),bottom-dp(180),w-dp(24),bottom-dp(130));secondaryHit.set(dp(24),bottom-dp(118),w-dp(24),bottom-dp(68));tertiaryHit.set(dp(24),bottom-dp(60),w-dp(24),bottom-dp(12));
         float portraitTop=top+dp(76),portraitBottom=primaryHit.top-dp(14);
         if(rescueBoard&&!challengeActive()&&portraitBottom-portraitTop>=dp(70))rescueArt.draw(c,RescueCharacterArt.STARTLED,w/2,portraitBottom,Math.min(dp(260),portraitBottom-portraitTop),w*.45f);
@@ -1333,7 +1369,7 @@ public class ArrowGameView extends View {
         mapPrevHit.set(dp(14),top+dp(53),dp(64),top+dp(77));mapNextHit.set(w-dp(64),top+dp(53),w-dp(14),top+dp(77));
         label(c,"‹",mapPrevHit.centerX(),top+dp(72),18,levelPage>0?BLUE:MUTED,true);
         label(c,"›",mapNextHit.centerX(),top+dp(72),18,levelPage<19?BLUE:MUTED,true);
-        label(c,"400 LEVELS · "+totalStars()+" ★",w/2,top+dp(69),10,BLUE,true);
+        label(c,"1000 LEVELS · "+totalStars()+" ★",w/2,top+dp(69),10,BLUE,true);
         mapCurrentHit.set(dp(20),h-insetBottom-dp(72),w-dp(20),h-insetBottom-dp(18));
         action(c,mapCurrentHit,"PLAY LEVEL "+currentLevelNumber()+"  ›",BLUE,0xFF001822);
     }
@@ -1501,6 +1537,7 @@ public class ArrowGameView extends View {
         else generateLevel(level);
         configureSpecialMechanics();
         configureRescueCage();
+        cageWater.reset(level,pieces.size());savedWaterSecond=0;
         boolean mechanicIntro=!challengeActive()&&(level==41||level==81||level==121||level==161);
         milestoneIntroUntil=(challengeActive()||isSuperHard(level)||mechanicIntro)?SystemClock.elapsedRealtime()+(mechanicIntro?5000L:1600L):0L;
         saveProgress();invalidate();
@@ -1658,11 +1695,12 @@ public class ArrowGameView extends View {
                 if(hit){boosterTargets.add(p);break;}
             }
         }
+        boosterTargets.removeIf(p->isCageKey(p));
         invalidate();
     }
     private void confirmBooster() {
-        boosterTargets.removeIf(p->p.removed||p.moving);
-        if(!boosterTargeted||boosterTargets.isEmpty()){showToast("Choose an area with arrows first");return;}
+        boosterTargets.removeIf(p->p.removed||p.moving||(isCageKey(p)));
+        if(!boosterTargeted||boosterTargets.isEmpty()){showToast("Choose other arrows · gold key escapes last");return;}
         if(!inventory.consume(boosterMode)){showToast("No booster used · stock unavailable");return;}
         int count=boosterTargets.size();
         for(Piece p:boosterTargets){p.removed=true;p.moving=false;p.hintUntil=0;}
@@ -1695,7 +1733,7 @@ public class ArrowGameView extends View {
     public boolean canUseInstantBooster(int kind){
         if(kind!=BoosterInventory.SCAN&&kind!=BoosterInventory.TRIPLE)return false;
         if(screen!=Screen.PLAY||tutorial||paused||finished||failed||boosterMode!=0||autoMovesRemaining>0)return false;
-        for(Piece p:pieces)if(!p.removed&&!p.moving&&isClear(p))return true;
+        for(Piece p:pieces)if(!p.removed&&!p.moving&&(kind!=BoosterInventory.TRIPLE||!isCageKey(p))&&isClear(p))return true;
         return false;
     }
     public void useInstantBooster(int kind){
@@ -1715,11 +1753,11 @@ public class ArrowGameView extends View {
     public int boosterCount(int kind){return inventory.count(kind);}
     public boolean grantBooster(int kind,String receipt){boolean ok=inventory.rewardAd(kind,receipt);showToast(ok?"+1 "+BoosterInventory.name(kind)+" saved":"Reward already saved or storage unavailable");invalidate();return ok;}
 
-    public void grantRevive(){if(!failed)return;failed=false;hearts=2;assistsUsed++;saveProgress();showToast("Revived with 2 hearts");invalidate();}
+    public void grantRevive(){if(!failed)return;failed=false;cageWater.revive();lastFrame=0;hearts=2;assistsUsed++;saveProgress();showToast("Revived with 2 hearts");invalidate();}
 
     private int remaining(){int n=0;for(Piece p:pieces)if(!p.removed)n++;return n;}
     private int chapterNumber(int lv){if(lv<=20)return 1;if(lv<=40)return 2;if(lv<=60)return 3;if(lv<=80)return 4;if(lv<=100)return 5;if(lv<=140)return 6;if(lv<=180)return 7;if(lv<=200)return 8;return 9+(lv-201)/40;}
-    private String chapterName(int lv){switch(chapterNumber(lv)){case 1:return "First Escape";case 2:return "Twisted Paths";case 3:return "Tail Trouble";case 4:return "Locked Logic";case 5:return "Chain Reaction";case 6:return "Master Escape";case 7:return "Impossible Maze";case 8:return "Grandmaster";case 9:return "Neon Heights";case 10:return "Crystal Vault";case 11:return "Ember Citadel";case 12:return "Storm Summit";default:return "Final Escape";}}
+    private String chapterName(int lv){switch(chapterNumber(lv)){case 1:return "First Escape";case 2:return "Twisted Paths";case 3:return "Tail Trouble";case 4:return "Locked Logic";case 5:return "Chain Reaction";case 6:return "Master Escape";case 7:return "Impossible Maze";case 8:return "Grandmaster";case 9:return "Neon Heights";case 10:return "Crystal Vault";case 11:return "Ember Citadel";case 12:return "Storm Summit";case 13:return "Deepwater Vault";default:return "Rescue Sector "+chapterNumber(lv);}}
     private int selectedArrowColor(){int s=Math.floorMod(settings.getInt("arrow_style",0),4);if(s==1)return Color.rgb(51,190,255);if(s==2)return Color.rgb(178,105,255);if(s==3)return Color.rgb(255,204,57);return Color.rgb(80,224,255);}
     private int currentThemeIndex(){int t=Math.floorMod(settings.getInt("board_theme",0),6);return wallet.ownsTheme(t)?t:0;}
     private int boardBackground(){switch(currentThemeIndex()){case 1:return Color.rgb(5,25,47);case 2:return Color.rgb(34,13,31);case 3:return Color.rgb(5,31,29);case 4:return Color.rgb(5,7,24);case 5:return Color.rgb(38,12,10);default:return Color.rgb(5,11,30);}}
@@ -1809,17 +1847,17 @@ public class ArrowGameView extends View {
         return n;
     }
     public String[][] chapterAwardCards(){
-        String[][] cards=new String[13][4];
-        for(int ch=1;ch<=13;ch++){int first=chapterStart(ch),count=chapterEnd(ch)-first+1,done=chapterCompleted(ch);
+        String[][] cards=new String[CHAPTER_COUNT][4];
+        for(int ch=1;ch<=CHAPTER_COUNT;ch++){int first=chapterStart(ch),count=chapterEnd(ch)-first+1,done=chapterCompleted(ch);
             cards[ch-1]=new String[]{"CH "+ch+" · "+chapterName(first),"Levels "+first+"–"+chapterEnd(ch),done+" / "+count+" cleared · "+chapterStars(ch)+" stars",String.valueOf(done==count)};
         }
         return cards;
     }
-    public int trophyCount(){int n=0;for(int ch=1;ch<=13;ch++)if(chapterCompleted(ch)==chapterEnd(ch)-chapterStart(ch)+1)n++;return n;}
-    public String progressSummary(){return totalStars()+"/1200★  ·  "+trophyCount()+"/13 chapter trophies  ·  "+achievementCount()+"/11 achievements";}
+    public int trophyCount(){int n=0;for(int ch=1;ch<=CHAPTER_COUNT;ch++)if(chapterCompleted(ch)==chapterEnd(ch)-chapterStart(ch)+1)n++;return n;}
+    public String progressSummary(){return totalStars()+"/"+(MAX_LEVEL*3)+"★  ·  "+trophyCount()+"/"+CHAPTER_COUNT+" chapter trophies  ·  "+achievementCount()+"/11 achievements";}
     public String progressDetails(){
         StringBuilder b=new StringBuilder("CHAPTER TROPHIES\n");
-        for(int ch=1;ch<=13;ch++){int first=chapterStart(ch);b.append("CH ").append(ch).append(" · ").append(chapterName(first)).append(" — ").append(chapterTrophyTier(ch)).append("\n");}
+        for(int ch=1;ch<=CHAPTER_COUNT;ch++){int first=chapterStart(ch);b.append("CH ").append(ch).append(" · ").append(chapterName(first)).append(" — ").append(chapterTrophyTier(ch)).append("\n");}
         int complete=completedLevels(),perfect=perfectLevels(),stars=totalStars();
         b.append("\nACHIEVEMENTS\n");
         addAchievement(b,complete>=1,"First Escape","Clear your first maze");
@@ -2164,6 +2202,7 @@ public class ArrowGameView extends View {
     }
 
     private String specialBlockedMessage(Piece p) {
+        if(goldWaiting(p))return "Clear all other arrows · gold key goes last";
         if (specialUnlocked(p)) return null;
         if (p.specialType == 2) return "Locked · clear the key arrow first";
         if (p.specialType == 3) return "Frozen · clear both blocking arrows";
@@ -2444,6 +2483,7 @@ public class ArrowGameView extends View {
     }
 
     private boolean isClear(Piece target) {
+        if(goldWaiting(target))return false;
         if(!specialUnlocked(target))return false;
         if(!hasSelfClearance(target))return false;
 
@@ -2557,7 +2597,7 @@ public class ArrowGameView extends View {
         showLevelSelect();
     }
     public void openPlay(){
-        // The Home screen PLAY button always means the normal 1–400 campaign.
+        // The Home screen PLAY button always means the normal 1–1000 campaign.
         // Daily/weekly challenges have their own entry points and must never trap
         // the player in the internal difficulty-profile level used by a challenge.
         if(challengeActive())exitChallengeToCampaign();
@@ -2583,7 +2623,7 @@ public class ArrowGameView extends View {
             org.json.JSONObject state=new org.json.JSONObject();org.json.JSONArray removed=new org.json.JSONArray();
             for(Piece p:pieces)if(p.removed||p.moving)removed.put(p.id);
             state.put("packVersion",LEVEL_PACK_VERSION).put("level",level).put("run",runId).put("hearts",hearts).put("hints",hints).put("erasers",erasers)
-                 .put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield).put("flowShieldEarned",flowShieldEarned).put("autoMovesRemaining",autoMovesRemaining)
+                 .put("waterElapsed",cageWater.elapsed()).put("mistakes",mistakes).put("assists",assistsUsed).put("earnedStars",earnedStars).put("combo",combo).put("bestCombo",bestCombo).put("flowShield",flowShield).put("flowShieldEarned",flowShieldEarned).put("autoMovesRemaining",autoMovesRemaining)
                  .put("dailyChallenge",dailyChallenge).put("challengeDay",challengeDay).put("weeklyChallenge",weeklyChallenge).put("challengeWeek",challengeWeek).put("normalLevel",normalLevelBeforeChallenge)
                  .put("winBoosterAmount",winBoosterAmount).put("winBoosterKind",winBoosterKind).put("finished",finished).put("failed",failed).put("winReward",winReward).put("removed",removed);
             prefs.edit().putString("v16_progress",state.toString()).commit();
@@ -2611,6 +2651,8 @@ public class ArrowGameView extends View {
             org.json.JSONArray removed=state.getJSONArray("removed");java.util.HashSet<Integer> ids=new java.util.HashSet<>();
             for(int i=0;i<removed.length();i++)ids.add(removed.getInt(i));for(Piece p:pieces)p.removed=ids.contains(p.id);
             cageRescue.restore(rescueBoard&&!challengeActive()&&ids.contains(cageRescue.arrowId()));
+            cageWater.restore((float)state.optDouble("waterElapsed",0));savedWaterSecond=(int)cageWater.elapsed();
+            if(rescueBoard&&!challengeActive()&&cageWater.full()&&!finished&&!keyEscaping())failed=true;
             saveProgress();invalidate();
         }catch(org.json.JSONException ignored){startLevel(level);}
     }

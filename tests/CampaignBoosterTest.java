@@ -23,7 +23,7 @@ public class CampaignBoosterTest {
         WalletTest.Storage s=new WalletTest.Storage();Wallet w=new Wallet(s);
         check(w.rewardLevel("last",400,3)==25);
         check(w.rewardLevel("last",400,3)==0); // duplicate callback
-        check(w.rewardLevel("invalid",401,3)==0);
+        check(w.rewardLevel("invalid",1001,3)==0);
         check(w.rewardLevel("extreme",390,3)==175);
         check(w.rewardLevel("hard",6,3)==60);
         check(w.rewardLevel("super",12,3)==100);

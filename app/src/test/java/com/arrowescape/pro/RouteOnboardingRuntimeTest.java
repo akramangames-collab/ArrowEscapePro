@@ -82,7 +82,7 @@ public class RouteOnboardingRuntimeTest {
   try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
    MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});ArrowGameView game=(ArrowGameView)get(a,"game");
    set(game,"hearts",2);game.openLevels();render((View)get(a,"root"),720,1560,"route-resume");RectF play=(RectF)get(game,"mapCurrentHit");tap(game,play.centerX()/game.getWidth(),play.centerY()/game.getHeight());assertEquals(2,get(game,"hearts"));assertEquals("PLAY",get(game,"screen").toString());
-   String[][] chapters=game.chapterAwardCards();assertEquals(13,chapters.length);assertTrue(chapters[0][1].contains("1–20"));assertTrue(chapters[12][1].contains("361–400"));
+   String[][] chapters=game.chapterAwardCards();assertEquals(28,chapters.length);assertTrue(chapters[0][1].contains("1–20"));assertTrue(chapters[27][1].contains("961–1000"));
   }
  }
 

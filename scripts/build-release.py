@@ -52,7 +52,7 @@ def sdk_package(repo,path):
     print('Verified/restored SDK:',path,flush=True)
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--signing-dir',type=Path,required=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--signing-dir',type=Path)
     parser.add_argument('tasks',nargs='*');args=parser.parse_args()
     CACHE.mkdir(exist_ok=True)
     fetch('https://services.gradle.org/distributions/gradle-9.6.0-bin.zip.sha256',CACHE/'gradle.sha256')
@@ -72,19 +72,21 @@ def main():
         (CACHE/'jdk').mkdir()
         with tarfile.open(CACHE/'jdk.tar.gz') as z:z.extractall(CACHE/'jdk',filter='data')
     jdk=next(p for p in (CACHE/'jdk').iterdir() if p.is_dir() and (p/'bin/javac').exists())
-    fields={}
-    for line in (args.signing_dir/'UPLOAD-KEY-CREDENTIALS.txt').read_text().splitlines():
-        if ':' in line:
-            key,value=line.split(':',1);fields[key.strip()]=value.strip()
-    env=os.environ.copy();env.update(JAVA_HOME=str(jdk),PATH=str(jdk/'bin')+os.pathsep+env.get('PATH',''),
-        ANDROID_HOME=str(CACHE/'sdk'),ANDROID_SDK_ROOT=str(CACHE/'sdk'),GRADLE_USER_HOME=str(CACHE/'gradle-user-home'),
-        ARROW_RELEASE_STORE_FILE=str(args.signing_dir/'arrowescape-upload-key.jks'),
-        ARROW_RELEASE_STORE_PASSWORD=fields['Store password'],ARROW_RELEASE_KEY_PASSWORD=fields['Key password'],ARROW_RELEASE_KEY_ALIAS=fields['Alias'])
-    cert=subprocess.run([str(jdk/'bin/keytool'),'-list','-v','-keystore',env['ARROW_RELEASE_STORE_FILE'],
-        '-storepass:env','ARROW_RELEASE_STORE_PASSWORD','-alias',env['ARROW_RELEASE_KEY_ALIAS']],env=env,capture_output=True,text=True,check=True)
-    fingerprint=next(l.split('SHA256:',1)[1].strip().replace(':','').lower() for l in cert.stdout.splitlines() if 'SHA256:' in l)
-    assert fingerprint=='c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f'
-    print('Original signing certificate verified.',flush=True)
+    env=os.environ.copy();env.update(JAVA_HOME=str(jdk),PATH=str(jdk/"bin")+os.pathsep+env.get("PATH",""),ANDROID_HOME=str(CACHE/"sdk"),ANDROID_SDK_ROOT=str(CACHE/"sdk"),GRADLE_USER_HOME=str(CACHE/"gradle-user-home"))
+    if args.signing_dir:
+        fields={}
+        for line in (args.signing_dir/'UPLOAD-KEY-CREDENTIALS.txt').read_text().splitlines():
+            if ':' in line:
+                key,value=line.split(':',1);fields[key.strip()]=value.strip()
+        env=os.environ.copy();env.update(JAVA_HOME=str(jdk),PATH=str(jdk/'bin')+os.pathsep+env.get('PATH',''),
+            ANDROID_HOME=str(CACHE/'sdk'),ANDROID_SDK_ROOT=str(CACHE/'sdk'),GRADLE_USER_HOME=str(CACHE/'gradle-user-home'),
+            ARROW_RELEASE_STORE_FILE=str(args.signing_dir/'arrowescape-upload-key.jks'),
+            ARROW_RELEASE_STORE_PASSWORD=fields['Store password'],ARROW_RELEASE_KEY_PASSWORD=fields['Key password'],ARROW_RELEASE_KEY_ALIAS=fields['Alias'])
+        cert=subprocess.run([str(jdk/'bin/keytool'),'-list','-v','-keystore',env['ARROW_RELEASE_STORE_FILE'],
+            '-storepass:env','ARROW_RELEASE_STORE_PASSWORD','-alias',env['ARROW_RELEASE_KEY_ALIAS']],env=env,capture_output=True,text=True,check=True)
+        fingerprint=next(l.split('SHA256:',1)[1].strip().replace(':','').lower() for l in cert.stdout.splitlines() if 'SHA256:' in l)
+        assert fingerprint=='c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f'
+        print('Original signing certificate verified.',flush=True)
     options=['-Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts']
     proxy=urlparse(env.get('HTTPS_PROXY',''))
     if proxy.hostname:

@@ -141,7 +141,7 @@ public final class Wallet {
 
     public synchronized int rewardLevel(String token, int level, int stars) {
         state = storage.load().copy();
-        if (token == null || token.isEmpty() || token.equals(state.levelToken) || level < 1 || level > 400 || stars < 1 || stars > 3) return 0;
+        if (token == null || token.isEmpty() || token.equals(state.levelToken) || level < 1 || level > CampaignRules.LEVEL_COUNT || stars < 1 || stars > 3) return 0;
         int amount = 15 + (stars == 3 ? 10 : stars == 2 ? 5 : 0) + CampaignRules.bonus(level);
         State next = state.copy(); next.coins = add(next.coins, amount); next.levelToken = token;
         return commit(next) ? amount : 0;

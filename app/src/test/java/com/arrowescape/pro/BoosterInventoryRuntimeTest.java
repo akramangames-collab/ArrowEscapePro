@@ -50,12 +50,12 @@ public class BoosterInventoryRuntimeTest {
     }
     @Test public void sparseGiftsAreOncePerLevelAndExtremeClearGivesTwoBombs(){
         BoosterInventory inventory=new BoosterInventory(prefs);int checkpoints=0;
-        for(int level=1;level<=400;level++){
+        for(int level=1;level<=1000;level++){
             int gift=inventory.rewardLevel(level);assertEquals(BoosterInventory.giftAmount(level),gift);
             assertEquals(0,inventory.rewardLevel(level));if(gift>0)checkpoints++;
         }
-        assertEquals(80,checkpoints);assertEquals(2,BoosterInventory.giftAmount(30));assertEquals(2,BoosterInventory.giftKind(30));
-        assertEquals(0,BoosterInventory.giftAmount(6));assertEquals(0,BoosterInventory.giftAmount(401));
+        assertEquals(200,checkpoints);assertEquals(2,BoosterInventory.giftAmount(30));assertEquals(2,BoosterInventory.giftKind(30));
+        assertEquals(0,BoosterInventory.giftAmount(6));assertEquals(0,BoosterInventory.giftAmount(1001));
         assertEquals(inventory.count(2),new BoosterInventory(prefs).count(2));
     }
 }

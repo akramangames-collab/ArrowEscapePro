@@ -99,10 +99,61 @@ public class CampaignRuntimeTest {
         }finally{g.release();}
     }
 
-    @Test public void campaignLoads400DistinctPuzzlesAndPreservesOldCapProgress()throws Exception{
+    @Test public void goldKeyStaysLastAfterAnAssistRemovesItsDirectBlockers()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},6);Object key=null;
+            for(Object p:(ArrayList<?>)get(g,"pieces"))if((Integer)get(p,"id")==((CageRescue)get(g,"cageRescue")).arrowId())key=p;
+            assertNotNull(key);
+            for(Object p:(ArrayList<?>)call(g,"physicalBlockers",new Class[]{key.getClass()},key))set(p,"removed",true);
+            assertTrue((Integer)call(g,"remaining",new Class[]{})>1);
+            assertFalse((Boolean)call(g,"isClear",new Class[]{key.getClass()},key));
+            for(Object p:(ArrayList<?>)get(g,"pieces"))if(p!=key)set(p,"removed",true);
+            assertTrue((Boolean)call(g,"isClear",new Class[]{key.getClass()},key));
+        }finally{g.release();}
+    }
+    @Test public void everyRemovalBoosterProtectsGoldEvenWhenItIsLast()throws Exception{
+        ArrowGameView g=game();try{
+            ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");Object key=null;
+            int id=((CageRescue)get(g,"cageRescue")).arrowId();
+            for(Object p:all)if((Integer)get(p,"id")==id)key=p;else set(p,"removed",true);
+            assertNotNull(key);
+            for(int mode:new int[]{1,2,3}){
+                g.grantBooster(mode,"gold-immune-"+mode);g.beginBooster(mode);
+                ((ArrayList<Object>)get(g,"boosterTargets")).add(key);set(g,"boosterTargeted",true);
+                call(g,"confirmBooster",new Class[]{});assertEquals(false,get(key,"removed"));assertEquals(1,g.boosterCount(mode));g.cancelBooster();
+            }
+            g.grantBooster(BoosterInventory.TRIPLE,"gold-triple");
+            assertFalse(g.canUseInstantBooster(BoosterInventory.TRIPLE));g.useInstantBooster(BoosterInventory.TRIPLE);assertEquals(1,g.boosterCount(BoosterInventory.TRIPLE));
+            set(g,"autoMovesRemaining",3);call(g,"updateAnimations",new Class[]{float.class,long.class},1f,0L);
+            assertEquals(false,get(key,"moving"));assertEquals(false,get(key,"removed"));assertFalse(((CageRescue)get(g,"cageRescue")).boxOpened());
+            render(g,720,1560,"gold-key-manual-final");
+            call(g,"tapPiece",new Class[]{key.getClass()},key);assertEquals(true,get(key,"moving"));set(key,"moveT",1f);
+            call(g,"updateAnimations",new Class[]{float.class,long.class},3f,0L);assertEquals(true,get(g,"finished"));
+        }finally{g.release();}
+    }
+    @Test public void waterPersistsFailsRevivesAndRendersRescueResults()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},6);set(g,"milestoneIntroUntil",0L);CageWater water=(CageWater)get(g,"cageWater");
+            render(g,720,1560,"water-calm");water.restore(10000);water.revive();render(g,720,1560,"water-worried");float half=water.elapsed();
+            g.saveProgress();g.release();g=game();water=(CageWater)get(g,"cageWater");assertEquals(half,water.elapsed(),.001f);
+            call(g,"updateWater",new Class[]{float.class},half*.5f);assertEquals(RescueCharacterArt.STARTLED,call(g,"rescueExpression",new Class[]{long.class},0L));render(g,720,1560,"water-panic");
+            call(g,"updateWater",new Class[]{float.class},10000f);assertEquals(true,get(g,"failed"));render(g,720,1560,"water-timeout");g.grantRevive();assertEquals(false,get(g,"failed"));assertEquals(.5f,water.fraction(),.001f);
+            call(g,"startLevel",new Class[]{int.class},1000);for(Object p:(ArrayList<?>)get(g,"pieces"))set(p,"removed",true);call(g,"updateAnimations",new Class[]{float.class,long.class},3f,0L);assertEquals(true,get(g,"finished"));
+            render(g,720,1560,"rescue-result-phone");render(g,720,1150,"rescue-result-short");render(g,1280,720,"rescue-result-landscape");
+        }finally{g.release();}
+    }
+    @Test public void waterUsesRealTimeAndPausesWithMenusAndTutorial()throws Exception{
+        ArrowGameView g=game();try{
+            call(g,"startLevel",new Class[]{int.class},6);set(g,"milestoneIntroUntil",0L);CageWater water=(CageWater)get(g,"cageWater");render(g,720,1560,null);
+            set(g,"lastFrame",android.os.SystemClock.elapsedRealtime()-5000L);render(g,720,1560,null);assertTrue(water.elapsed()>=5f);float saved=water.elapsed();
+            g.setPaused(true);set(g,"lastFrame",android.os.SystemClock.elapsedRealtime()-10000L);render(g,720,1560,null);assertEquals(saved,water.elapsed(),.001f);
+            g.setPaused(false);set(g,"tutorial",true);set(g,"lastFrame",android.os.SystemClock.elapsedRealtime()-10000L);render(g,720,1560,null);assertEquals(saved,water.elapsed(),.001f);
+        }finally{g.release();}
+    }
+    @Test public void campaignLoads1000DistinctPuzzlesAndPreservesOldCapProgress()throws Exception{
         context.getSharedPreferences("arrow_puzzle_faithful",0).edit().putInt("maxUnlocked",200).putInt("stars_200",3).putInt("lastLevel",200).commit();
         ArrowGameView g=game();try{
-            assertEquals(400,((String[])get(g,"packedLevels")).length);assertEquals(201,get(g,"maxUnlocked"));
+            assertEquals(1000,((String[])get(g,"packedLevels")).length);assertEquals(201,get(g,"maxUnlocked"));
             call(g,"startLevel",new Class[]{int.class},400);assertEquals(400,g.currentLevelNumber());
             render(g,1080,1920,"level-400");
         }finally{g.release();}
@@ -132,6 +183,7 @@ public class CampaignRuntimeTest {
             g.grantBooster(2,"test-bomb");g.beginBooster(2);g.cancelBooster();assertEquals(coins,w.balance());
             g.beginBooster(2);call(g,"confirmBooster",new Class[]{});assertEquals(coins,w.balance());
             ArrayList<Object> pieces=(ArrayList<Object>)get(g,"pieces");Object first=pieces.get(0);
+            for(Object q:pieces)if((Integer)get(q,"id")!=((CageRescue)get(g,"cageRescue")).arrowId()){first=q;break;}
             ArrayList<Point> pts=(ArrayList<Point>)get(first,"pts");Point p=pts.get(pts.size()-1);
             float cell=(Float)get(g,"cell"),x=(Float)get(g,"boardLeft")+p.x*cell,y=(Float)get(g,"boardTop")+p.y*cell*(Float)get(g,"boardStretchY");
             call(g,"selectBoosterTarget",new Class[]{float.class,float.class},x,y);
@@ -259,15 +311,22 @@ public class CampaignRuntimeTest {
     @Test public void everyCampaignLevelSolvesUnderRuntimeSpecialAndTailRules()throws Exception{
         context.getSharedPreferences("arrow_escape_pro",0).edit().putBoolean("reduce_motion",true).commit();
         ArrowGameView g=game();try{
-            for(int lv=1;lv<=400;lv++){
+            for(int lv=1;lv<=1000;lv++){
                 call(g,"startLevel",new Class[]{int.class},lv);
                 ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");
+                java.util.HashMap<Object,ArrayList<Object>> blockers=new java.util.HashMap<>();
+                for(Object p:all)blockers.put(p,(ArrayList<Object>)call(g,"physicalBlockers",new Class[]{p.getClass()},p));
                 int pending=all.size();
                 while(pending>0){
-                    Object safe=null;
-                    for(Object piece:all)if(!(Boolean)get(piece,"removed")&&
-                        (Boolean)call(g,"isClear",new Class[]{piece.getClass()},piece)){safe=piece;break;}
+                    Object safe=null;int choices=0;
+                    for(Object p:all)if(!(Boolean)get(p,"removed")){
+                        boolean blocked=false;for(Object b:blockers.get(p))if(!(Boolean)get(b,"removed")){blocked=true;break;}
+                        if(!blocked){safe=p;choices++;}
+                    }
+                    assertEquals("Unique sequence at level "+lv,1,choices);
+                    if(pending>1)assertNotEquals(((CageRescue)get(g,"cageRescue")).arrowId(),get(safe,"id"));
                     assertNotNull("Runtime deadlock at level "+lv,safe);
+                    assertTrue((Boolean)call(g,"isClear",new Class[]{safe.getClass()},safe));
                     set(safe,"removed",true);pending--;
                 }
                 call(g,"updateAnimations",new Class[]{float.class,long.class},0f,0L);
@@ -314,15 +373,15 @@ public class CampaignRuntimeTest {
         }finally{restored.release();}
     }
     @SuppressWarnings("unchecked")
-    @Test public void erasingTheMarkedArrowCannotLeaveTheCagePermanentlyLocked()throws Exception{
+    @Test public void eraserCannotRemoveTheKeyBeforeOtherArrows()throws Exception{
         ArrowGameView g=game();try{
             CageRescue cage=(CageRescue)get(g,"cageRescue");Object target=null;
             for(Object p:(ArrayList<Object>)get(g,"pieces"))if((Integer)get(p,"id")==cage.arrowId())target=p;
             assertNotNull(target);g.grantBooster(1,"cage-eraser");g.beginBooster(1);
             ((ArrayList<Object>)get(g,"boosterTargets")).add(target);set(g,"boosterTargeted",true);
-            call(g,"confirmBooster",new Class[]{});assertEquals(true,get(target,"removed"));
-            call(g,"updateAnimations",new Class[]{float.class,long.class},0f,0L);assertTrue(cage.boxOpened());
-            call(g,"updateAnimations",new Class[]{float.class,long.class},3f,0L);assertTrue(cage.cageOpened());
+            call(g,"confirmBooster",new Class[]{});assertEquals(false,get(target,"removed"));
+            assertEquals(1,g.boosterCount(1));
+            call(g,"updateAnimations",new Class[]{float.class,long.class},0f,0L);assertFalse(cage.boxOpened());
             assertEquals(false,get(g,"finished"));
         }finally{g.release();}
     }
@@ -357,7 +416,7 @@ public class CampaignRuntimeTest {
     @SuppressWarnings("unchecked")
     @Test public void rescueCharacterReactsToRealTapsProgressResultsAndRestart()throws Exception{
         ArrowGameView g=game();try{
-            assertEquals(RescueCharacterArt.WORRIED,call(g,"rescueExpression",new Class[]{long.class},0L));
+            assertEquals(RescueCharacterArt.HOPEFUL,call(g,"rescueExpression",new Class[]{long.class},0L));
             ArrayList<Object> pieces=(ArrayList<Object>)get(g,"pieces");Object blocked=null,safe=null;
             for(Object p:pieces){
                 if((Boolean)call(g,"isClear",new Class[]{p.getClass()},p))safe=p;else blocked=p;
@@ -368,12 +427,12 @@ public class CampaignRuntimeTest {
             assertEquals(2,get(g,"hearts"));
             assertEquals(RescueCharacterArt.STARTLED,call(g,"rescueExpression",new Class[]{long.class},hurtUntil-1));
             render(g,720,1560,"v41-character-blocked");
-            assertEquals(RescueCharacterArt.WORRIED,call(g,"rescueExpression",new Class[]{long.class},hurtUntil+1));
+            assertEquals(RescueCharacterArt.HOPEFUL,call(g,"rescueExpression",new Class[]{long.class},hurtUntil+1));
             call(g,"tapPiece",new Class[]{safe.getClass()},safe);
             long encouragedUntil=(Long)get(g,"rescueEncouragementUntil");
             assertEquals(RescueCharacterArt.HOPEFUL,call(g,"rescueExpression",new Class[]{long.class},encouragedUntil-1));
             render(g,720,1560,"v41-character-hopeful");
-            for(int i=0;i<pieces.size()/2;i++)set(pieces.get(i),"removed",true);
+            for(Object p:pieces)if(!(Boolean)get(p,"removed")&&!(Boolean)get(p,"moving")){set(p,"removed",true);break;}
             assertTrue((Float)call(g,"rescueProgress",new Class[]{})>=.4f);
             assertEquals(RescueCharacterArt.HOPEFUL,call(g,"rescueExpression",new Class[]{long.class},encouragedUntil+1));
             render(g,720,1560,"v41-character-half-clear");
@@ -385,7 +444,7 @@ public class CampaignRuntimeTest {
             render(g,720,1560,"v41-character-retry");
             call(g,"startLevel",new Class[]{int.class},2);
             assertEquals(0L,get(g,"rescueReactionUntil"));assertEquals(0L,get(g,"rescueEncouragementUntil"));
-            assertEquals(RescueCharacterArt.WORRIED,call(g,"rescueExpression",new Class[]{long.class},0L));
+            assertEquals(RescueCharacterArt.HOPEFUL,call(g,"rescueExpression",new Class[]{long.class},0L));
         }finally{g.release();}
     }
     @SuppressWarnings("unchecked")
@@ -397,7 +456,7 @@ public class CampaignRuntimeTest {
                 ArrayList<Point> pts=(ArrayList<Point>)get(piece,"pts");int length=0;
                 for(int i=1;i<pts.size();i++)length+=Math.abs(pts.get(i).x-pts.get(i-1).x)+Math.abs(pts.get(i).y-pts.get(i-1).y);
                 assertTrue("Oversized path",length<=32);
-                if(length<=14)shortPaths++;if(length>=24)longPaths++;
+                if(length<=18)shortPaths++;if(length>=24)longPaths++;
                 maxBends=Math.max(maxBends,pts.size()-2);if(pts.size()-2<=3)simplePaths++;
                 if((Boolean)call(g,"isClear",new Class[]{piece.getClass()},piece))openings++;
             }
@@ -409,18 +468,12 @@ public class CampaignRuntimeTest {
         }finally{g.release();}
     }
     @SuppressWarnings("unchecked")
-    @Test public void firstBoardHasPathsAcrossEveryHorizontalBoundary()throws Exception{
+    @Test public void tutorialHasThreeSimpleArrowsAroundAllFourSides()throws Exception{
         ArrowGameView g=game();try{
-            int h=(Integer)get(g,"gridH");int[] bridges=new int[h];
-            for(Object piece:(ArrayList<Object>)get(g,"pieces")){
-                ArrayList<Point> pts=(ArrayList<Point>)get(piece,"pts");
-                for(int i=1;i<pts.size();i++){
-                    Point a=pts.get(i-1),b=pts.get(i);
-                    if(a.x==b.x)for(int y=Math.min(a.y,b.y);y<Math.max(a.y,b.y);y++)bridges[y]++;
-                }
-            }
-            for(int y=0;y<h;y++)assertTrue("Horizontal separator at row "+y,bridges[y]>=1);
-            render(g,720,1560,"v41-no-horizontal-bands");
+            int cx=(Integer)get(g,"gridW")/2,cy=(Integer)get(g,"gridH")/2;boolean left=false,right=false,top=false,bottom=false;
+            ArrayList<Object> all=(ArrayList<Object>)get(g,"pieces");assertEquals(3,all.size());
+            for(Object p:all)for(Point q:(ArrayList<Point>)get(p,"pts")){left|=q.x<cx-4;right|=q.x>cx+4;top|=q.y<cy-4;bottom|=q.y>cy+4;}
+            assertTrue(left&&right&&top&&bottom);render(g,720,1560,"water-easy-tutorial");
         }finally{g.release();}
     }
     @Test public void insufficientBalanceKeepsBombTargetsAndBoardIntact()throws Exception{

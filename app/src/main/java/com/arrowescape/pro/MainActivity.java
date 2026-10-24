@@ -617,7 +617,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(onboardingStep==0){
             body.addView(text("Clear the arrows. Find your escape.",20,TEXT));
             body.addView(new ArrowPreviewView(this,4,0),new LinearLayout.LayoutParams(-1,dp(190)));
-            body.addView(text("400 levels · Hard, Super Hard and Extreme checkpoints",15,CYAN));
+            body.addView(text("1000 levels · Rising water · One escape sequence",15,CYAN));
             body.addView(text("Tap an arrow only when its full escape path is clear. Its body follows through the bends; other arrows and its own tail can block it.",15,MUTED));
             body.addView(button("NEXT  ›",()->showOnboarding(1),true));
         }else if(onboardingStep==1){
@@ -784,13 +784,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         settings.edit().putLong("daily_challenge_prompt_day",day).apply();
         dailyReminderScheduled=false;
         if(game!=null)game.removeCallbacks(dailyReminderTask);
-        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","Separate from your 400-level route");
+        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","Separate from your 1000-level route");
         LinearLayout preview=panel();preview.addView(new ArrowPreviewView(this,0,0),new LinearLayout.LayoutParams(-1,dp(120)));body.addView(preview);
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
         TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(AppTypography.bold(this));hero.addView(crown);
         TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(AppTypography.bold(this));hero.addView(hard);
-        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 400 campaign levels",13,MUTED));
+        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 1000 campaign levels",13,MUTED));
         body.addView(hero);
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
         amount.setGravity(Gravity.CENTER);amount.setTypeface(AppTypography.bold(this));reward.addView(amount);
