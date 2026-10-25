@@ -1,0 +1,32 @@
+name: Generate and commit v52 dense level assets
+
+on:
+  push:
+    branches: [feature/dense-flood-chapters-v52]
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate and verify dense layouts
+        run: |
+          python3 scripts/generate-water-levels.py
+          python3 scripts/verify-water-levels.py
+      - name: Commit generated level assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/levels.txt tests/water-level-metrics.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Generate 1000 dense chapter rescues for v52"
+            git push
+          fi

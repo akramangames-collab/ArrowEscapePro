@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Deterministic 1000-level campaign with one physically legal solve sequence."""
+"""Deterministic 1000-level dense campaign with one physically legal solve sequence."""
 import hashlib,json,random,argparse
 from pathlib import Path
 from weave_levels import expand,piece_of,ray
+from dense_campaign import densify,water_seconds
 ROOT=Path(__file__).resolve().parents[1]
 def unpack(line):
     header,payload=line.split('|');w,h=map(int,header.split(','));walks=[]
@@ -44,11 +45,15 @@ def main():
                     if forced(w,h,trial):walks=trial
         flipx=rng.choice([False,True]);flipy=rng.choice([False,True])
         walks=[[(2*(w//2)-x if flipx else x,2*(h//2)-y if flipy else y) for x,y in p] for p in walks]
-        assert forced(w,h,walks);solved=walks[-1][-1];rng.shuffle(walks);output=pack(w,h,walks)
+        assert forced(w,h,walks);solved=walks[-1][-1];rng.shuffle(walks)
+        density=densify(w,h,walks,level)
+        output=pack(w,h,walks)
         assert output not in seen;seen.add(output);outputs.append(output)
-        metrics.append(dict(level=level,arrows=len(walks),unique_solution=True,gold_key_head=solved,water_seconds=120 if level<=5 else max(55,round(len(walks)*(3.2 if level<=100 else 2.8 if level<=400 else 2.4)+12)),sha256=hashlib.sha256(output.encode()).hexdigest()))
+        area=(w+1)*(h+1)-81
+        used=sum(len(p) for p in walks)
+        metrics.append(dict(level=level,chapter=(level-1)//40+1,arrows=len(walks),occupied_cells=used,playable_cells=area,density=round(used/area,4),unique_solution=True,gold_key_head=solved,water_seconds=water_seconds(level,len(walks)),sha256=hashlib.sha256(output.encode()).hexdigest()))
     for path,data in {ROOT/'app/src/main/assets/levels.txt':'\n'.join(outputs)+'\n',ROOT/'tests/water-level-metrics.json':json.dumps(metrics,indent=2)+'\n'}.items():
         if args.check:assert path.read_text()==data
         else:path.write_text(data)
-    print('1000 deterministic single-sequence layouts generated/verified.')
+    print('1000 deterministic dense chapter layouts generated/verified.')
 if __name__=='__main__':main()

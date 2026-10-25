@@ -1,32 +1,32 @@
-# Arrow Escape water rescue — v51 / 1.7.0
+# Arrow Escape dense water rescue — v52 / 1.8.0
 
-Levels 1–5 use 3–7 simple arrows and 120 seconds. Levels 6–1000 use increasingly
-long physical blocker chains, with exactly one unassisted removal order. Every
-board surrounds a reserved central cage on four sides; the gold key is last.
+Levels 1–5 retain the simple tutorial and 120-second water timer. Levels
+6–1000 pack arrows into previously empty grid cells with long winding tails.
+The centre 9×9 cage is kept clear, surrounded on four sides by arrows. The
+gold-key arrow remains the last legal manual escape and remains immune to
+Eraser, Bomb, Sweep and Triple Escape.
 
-Water rises during active play. Emotions change at 35% and 70%; a full cage
-fails the level. Menus, ads, app backgrounding, tutorial and intro overlays pause
-the timer. Reduced-motion mode does not slow it. Saved water resumes with the
-board, restart resets it, and revive drains it to at most 50%. The clock stops
-when the player accepts the final key escape, before its celebration animation.
+The deterministic generator preserves arrowheads, all original dependency rays
+and the forced single legal move at each step, checking self-tail clearance.
+No generated layout is allowed to deadlock. Physical arrows cover at least half
+of the available cells after level 5, and often substantially more (previous
+v51 layouts covered approximately a quarter).
 
-The gold arrow is immune to Eraser, Bomb, Sweep and Triple Escape, even when it
-is the last remaining arrow. Only a manual legal tap removes it. Hint and Safe
-Scan may highlight it. A blocked booster does not consume stock.
+There are 25 themed chapters of 40 levels. Chapter entry cards, named routes
+and chapter trophies accompany the full 1000-level selection map. The map
+next arrow now stays enabled through all 50 pages. Existing key, freeze,
+switch and linked-pair features activate at their established milestones.
 
-The result screen has an open cage, happy character, stars, coins, remaining
-time, mistakes, earned gifts, sharing and Next Rescue. Replay clears do not
-award additional level coins. Flow Shield remains once per level.
+Water fills faster from level 6: 2.1 s per arrow through level 40; 1.9
+through 200; 1.7 through 600; 1.55 thereafter, plus a small fixed buffer.
+Every 40th-level chapter finale gets another 10% reduction. The actual water
+percentage is driven by the timer, not by wall-clock time in menus or ads.
+Revive, pause, offline play, coin rewards and boosters keep their prior rules.
 
-The generator extracts dependency paths from the prior 400 layouts, then trims
-tails and reflects variants while preserving the physical chain. These are
-1000 distinct geometries in the existing visual family. Difficulty and timer
-budgets still need human phone playtesting.
+Save compatibility: the in-progress v51 board intentionally restarts on v52,
+because tail geometry changed. Wallet, finished-level stars and unlocks
+are preserved. No Play Store publication occurs during development.
 
-Checks:
-- `python scripts/generate-water-levels.py --check`
-- `python scripts/verify-water-levels.py`
-- `gradle testDebugUnitTest assembleDebug lintRelease`
-- `bash scripts/test-wallet.sh`
-
-This change does not publish to Google Play.
+Verification: `python3 scripts/generate-water-levels.py --check`;
+`python3 scripts/verify-water-levels.py`; `bash scripts/test-wallet.sh`;
+Android unit tests, lint, APK and AAB builds.
