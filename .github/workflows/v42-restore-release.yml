@@ -1,4 +1,4 @@
-name: Arrow Escape v51 Water Rescue Release Verification
+name: Arrow Escape v52 Water Rescue Release Verification
 
 on:
   pull_request:
@@ -19,15 +19,15 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
-      - name: Verify v42 cage/character preservation and v51 water gameplay
+      - name: Verify v42 cage/character preservation and v52 water gameplay
         run: |
           set -euo pipefail
           printf '%s\n' \
             'a757b5d40dacf601442092d1253143791bf9d7edcfd958bcb51bde50259811a4  app/src/main/java/com/arrowescape/pro/CageRescue.java' \
             '3daf6cde999a0f0b81f8c534b58a7b45984ab3ffe54eed6454bb2040474b9460  app/src/main/java/com/arrowescape/pro/RescueCharacterArt.java' \
             '9b23bd016fa6c220c7a76f6d9f7ddc61bc544cc6b4eeec08e5ed358ab2d50b50  app/src/main/assets/characters/rescue-boy-expressions.png' | sha256sum -c -
-          grep -Fq 'versionCode = 51' app/build.gradle.kts
-          grep -Fq 'versionName = "1.7.0"' app/build.gradle.kts
+          grep -Fq 'versionCode = 52' app/build.gradle.kts
+          grep -Fq 'versionName = "1.8.0"' app/build.gradle.kts
           grep -Fq 'play-services-ads:25.5.0' app/build.gradle.kts
           grep -Fq 'MAX_AD_CONTENT_RATING_G' app/src/main/java/com/arrowescape/pro/MainActivity.java
           grep -Fq 'TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE' app/src/main/java/com/arrowescape/pro/MainActivity.java
@@ -83,7 +83,7 @@ jobs:
           APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
           AAB="app/build/outputs/bundle/release/app-release.aab"
           test -n "$APK" && test -s "$APK" && test -s "$AAB"
-          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='51' versionName='1.7.0'"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='52' versionName='1.8.0'"
           # The *merged* APK, not only the source manifest, must omit AD_ID.
           if /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump permissions "$APK" | grep -Fq 'com.google.android.gms.permission.AD_ID'; then
             echo "::error::Merged release APK still requests advertising ID permission"
@@ -95,10 +95,10 @@ jobs:
           mkdir -p dist
           DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$DEBUG_APK"
-          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$DEBUG_APK" | grep -F "package: name='com.arrowescape.pro.preview' versionCode='51'"
-          cp "$DEBUG_APK" dist/Arrow-Escape-1.7.0-v51-INSTALLABLE-TEST.apk
-          cp "$APK" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk
-          cp "$AAB" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$DEBUG_APK" | grep -F "package: name='com.arrowescape.pro.preview' versionCode='52'"
+          cp "$DEBUG_APK" dist/Arrow-Escape-1.8.0-v52-INSTALLABLE-TEST.apk
+          cp "$APK" dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.apk
+          cp "$AAB" dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.aab
       - name: Sign with existing Play upload key
         if: github.event_name != 'pull_request'
         env:
@@ -118,13 +118,13 @@ jobs:
           CERT_SHA=$(keytool -list -v -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -alias arrowescape-upload | sed -n 's/.*SHA256: //p' | tr -d ':' | tr '[:upper:]' '[:lower:]')
           test "$CERT_SHA" = "c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f"
           BT="/usr/local/lib/android/sdk/build-tools/36.0.0"
-          "$BT/zipalign" -p -f 4 dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
-          "$BT/apksigner" sign --ks "$UPLOAD_KEY_PATH" --ks-key-alias arrowescape-upload --ks-pass env:UPLOAD_STORE_PASSWORD --key-pass env:UPLOAD_KEY_PASSWORD --out dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
-          cp dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab
-          jarsigner -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -keypass:env UPLOAD_KEY_PASSWORD dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab arrowescape-upload
-          "$BT/apksigner" verify --verbose --print-certs dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.apk
-          jarsigner -verify dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab
-          rm dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
+          "$BT/zipalign" -p -f 4 dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          "$BT/apksigner" sign --ks "$UPLOAD_KEY_PATH" --ks-key-alias arrowescape-upload --ks-pass env:UPLOAD_STORE_PASSWORD --key-pass env:UPLOAD_KEY_PASSWORD --out dist/Arrow-Escape-1.8.0-v52-ORIGINAL-SIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          cp dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.aab dist/Arrow-Escape-1.8.0-v52-ORIGINAL-SIGNED.aab
+          jarsigner -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -keypass:env UPLOAD_KEY_PASSWORD dist/Arrow-Escape-1.8.0-v52-ORIGINAL-SIGNED.aab arrowescape-upload
+          "$BT/apksigner" verify --verbose --print-certs dist/Arrow-Escape-1.8.0-v52-ORIGINAL-SIGNED.apk
+          jarsigner -verify dist/Arrow-Escape-1.8.0-v52-ORIGINAL-SIGNED.aab
+          rm dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.apk dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.aab
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
       - name: Record final artifact checksums
@@ -134,7 +134,7 @@ jobs:
           sha256sum *.apk *.aab > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-v51-Verified-APK-AAB
+          name: Arrow-Escape-v52-Verified-APK-AAB
           path: dist/
           retention-days: 14
           if-no-files-found: error

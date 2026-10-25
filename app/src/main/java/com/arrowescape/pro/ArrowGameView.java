@@ -53,8 +53,8 @@ public class ArrowGameView extends View {
     }
 
     private static final int MAX_LEVEL = CampaignRules.LEVEL_COUNT;
-    private static final int CHAPTER_COUNT=8+(MAX_LEVEL-200+39)/40;
-    private static final String LEVEL_PACK_VERSION = "v51-water-1000-1";
+    private static final int CHAPTER_COUNT=CampaignRules.CHAPTER_COUNT;
+    private static final String LEVEL_PACK_VERSION = "v52-dense-flood-chapters-1";
     private static final int NAVY = Color.rgb(248, 251, 255);
     private static final int MUTED = Color.rgb(142,177,218);
     private static final int BLUE = Color.rgb(34, 211, 238);
@@ -1186,6 +1186,15 @@ public class ArrowGameView extends View {
     }
 
     private void drawMilestoneIntro(Canvas c) {
+        if(!challengeActive()&&level>161&&(level-1)%CampaignRules.LEVELS_PER_CHAPTER==0){
+            RectF r=modal(c,285);
+            label(c,"NEW CHAPTER · "+chapterNumber(level)+"/"+CHAPTER_COUNT,r.centerX(),r.top+dp(47),13,BLUE,true);
+            label(c,chapterName(level),r.centerX(),r.top+dp(92),24,BOSS_GOLD,true);
+            label(c,"DENSE ARROWS · FASTER WATER",r.centerX(),r.top+dp(135),13,NAVY,true);
+            label(c,"One safe order. Rescue before the cage fills.",r.centerX(),r.top+dp(177),12,TEXT,false);
+            label(c,"Tap anywhere to begin",r.centerX(),r.bottom-dp(28),12,MUTED,false);
+            return;
+        }
         if(!challengeActive()&&(level==41||level==81||level==121||level==161)){
             RectF r=modal(c,300);
             int accent=level==41?Color.rgb(219,157,25):level==81?Color.rgb(60,173,220):level==121?Color.rgb(132,88,207):Color.rgb(39,169,158);
@@ -1365,10 +1374,10 @@ public class ArrowGameView extends View {
         label(c,"ESCAPE ROUTE",dp(24),top+dp(29),18,NAVY,true,Paint.Align.LEFT);
         walletHit.set(w-dp(116),top+dp(7),w-dp(60),top+dp(45));pill(c,walletHit,0xFF30280F);drawCoin(c,walletHit.left+dp(12),walletHit.centerY(),dp(7));label(c,String.valueOf(wallet.balance()),walletHit.centerX()+dp(7),walletHit.centerY()+dp(4),12,BOSS_GOLD,true);
         drawGear(c,w-dp(32),top+dp(26));
-        label(c,"CH "+chapterNumber(start)+" · "+chapterName(start),dp(24),top+dp(51),11,MUTED,false,Paint.Align.LEFT);
+        label(c,"CH "+chapterNumber(start)+"/"+CHAPTER_COUNT+" · "+chapterName(start),dp(24),top+dp(51),11,MUTED,false,Paint.Align.LEFT);
         mapPrevHit.set(dp(14),top+dp(53),dp(64),top+dp(77));mapNextHit.set(w-dp(64),top+dp(53),w-dp(14),top+dp(77));
         label(c,"‹",mapPrevHit.centerX(),top+dp(72),18,levelPage>0?BLUE:MUTED,true);
-        label(c,"›",mapNextHit.centerX(),top+dp(72),18,levelPage<19?BLUE:MUTED,true);
+        label(c,"›",mapNextHit.centerX(),top+dp(72),18,levelPage<(MAX_LEVEL-1)/20?BLUE:MUTED,true);
         label(c,"1000 LEVELS · "+totalStars()+" ★",w/2,top+dp(69),10,BLUE,true);
         mapCurrentHit.set(dp(20),h-insetBottom-dp(72),w-dp(20),h-insetBottom-dp(18));
         action(c,mapCurrentHit,"PLAY LEVEL "+currentLevelNumber()+"  ›",BLUE,0xFF001822);
@@ -1539,7 +1548,8 @@ public class ArrowGameView extends View {
         configureRescueCage();
         cageWater.reset(level,pieces.size());savedWaterSecond=0;
         boolean mechanicIntro=!challengeActive()&&(level==41||level==81||level==121||level==161);
-        milestoneIntroUntil=(challengeActive()||isSuperHard(level)||mechanicIntro)?SystemClock.elapsedRealtime()+(mechanicIntro?5000L:1600L):0L;
+        boolean newChapter=level>1&&(level-1)%CampaignRules.LEVELS_PER_CHAPTER==0;
+        milestoneIntroUntil=(challengeActive()||isSuperHard(level)||mechanicIntro||newChapter)?SystemClock.elapsedRealtime()+(mechanicIntro||newChapter?5000L:1600L):0L;
         saveProgress();invalidate();
     }
 
@@ -1756,8 +1766,8 @@ public class ArrowGameView extends View {
     public void grantRevive(){if(!failed)return;failed=false;cageWater.revive();lastFrame=0;hearts=2;assistsUsed++;saveProgress();showToast("Revived with 2 hearts");invalidate();}
 
     private int remaining(){int n=0;for(Piece p:pieces)if(!p.removed)n++;return n;}
-    private int chapterNumber(int lv){if(lv<=20)return 1;if(lv<=40)return 2;if(lv<=60)return 3;if(lv<=80)return 4;if(lv<=100)return 5;if(lv<=140)return 6;if(lv<=180)return 7;if(lv<=200)return 8;return 9+(lv-201)/40;}
-    private String chapterName(int lv){switch(chapterNumber(lv)){case 1:return "First Escape";case 2:return "Twisted Paths";case 3:return "Tail Trouble";case 4:return "Locked Logic";case 5:return "Chain Reaction";case 6:return "Master Escape";case 7:return "Impossible Maze";case 8:return "Grandmaster";case 9:return "Neon Heights";case 10:return "Crystal Vault";case 11:return "Ember Citadel";case 12:return "Storm Summit";case 13:return "Deepwater Vault";default:return "Rescue Sector "+chapterNumber(lv);}}
+    private int chapterNumber(int lv){return CampaignRules.chapter(lv);}
+    private String chapterName(int lv){return CampaignRules.chapterName(lv);}
     private int selectedArrowColor(){int s=Math.floorMod(settings.getInt("arrow_style",0),4);if(s==1)return Color.rgb(51,190,255);if(s==2)return Color.rgb(178,105,255);if(s==3)return Color.rgb(255,204,57);return Color.rgb(80,224,255);}
     private int currentThemeIndex(){int t=Math.floorMod(settings.getInt("board_theme",0),6);return wallet.ownsTheme(t)?t:0;}
     private int boardBackground(){switch(currentThemeIndex()){case 1:return Color.rgb(5,25,47);case 2:return Color.rgb(34,13,31);case 3:return Color.rgb(5,31,29);case 4:return Color.rgb(5,7,24);case 5:return Color.rgb(38,12,10);default:return Color.rgb(5,11,30);}}
@@ -1822,8 +1832,8 @@ public class ArrowGameView extends View {
         if(savedWeek!=week||stars>best)prefs.edit().putLong("weekly_challenge_star_week",week).putInt("weekly_challenge_best_stars",Math.max(stars,best)).apply();
     }
 
-    private int chapterStart(int chapter){if(chapter>=9)return 201+(chapter-9)*40;switch(chapter){case 1:return 1;case 2:return 21;case 3:return 41;case 4:return 61;case 5:return 81;case 6:return 101;case 7:return 141;default:return 181;}}
-    private int chapterEnd(int chapter){if(chapter>=9)return Math.min(MAX_LEVEL,240+(chapter-9)*40);switch(chapter){case 1:return 20;case 2:return 40;case 3:return 60;case 4:return 80;case 5:return 100;case 6:return 140;case 7:return 180;default:return 200;}}
+    private int chapterStart(int chapter){return CampaignRules.chapterStart(chapter);}
+    private int chapterEnd(int chapter){return CampaignRules.chapterEnd(chapter);}
     private int chapterStars(int chapter){int total=0;for(int lv=chapterStart(chapter);lv<=chapterEnd(chapter);lv++)total+=bestStars(lv);return total;}
     private int chapterCompleted(int chapter){int n=0;for(int lv=chapterStart(chapter);lv<=chapterEnd(chapter);lv++)if(bestStars(lv)>0)n++;return n;}
     private String chapterTrophyTier(int chapter){

@@ -617,7 +617,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(onboardingStep==0){
             body.addView(text("Clear the arrows. Find your escape.",20,TEXT));
             body.addView(new ArrowPreviewView(this,4,0),new LinearLayout.LayoutParams(-1,dp(190)));
-            body.addView(text("1000 levels · Rising water · One escape sequence",15,CYAN));
+            body.addView(text("25 chapters · Packed arrows · Rising water",15,CYAN));
             body.addView(text("Tap an arrow only when its full escape path is clear. Its body follows through the bends; other arrows and its own tail can block it.",15,MUTED));
             body.addView(button("NEXT  ›",()->showOnboarding(1),true));
         }else if(onboardingStep==1){
