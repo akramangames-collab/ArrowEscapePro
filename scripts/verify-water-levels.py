@@ -24,7 +24,14 @@ for level,(line,m) in enumerate(zip(lines,metrics),1):
         safe=[i for i in pending if not(deps[i]&pending)];assert len(safe)==1,(level,safe);pending.remove(safe[0]);order+=safe
     assert list(pieces[order[-1]][0][-1])==m['gold_key_head'];assert m['arrows']==len(pieces) and m['sha256']==hashlib.sha256(line.encode()).hexdigest()
     cx,cy=w//2,h//2;qs=list(owner);assert all([any(x<cx-4 for x,y in qs),any(x>cx+4 for x,y in qs),any(y<cy-4 for x,y in qs),any(y>cy+4 for x,y in qs)])
+    occupied_cells=len(owner);usable_cells=(w+1)*(h+1)-81
+    assert m['chapter']==1+(level-1)//20
+    assert m['occupied_cells']==occupied_cells and m['usable_cells']==usable_cells
+    assert m['board_density']==round(occupied_cells/usable_cells,5)
     if level<=5:assert len(pieces)==level+2 and m['water_seconds']==120
-    else:assert len(pieces)>=24 and m['water_seconds']>len(pieces)*1.45+2.25
+    else:
+        assert len(pieces)>=27 and m['board_density']>=.50,(level,m['board_density'])
+        rate=23 if level<=40 else 20 if level<=160 else 18 if level<=400 else 16 if level<=700 else 15
+        assert m['water_seconds']==max(45,(len(pieces)*rate+5)//10+8)
     total+=len(pieces)
 print(f'PASS: 1000 distinct layouts; {total} unique-sequence moves; gold key last; self-tail clearance; four-sided cage shelter.')

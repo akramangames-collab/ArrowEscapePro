@@ -1,0 +1,6 @@
+<en-US>
+NEW: 50 chapters spanning 1000 rescue puzzles.
+Levels 6–1000 now have significantly denser arrow boards, with one legal escape sequence and the golden key always last.
+Water rises faster, and later chapters add more pressure. Pinch to zoom through tightly packed arrows.
+The original cage rescue character, animations, boosters and progress are preserved.
+</en-US>

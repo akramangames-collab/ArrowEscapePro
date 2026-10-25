@@ -1,12 +1,12 @@
 # Arrow Escape: Puzzle Maze
 
-Android package: `com.arrowescape.pro` · **v1.7.0 candidate (versionCode 51)** · minimum Android API 24 · target API 36.
+Android package: `com.arrowescape.pro` · **v1.8.0 candidate (versionCode 51)** · minimum Android API 24 · target API 36.
 
 ## Gameplay and release contents
 
 Arrow heads move forward while their bodies follow the entire winding path. A move is legal only if the head's whole escape route is clear of other arrows and its own moving tail. The original V42 cage, key box, flying key animation, rescue character art and classic four-button HUD are preserved.
 
-V51 adds **1,000 distinct deterministic campaign levels**, water rising during active puzzle time, rescue character expressions at water danger thresholds, and a timed level failure when the cage fills. Levels 1–5 are introductory (120 seconds); later levels have one unassisted removal order by the independent solver. **The gold cage-key arrow must be tapped manually last** and cannot be erased, bombed, swept or removed through Triple Escape. A blocked booster does not spend stock.
+V52 adds **1,000 distinct deterministic campaign levels**, water rising during active puzzle time, rescue character expressions at water danger thresholds, and a timed level failure when the cage fills. Levels 1–5 are introductory (120 seconds); later levels have one unassisted removal order by the independent solver. **The gold cage-key arrow must be tapped manually last** and cannot be erased, bombed, swept or removed through Triple Escape. A blocked booster does not spend stock.
 
 The supported booster inventory is Hint, Eraser, Bomb, Sweep, Safe Scan and Triple Escape. Mistake Shield is retired. Separately, the earned Flow Shield protects at most one mistake in a level attempt (including after resuming a save). Replays cannot collect the same level's coins twice.
 
@@ -39,7 +39,7 @@ The workflow can use repository secrets `ARROW_RELEASE_KEYSTORE_B64`, `ARROW_REL
 
 Debug builds use Google test ad IDs; release builds use the existing production AdMob IDs. Google Mobile Ads / UMP consent-gating is implemented in app code with child-directed and G-rated ad requests. This does **not** prove AdMob account-side blocking controls or real creatives are safe. Review [PLAY-ADS-POLICY-RELEASE-GATES-v49.md](PLAY-ADS-POLICY-RELEASE-GATES-v49.md) and the updated [privacy policy](PRIVACY_POLICY.md).
 
-Before publishing: test on a real phone (including menus, water timeouts, booster protection, resume, ad delivery and ad-consent withdrawal), verify production signing, update accurate Play Console Data Safety/target audiences/content rating information, and check the public privacy policy URL. Do **not** publish V51 on CI alone.
+Before publishing: test on a real phone (including menus, water timeouts, booster protection, resume, ad delivery and ad-consent withdrawal), verify production signing, update accurate Play Console Data Safety/target audiences/content rating information, and check the public privacy policy URL. Do **not** publish V52 on CI alone.
 
 ## Official website and support
 

@@ -1,32 +1,41 @@
-# Arrow Escape water rescue — v51 / 1.7.0
+# Arrow Escape — V52 Dense Water Chapters
 
-Levels 1–5 use 3–7 simple arrows and 120 seconds. Levels 6–1000 use increasingly
-long physical blocker chains, with exactly one unassisted removal order. Every
-board surrounds a reserved central cage on four sides; the gold key is last.
+Campaign: **1000 levels, 50 chapters × 20 levels**, ten story worlds (five
+chapters per world). The existing gameplay, original V42 character/cage/key
+animation, six active boosters, and Gold Key Last rule are preserved.
 
-Water rises during active play. Emotions change at 35% and 70%; a full cage
-fails the level. Menus, ads, app backgrounding, tutorial and intro overlays pause
-the timer. Reduced-motion mode does not slow it. Saved water resumes with the
-board, restart resets it, and revive drains it to at most 50%. The clock stops
-when the player accepts the final key escape, before its celebration animation.
+Levels 1–5 stay easy (3–7 arrows; 120 seconds). Every level from 6 onward
+uses a *dense physical board*, with growing tails filling 53.8–82% of the
+usable board cells (70.8% average in the offline verified generation; the
+central 9×9 cage reserve is intentionally empty). These are **real playable
+arrow bodies**, not decorative obstacles.
 
-The gold arrow is immune to Eraser, Bomb, Sweep and Triple Escape, even when it
-is the last remaining arrow. Only a manual legal tap removes it. Hint and Safe
-Scan may highlight it. A blocked booster does not consume stock.
+Difficulty is structural: the generator selects a proven chain of physical
+escape-ray blockers, then grows each arrow tail only onto unoccupied cells
+that cannot obstruct earlier arrows in the sole correct solve order.
+Growth also checks self-tail collision. Level 6 begins with a harder source
+chain. A full independent verifier simulates every step on all 1000 boards:
+exactly one legal next arrow, all body moves physically clear, golden key last,
+central cage surrounded on four sides, no duplicate boards. Pinch zoom
+remains available for the packed puzzles.
 
-The result screen has an open cage, happy character, stars, coins, remaining
-time, mistakes, earned gifts, sharing and Next Rescue. Replay clears do not
-award additional level coins. Flow Shield remains once per level.
+Water speed: the active-play seconds-per-arrow budget drops at levels
+41, 161, 401 and 701. Integer arithmetic keeps the Python level metrics
+identical to Java runtime water clocks. Water only advances in active gameplay,
+never under tutorials, chapter-intros, ads, menus or backgrounding. Emotion
+changes, fail/revive, save/restore and final-key victory timing are preserved.
 
-The generator extracts dependency paths from the prior 400 layouts, then trims
-tails and reflects variants while preserving the physical chain. These are
-1000 distinct geometries in the existing visual family. Difficulty and timer
-budgets still need human phone playtesting.
+Chapter UX: route has 50 navigable chapter pages, each containing 20 levels;
+new-chapter intros, themed chapter labels, 50 trophy progress cards, and
+chapter completion results. Existing level stars, coins, ranks and purchased
+cosmetics are preserved across updates. Saved *in-progress boards* from the
+previous level pack restart safely because arrow IDs/geometries changed.
 
-Checks:
-- `python scripts/generate-water-levels.py --check`
-- `python scripts/verify-water-levels.py`
-- `gradle testDebugUnitTest assembleDebug lintRelease`
-- `bash scripts/test-wallet.sh`
+Verification:
+- `python3 scripts/generate-water-levels.py --check`
+- `python3 scripts/verify-water-levels.py`
+- `python3 scripts/verify-levels.py`
+- `gradle :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease`
 
-This change does not publish to Google Play.
+Build is not a Play Store upload; production approval, on-device playtesting
+and matching the current Play upload-key fingerprint remain separate gates.
