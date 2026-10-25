@@ -16,7 +16,7 @@ This branch is an internal development preview, not the finished redesign and no
 | Rescue hazards | TESTED | Water, fire/heat and sand timer environments with stable chapter assignment. These share timer rules; electric, freezing, darkness, laser and separate heartbeat-mode mechanics are not implemented. |
 | Level/chapter selection | COMPLETED | 25 chapter cards, 40 levels each, locks/progress and continue. Existing map uses 20-level pages inside each chapter. Further map polish pending. |
 | Booster pages/demonstrations | PENDING | Six real detail pages with inventory, earning/ad action and golden-key rules. Free path practice works; individual booster-specific animated demos remain. |
-| Daily challenges | TESTED | Existing deterministic independent pack retained; local-calendar challenge selection. No cloud claim sync. |
+| Daily challenges | TESTED | All 366 deterministic daily puzzles verified against generated assets, with no campaign overlap; local-calendar challenge selection. No cloud claim sync. |
 | Daily booster rewards | TESTED | 200-coin wallet reward retained; completed-day entitlement gates an atomic stock+receipt choice. Choice shown after win and on Daily; repeat claims rejected across recreation. |
 | Notifications | PENDING | Native opt-in settings, permission request, inexact daytime scheduling, boot/timezone rescheduling, play-day suppression and two-hour minimum gap implemented. Delivery on real devices, configurable quiet hours and effectiveness analytics pending. Standard at 18:00; frequent 10/12/14/16/18/20; fixed quiet hours 21:00–10:00. |
 | Level completion rewards | TESTED | Existing payout retained (15 base, +5/+10 stars, existing milestone bonus). Persistent per-level wallet receipts prevent alternate-run duplicate payouts. Claimed amount and wallet balance displayed. Full animated breakdown still pending. |
@@ -29,10 +29,10 @@ This branch is an internal development preview, not the finished redesign and no
 | AdMob compliance | PENDING | Existing G-rated child-directed request configuration, consent gating and debug test IDs retained. Account blocking controls, Families declarations, Data Safety and SDK/console audit not completed. |
 | Analytics | PENDING | No new collection SDK or fabricated retention/revenue data. Instrumentation and privacy review remain. |
 | Marketing creatives | PENDING | No gameplay promotional videos generated or campaigns launched. |
-| APK | PENDING | Build/verification recorded separately after build completes; development preview only. |
-| AAB | PENDING | Original-key build/verification recorded separately; no testing-track upload performed. |
+| APK | TESTED | Signed APK v2 verified; package/title/version checked. Internal development preview only; not device-tested. |
+| AAB | TESTED | JAR signature verified and original certificate matched. No testing-track upload performed. |
 | Signing | TESTED | Recovered original upload key verified against SHA-256 C0:F5:B8:4B:37:5B:47:75:BC:C6:7C:37:E0:57:A2:6C:B3:D6:54:FE:79:38:D4:8B:65:8E:B4:23:E4:41:42:9F. Key/credentials kept outside git. Artifact signatures checked separately. |
-| Automated tests | TESTED | Full Android suite: 53 passed after navigation fixes. Plain Java wallet: 64 assertions passed. Independent verifier: 1000 layouts / 47,142 legal unique-sequence moves, golden key last, self-tail clearance. See test evidence and build verification for final reruns. |
+| Automated tests | TESTED | Full Android suite: 53 passed after navigation fixes. Plain Java wallet: 64 assertions passed. Independent verifier: 1000 layouts / 47,142 legal unique-sequence moves, golden key last, self-tail clearance. Final full suite passed 53/53; release lint passed with 25 warnings and 0 errors. Build/signature/hash verification saved separately. |
 | Production release | REQUIRES APPROVAL | Finish remaining work, account audits, physical/emulator QA, testing-track validation, then obtain final approval. |
 
 ## Technical limits
