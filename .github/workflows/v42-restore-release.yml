@@ -8,7 +8,6 @@ on:
     branches:
       - main
       - feature/cage-water-1000
-      - feature/dense-flood-chapters-v52
   workflow_dispatch:
 
 permissions:
@@ -84,7 +83,7 @@ jobs:
           APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
           AAB="app/build/outputs/bundle/release/app-release.aab"
           test -n "$APK" && test -s "$APK" && test -s "$AAB"
-          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='51' versionName='1.8.0'"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='52' versionName='1.8.0'"
           # The *merged* APK, not only the source manifest, must omit AD_ID.
           if /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump permissions "$APK" | grep -Fq 'com.google.android.gms.permission.AD_ID'; then
             echo "::error::Merged release APK still requests advertising ID permission"
@@ -96,7 +95,7 @@ jobs:
           mkdir -p dist
           DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
           test -s "$DEBUG_APK"
-          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$DEBUG_APK" | grep -F "package: name='com.arrowescape.pro.preview' versionCode='51'"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$DEBUG_APK" | grep -F "package: name='com.arrowescape.pro.preview' versionCode='52'"
           cp "$DEBUG_APK" dist/Arrow-Escape-1.8.0-v52-INSTALLABLE-TEST.apk
           cp "$APK" dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.apk
           cp "$AAB" dist/Arrow-Escape-1.8.0-v52-WATER-UNSIGNED.aab
