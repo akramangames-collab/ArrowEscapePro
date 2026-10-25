@@ -24,30 +24,34 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
-import com.google.android.libraries.ads.mobile.sdk.MobileAds;
-import com.google.android.libraries.ads.mobile.sdk.banner.AdSize;
-import com.google.android.libraries.ads.mobile.sdk.banner.AdView;
-import com.google.android.libraries.ads.mobile.sdk.banner.BannerAd;
-import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdEventCallback;
-import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRequest;
-import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback;
-import com.google.android.libraries.ads.mobile.sdk.common.AdRequest;
-import com.google.android.libraries.ads.mobile.sdk.common.AgeRestrictedTreatment;
-import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError;
-import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError;
-import com.google.android.libraries.ads.mobile.sdk.common.RequestConfiguration;
-import com.google.android.libraries.ads.mobile.sdk.initialization.InitializationConfig;
-import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAd;
-import com.google.android.libraries.ads.mobile.sdk.interstitial.InterstitialAdEventCallback;
-import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAd;
-import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdEventCallback;
+import com.google.android.gms.ads.AdError;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.FullScreenContentCallback;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.RequestConfiguration;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
+import com.google.android.gms.ads.rewarded.RewardedAd;
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.ump.*;
 import java.util.UUID;
 
 public class MainActivity extends ComponentActivity implements ArrowGameView.Host {
     private ArrowGameView game;
+    private LinearLayout routeNav;
+    private int onboardingStep = -1;
     private Wallet wallet;
     private SharedPreferences settings;
+    private AmbientMusic music;
+    private int pendingBooster=-1;
+    private AlertDialog boosterLoading;
+    private final android.os.Handler boosterHandler=new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable boosterTimeout=()->{if(pendingBooster>=0){cancelPendingBooster();toast("Ad unavailable. Please try again.");}};
+    private boolean foreground;
     private InterstitialAd interstitial;
     private RewardedAd rewarded;
     private ConsentInformation consent;
@@ -67,6 +71,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private Button watchButton;
     private AlertDialog reminder;
     private int storeTab = 0, achievementTab = 0;
+    private boolean playGamesSignedIn, playGamesSignInBusy;
+    private String playGamesName="Arrow Player";
+    private TextView playGamesPlayerLabel, playGamesStatusLabel;
+    private android.widget.Button playGamesButton;
     private int currentNav = 0; // 0 Home · 1 Levels · 2 Daily · 3 Store · 4 Me
     private boolean adsStarted, loadingReward, loadingInterstitial, showingAd, pausedForAd;
     private long rewardedLoadedAt, interstitialLoadedAt;
@@ -91,34 +99,38 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
+        setVolumeControlStream(android.media.AudioManager.STREAM_MUSIC);
         configurePlatformEdgeToEdge(getWindow());
         configureFamiliesAdPolicy();
         settings = getSharedPreferences("arrow_escape_pro", MODE_PRIVATE);
+        music = new AmbientMusic(this);
+        music.setEnabled(settings.getBoolean("music", true));
         wallet = new Wallet(new PreferenceWalletStorage(this));
         game = new ArrowGameView(this, this, wallet);
+        game.finishGuidedTutorial();game.openLevels();
         root = new FrameLayout(this);
         root.setBackgroundColor(INK);
         applySystemBarInsets(root);
-        FrameLayout.LayoutParams gameParams = new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
-        root.addView(game, gameParams);
+        // The banner has its own measured row, never an overlay over the canvas.
+        LinearLayout gameColumn = new LinearLayout(this);
+        gameColumn.setOrientation(LinearLayout.VERTICAL);
+        root.addView(gameColumn,new FrameLayout.LayoutParams(-1,-1));
+        gameColumn.addView(game,new LinearLayout.LayoutParams(-1,0,1f));
+        routeNav = navigationBar(0);
+        gameColumn.addView(routeNav,new LinearLayout.LayoutParams(-1,dp(64)));
         gameBannerSlot = new FrameLayout(this);
         gameBannerSlot.setBackgroundColor(INK);
         gameBannerSlot.setVisibility(View.GONE);
-        FrameLayout.LayoutParams gameBannerParams = new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT, dp(60), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        root.addView(gameBannerSlot, gameBannerParams);
+        gameColumn.addView(gameBannerSlot,new LinearLayout.LayoutParams(-1,-2));
         resultBannerSlot = new FrameLayout(this);
         resultBannerSlot.setBackgroundColor(INK);
         resultBannerSlot.setVisibility(View.GONE);
-        FrameLayout.LayoutParams resultSlotParams = new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT, dp(60), Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-        root.addView(resultBannerSlot, resultSlotParams);
+        gameColumn.addView(resultBannerSlot,new LinearLayout.LayoutParams(-1,-2));
         setContentView(root);
         installBackHandler();
         game.postDelayed(() -> {
             if (isFinishing() || isDestroyed()) return;
-            showHome();
+            if(settings.contains("route_onboarding_step"))showOnboarding(settings.getInt("route_onboarding_step",0));else if(settings.getBoolean("route_onboarding_complete",false))showHome();else showOnboarding(0);
         }, 450L);
         consent = UserMessagingPlatform.getConsentInformation(this);
         requestConsentAndStartAds();
@@ -132,9 +144,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
      */
     private void configureFamiliesAdPolicy() {
         familiesAdConfiguration = new RequestConfiguration.Builder()
-            .setMaxAdContentRating(RequestConfiguration.MaxAdContentRating.MAX_AD_CONTENT_RATING_G)
-            .setAgeRestrictedTreatment(AgeRestrictedTreatment.CHILD)
+            .setMaxAdContentRating(RequestConfiguration.MAX_AD_CONTENT_RATING_G)
+            .setTagForChildDirectedTreatment(RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE)
             .build();
+        MobileAds.setRequestConfiguration(familiesAdConfiguration);
     }
 
     private void requestConsentAndStartAds() {
@@ -143,37 +156,64 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         consent.requestConsentInfoUpdate(this, parameters,
             () -> UserMessagingPlatform.loadAndShowConsentFormIfRequired(this, error -> {
                 if (error != null) Log.w("ArrowAds","Consent form: "+error.getMessage());
-                startAdsIfAllowed();
+                applyConsentPrivacyState();
             }),
             error -> {
                 Log.w("ArrowAds","Consent update failed: "+error.getMessage());
-                startAdsIfAllowed();
+                applyConsentPrivacyState();
                 if (!adsStarted && game != null) {
                     game.postDelayed(() -> {
                         if (!adsStarted && !isDestroyed()) requestConsentAndStartAds();
                     }, 30000L);
                 }
             });
+        applyConsentPrivacyState();
+    }
+
+    /**
+     * Fail closed on consent withdrawal. Cached fullscreen ads must never be
+     * displayed after consent changes, including ads that load asynchronously.
+     */
+    private void applyConsentPrivacyState() {
+        if(isDestroyed())return;
+        if(consent==null||!consent.canRequestAds()){
+            interstitial=null;
+            rewarded=null;
+            cancelPendingBooster();
+            destroyBanner();
+            if(menuBannerSlot!=null){menuBannerSlot.removeAllViews();menuBannerSlot.setVisibility(View.GONE);}
+            suspendGameBanner();
+            hideResultBanner();
+            updateRewardStatus();
+            return;
+        }
         startAdsIfAllowed();
     }
 
     private void startAdsIfAllowed() {
-        if (adsStarted || consent == null || !consent.canRequestAds() || isDestroyed()) return;
+        if (consent == null || !consent.canRequestAds() || isDestroyed()) return;
+        // Ads SDK initialization is one-time, but advertisements may need
+        // reloading when the consent state changes during this activity.
+        if(adsStarted){
+            if(!loadingInterstitial&&interstitial==null)loadInterstitial();
+            if(!loadingReward&&rewarded==null)loadRewarded();
+            if(gameplayBannerRequested&&gameBanner==null)showGameBanner();
+            else if(menu!=null&&menu.isShowing()&&banner==null)showVisibleMenuBanner();
+            return;
+        }
         adsStarted = true;
         final android.content.Context appContext = getApplicationContext();
         new Thread(() -> {
             try {
-                InitializationConfig initConfig = new InitializationConfig.Builder(BuildConfig.ADMOB_APP_ID)
-                    .setRequestConfiguration(familiesAdConfiguration)
-                    .build();
-                MobileAds.initialize(appContext, initConfig, status -> runOnUiThread(() -> {
+                // Families-safe global settings were installed during onCreate.
+                MobileAds.initialize(appContext, status -> runOnUiThread(() -> {
                     if (isDestroyed()) return;
                     loadInterstitial(); loadRewarded();
                     if (gameplayBannerRequested && (menu == null || !menu.isShowing())) showGameBanner();
                     else showVisibleMenuBanner();
                 }));
             } catch (Throwable t) {
-                Log.e("ArrowAds","Next-Gen GMA init failed",t);
+                Log.e("ArrowAds","Families-safe GMA init failed",t);
                 runOnUiThread(() -> adsStarted = false);
             }
         }, "ArrowAdsInit").start();
@@ -182,10 +222,10 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void loadInterstitial() {
         if (!canRequestAds() || loadingInterstitial || interstitial != null) return;
         loadingInterstitial = true;
-        InterstitialAd.load(new AdRequest.Builder(BuildConfig.ADMOB_INTERSTITIAL_ID).build(), new AdLoadCallback<InterstitialAd>() {
+        InterstitialAd.load(this, BuildConfig.ADMOB_INTERSTITIAL_ID, new AdRequest.Builder().build(), new InterstitialAdLoadCallback() {
             @Override public void onAdLoaded(InterstitialAd ad) {
                 loadingInterstitial = false;
-                if (!isDestroyed()) { interstitial = ad; interstitialLoadedAt = SystemClock.elapsedRealtime(); }
+                if (canRequestAds()) { interstitial = ad; interstitialLoadedAt = SystemClock.elapsedRealtime(); }
             }
             @Override public void onAdFailedToLoad(LoadAdError error) { loadingInterstitial = false; interstitial = null; }
         });
@@ -193,13 +233,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void loadRewarded() {
         if (!canRequestAds() || loadingReward || rewarded != null) return;
         loadingReward = true; updateRewardStatus();
-        RewardedAd.load(new AdRequest.Builder(BuildConfig.ADMOB_REWARDED_ID).build(), new AdLoadCallback<RewardedAd>() {
+        RewardedAd.load(this, BuildConfig.ADMOB_REWARDED_ID, new AdRequest.Builder().build(), new RewardedAdLoadCallback() {
             @Override public void onAdLoaded(RewardedAd ad) {
                 loadingReward = false;
-                if (!isDestroyed()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); }
+                if (canRequestAds()) { rewarded = ad; rewardedLoadedAt = SystemClock.elapsedRealtime(); updateRewardStatus(); deliverPendingBoosterAd(); }
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
-                loadingReward = false; rewarded = null; updateRewardStatus();
+                loadingReward = false; rewarded = null; updateRewardStatus(); if(pendingBooster>=0){cancelPendingBooster();toast("Ad unavailable. No booster used.");}
             }
         });
     }
@@ -222,16 +262,16 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             proceed.run(); enterGameplay(); loadInterstitial(); return;
         }
         InterstitialAd ad = interstitial; interstitial = null;
-        showingAd = true; game.setPaused(true);
-        ad.setAdEventCallback(new InterstitialAdEventCallback() {
+        showingAd = true; music.suspend(); game.setPaused(true);
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
             boolean handled;
             private void finish() {
-                if (handled) return; handled = true; showingAd = false;
+                if (handled) return; handled = true; showingAd = false;if(foreground&&music!=null)music.resume();
                 if (!isDestroyed()) { game.setPaused(false); proceed.run(); enterGameplay(); loadInterstitial(); }
             }
             @Override public void onAdShowedFullScreenContent() { completedSinceAd = 0; }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
-            @Override public void onAdFailedToShowFullScreenContent(FullScreenContentError error) { finish(); }
+            @Override public void onAdFailedToShowFullScreenContent(AdError error) { finish(); }
         });
         ad.show(this);
     }
@@ -240,16 +280,16 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if (!canRequestAds() || !rewardReady()) {
             toast("Ad unavailable. Please try again shortly."); loadRewarded(); return;
         }
-        RewardedAd ad = rewarded; rewarded = null; showingAd = true;
+        RewardedAd ad = rewarded; rewarded = null; showingAd = true; music.suspend();
         pausedForAd = menu != null && menu.isShowing(); game.setPaused(true);
-        ad.setAdEventCallback(new RewardedAdEventCallback() {
+        ad.setFullScreenContentCallback(new FullScreenContentCallback() {
             boolean finished;
             private void finish() {
-                if (finished) return; finished = true; showingAd = false;
+                if (finished) return; finished = true; showingAd = false;if(foreground&&music!=null)music.resume();
                 if (!isDestroyed()) { game.setPaused(pausedForAd && menu != null && menu.isShowing()); loadRewarded(); updateRewardStatus(); }
             }
             @Override public void onAdDismissedFullScreenContent() { finish(); }
-            @Override public void onAdFailedToShowFullScreenContent(FullScreenContentError error) { finish(); toast("Ad could not open. No reward was charged."); }
+            @Override public void onAdFailedToShowFullScreenContent(AdError error) { finish(); toast("Ad could not open. No reward was charged."); }
         });
         final boolean[] granted = {false};
         ad.show(this, rewardItem -> {
@@ -258,7 +298,57 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             if (!isDestroyed()) { game.invalidate(); updateBalance(); }
         });
     }
-    @Override public void requestRewardedErase() { showRewarded(() -> game.grantEraser()); }
+    private LinearLayout boosterCard(int kind,String title,String detail,String price,int accent){
+        LinearLayout card=new LinearLayout(this);card.setGravity(Gravity.CENTER_VERTICAL);card.setPadding(dp(12),dp(10),dp(12),dp(10));card.setBackground(gradient(0xFF142D49,0xFF0B1C32,18,accent));
+        ImageView icon=new ImageView(this);icon.setImageDrawable(new BoosterIcon(kind,accent));icon.setPadding(dp(7),dp(7),dp(7),dp(7));icon.setBackground(background(0xFF173954,15,accent));card.addView(icon,new LinearLayout.LayoutParams(dp(55),dp(55)));
+        LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(6),0);TextView name=text(title,16,TEXT);name.setTypeface(AppTypography.bold(this));copy.addView(name);copy.addView(text(detail,12,MUTED));card.addView(copy,new LinearLayout.LayoutParams(0,-2,1));
+        TextView cost=text(price,12,accent);cost.setTypeface(AppTypography.bold(this));cost.setGravity(Gravity.CENTER);card.addView(cost,new LinearLayout.LayoutParams(dp(60),dp(46)));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(5),0,dp(5));card.setLayoutParams(lp);card.setMinimumHeight(dp(80));card.setContentDescription(title+", "+detail+", "+price+". Preview before confirming.");card.setOnClickListener(v->{menu.dismiss();if(kind==BoosterInventory.SCAN||kind==BoosterInventory.TRIPLE)game.useInstantBooster(kind);else game.beginBooster(kind);});return card;
+    }
+    @Override public void openBoosters() {
+        if(menu!=null&&menu.isShowing())menu.dismiss();destroyBanner();clearMenuBannerSlot();game.setPaused(true);
+        LinearLayout body=panel();body.setTag("booster_sheet");body.setPadding(dp(18),dp(16),dp(18),dp(18));
+        LinearLayout heading=new LinearLayout(this);heading.setGravity(Gravity.CENTER_VERTICAL);TextView title=text("BOOSTERS",22,TEXT);title.setTypeface(AppTypography.bold(this));heading.addView(title,new LinearLayout.LayoutParams(0,-2,1));heading.addView(text("● "+wallet.balance(),15,GOLD));body.addView(heading);
+        body.addView(text("Choose a tool. Preview its target. Confirm.",13,MUTED));
+        body.addView(boosterCard(1,"Precise eraser","Remove one selected arrow","×"+game.boosterCount(1),0xFF67D8F6));
+        body.addView(boosterCard(2,"Area bomb","Limited area · 4-cell radius","×"+game.boosterCount(2),0xFFB295FF));
+        body.addView(boosterCard(3,"Row sweep","Clear arrows touching one row","×"+game.boosterCount(3),0xFF47E4D4));
+        body.addView(boosterCard(BoosterInventory.SCAN,"Safe Scan","Highlight every legal arrow for 8 seconds","×"+game.boosterCount(BoosterInventory.SCAN),0xFFFFCE69));
+        body.addView(boosterCard(BoosterInventory.TRIPLE,"Triple Escape","Release up to 3 legal arrows in order","×"+game.boosterCount(BoosterInventory.TRIPLE),0xFFDDA8FF));
+        body.addView(text("Original four tools retained. Only Scan and Triple are new; Mistake Shield is not available.",12,MUTED));
+        body.addView(button("Back to puzzle",()->menu.dismiss(),false));
+        ScrollView boosterScroll=new ScrollView(this);
+        boosterScroll.setFillViewport(false);boosterScroll.addView(body);
+        menu=new AlertDialog.Builder(this).setView(boosterScroll).create();menu.setOnDismissListener(d->{game.setPaused(false);game.invalidate();});menu.show();
+        if(menu.getWindow()!=null){menu.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));menu.getWindow().setGravity(Gravity.BOTTOM);menu.getWindow().setLayout(-1,-2);}
+    }
+    @Override public void shareChallenge(String text) {
+        android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND);
+        send.setType("text/plain");send.putExtra(android.content.Intent.EXTRA_TEXT,text);
+        try{startActivity(android.content.Intent.createChooser(send,"Challenge a friend"));}
+        catch(android.content.ActivityNotFoundException e){toast("No sharing app available");}
+    }
+    @Override public void requestRewardedErase() { requestRewardedBooster(1); }
+    @Override public void requestRewardedBooster(int kind) {
+        if(!BoosterInventory.available(kind)||showingAd||pendingBooster>=0)return;
+        if(!canRequestAds()){toast("Reward ad unavailable. No booster used.");return;}
+        pendingBooster=kind;
+        if(rewardReady()){deliverPendingBoosterAd();return;}
+        boosterLoading=new AlertDialog.Builder(this).setTitle("Loading ad · +1 "+BoosterInventory.name(kind))
+            .setMessage("Complete the rewarded ad for one saved use. You can cancel while it loads.")
+            .setNegativeButton("Cancel",(d,w)->cancelPendingBooster()).create();
+        boosterLoading.setOnCancelListener(d->cancelPendingBooster());boosterLoading.show();
+        boosterHandler.postDelayed(boosterTimeout,20000);loadRewarded();
+    }
+    private void deliverPendingBoosterAd(){
+        if(pendingBooster<0||!foreground||showingAd||!rewardReady())return;
+        int kind=pendingBooster;cancelPendingBooster();String receipt=UUID.randomUUID().toString();
+        showRewarded(()->game.grantBooster(kind,receipt));
+    }
+    private void cancelPendingBooster(){
+        pendingBooster=-1;boosterHandler.removeCallbacks(boosterTimeout);
+        if(boosterLoading!=null){boosterLoading.dismiss();boosterLoading=null;}
+    }
     @Override public void requestRewardedRevive() { showRewarded(() -> game.grantRevive()); }
     @Override public void requestRewardedCoins() {
         String token = UUID.randomUUID().toString();
@@ -273,11 +363,16 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void configurePlatformEdgeToEdge(android.view.Window window) {
         if (window == null) return;
+        // PhoneWindow.getInsetsController dereferences mDecor on API 30+.
+        // onCreate runs before setContentView, so explicitly create the decor
+        // before asking for the controller (also safe for dialog windows).
+        window.getDecorView();
         // Use the AndroidX compatibility entry point so edge-to-edge is explicitly
         // enabled on pre-Android-15 devices as well. This call does not require the
         // deprecated status/navigation bar color APIs.
         WindowCompat.setDecorFitsSystemWindows(window, false);
-        if (android.os.Build.VERSION.SDK_INT >= 28) {
+        if(settings!=null&&settings.getBoolean("reduce_motion",false))window.setWindowAnimations(0);
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
             android.view.WindowManager.LayoutParams attrs = window.getAttributes();
             attrs.layoutInDisplayCutoutMode =
                 android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
@@ -300,7 +395,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             Insets safe = windowInsets.getInsets(
                 WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
             view.setPadding(safe.left, safe.top, safe.right, safe.bottom);
-            return windowInsets;
+            // Root owns safe-area padding. Sending the same bars to the canvas
+            // would add the top/bottom spacing twice.
+            return WindowInsetsCompat.CONSUMED;
         });
         target.post(() -> ViewCompat.requestApplyInsets(target));
     }
@@ -342,13 +439,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     private TextView text(String value, int size, int color) {
         TextView v = new TextView(this);
-        v.setText(value); v.setTextColor(color); v.setTextSize(size);
+        v.setText(value); v.setTextColor(color); v.setTextSize(size);v.setTypeface(AppTypography.regular(this));
         v.setPadding(0,dp(6),0,dp(6));
         return v;
     }
     private TextView section(String value) {
         TextView v=text(value,11,CYAN);
-        v.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        v.setTypeface(AppTypography.bold(this));
         v.setLetterSpacing(.14f);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);
         lp.setMargins(dp(2),dp(20),0,dp(7));v.setLayoutParams(lp);
@@ -357,14 +454,16 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private Button button(String label, Runnable action, boolean primary) {
         Button b = new Button(this);
         b.setText(label); b.setAllCaps(false); b.setTextSize(15);
-        b.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        b.setTypeface(AppTypography.bold(this));
         b.setLetterSpacing(.01f);
         b.setTextColor(primary ? 0xFF00131D : TEXT);
         b.setBackground(primary
-            ? gradient(0xFF27D8EE,0xFF2F8DF3,18,0)
-            : gradient(0xFF10264A,0xFF0B1B37,18,0xFF24518A));
+            ? gradient(0xFF21F1E7,0xFF05BDD6,26,0xFF57FFF6)
+            : gradient(0xFF122B48,0xFF091A31,20,0xFF2B5278));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(54));
         lp.setMargins(0,dp(7),0,dp(5)); b.setLayoutParams(lp);
+        b.setElevation(dp(primary?5:2));
+        b.setOnTouchListener((v,event)->{if(settings.getBoolean("reduce_motion",false))return false;if(event.getAction()==android.view.MotionEvent.ACTION_DOWN)v.animate().scaleX(.97f).scaleY(.97f).setDuration(90).start();else if(event.getAction()==android.view.MotionEvent.ACTION_UP||event.getAction()==android.view.MotionEvent.ACTION_CANCEL)v.animate().scaleX(1f).scaleY(1f).setDuration(160).start();return false;});
         b.setOnClickListener(v -> action.run()); return b;
     }
     private LinearLayout panel() {
@@ -381,17 +480,30 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         icon.setGravity(Gravity.CENTER);icon.setBackground(gradient(0xFF102A55,0xFF07172F,15,selected?CYAN:0xFF2C4E83));
         row.addView(icon,new LinearLayout.LayoutParams(dp(58),dp(58)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,dp(8),0);
-        TextView title=text(name,16,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(title);
+        TextView title=text(name,16,TEXT);title.setTypeface(AppTypography.bold(this));copy.addView(title);
         copy.addView(text(feature,12,MUTED));
-        TextView state=text(status,11,selected?GREEN:GOLD);state.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(state);
+        TextView state=text(status,11,selected?GREEN:GOLD);state.setTypeface(AppTypography.bold(this));copy.addView(state);
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
-        Button buy=new Button(this);buy.setAllCaps(false);buy.setText(actionLabel);buy.setTextSize(12);buy.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        Button buy=new Button(this);buy.setAllCaps(false);buy.setText(actionLabel);buy.setTextSize(12);buy.setTypeface(AppTypography.bold(this));
         buy.setTextColor(selected?INK:TEXT);
         buy.setBackground(selected?gradient(CYAN,BLUE,14,0):gradient(PURPLE,0xFF5C38D8,14,0));
-        buy.setOnClickListener(v->action.run());
-        row.addView(buy,new LinearLayout.LayoutParams(dp(96),dp(42)));
-        card.addView(row);body.addView(card);
+        buy.setEnabled(!selected);buy.setOnClickListener(v->action.run());
+        row.addView(buy,new LinearLayout.LayoutParams(dp(96),dp(48)));
+        card.addView(row);
+        Button preview=button("PREVIEW",()->showProductPreview(name,feature,status,actionLabel,action),false);
+        card.addView(preview);body.addView(card);
     }
+    private void showProductPreview(String name,String feature,String status,String actionLabel,Runnable action){
+        int arrow=0,theme=0;String[] names=game.arrowTypeNames();
+        for(int i=0;i<names.length;i++)if(names[i].equals(name))arrow=i;
+        names=game.boardThemeNames();for(int i=0;i<names.length;i++)if(names[i].equals(name))theme=i;
+        LinearLayout body=panel();body.addView(text(name,22,TEXT));body.addView(text(feature,14,MUTED));
+        body.addView(new ArrowPreviewView(this,arrow,theme),new LinearLayout.LayoutParams(-1,dp(190)));
+        body.addView(text(status,14,GOLD));body.addView(text("Preview only · your coins and equipped style stay unchanged",13,MUTED));
+        AlertDialog preview=new AlertDialog.Builder(this).setView(body).setNegativeButton("Close",null).setPositiveButton(actionLabel,(d,w)->action.run()).create();
+        preview.show();if(preview.getWindow()!=null)preview.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+    }
+
     private void updateBalance() { if (menuBalance != null) menuBalance.setText("● " + wallet.balance()); }
 
     private void refreshStore() {
@@ -402,7 +514,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private Button tileButton(String label, int accent, Runnable action) {
         Button b=new Button(this);
-        b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTypeface(AppTypography.bold(this));
         b.setTextColor(TEXT);b.setGravity(Gravity.CENTER);
         b.setBackground(gradient(0xFF0C2142,0xFF08162E,20,accent));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(118),1f);lp.setMargins(dp(5),dp(6),dp(5),dp(6));b.setLayoutParams(lp);
@@ -410,7 +522,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private Button tabButton(String label, boolean selected, Runnable action) {
-        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(12);b.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+        Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(12);b.setTypeface(AppTypography.bold(this));
         b.setTextColor(selected?0xFF00131D:MUTED);
         b.setBackground(selected?gradient(CYAN,BLUE,14,0):background(0xFF0A1934,14,0xFF193F70));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(44),1f);lp.setMargins(dp(3),0,dp(3),0);b.setLayoutParams(lp);
@@ -428,16 +540,20 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(INK);scroll.addView(body);
         FrameLayout shell=menuShell(scroll);
         menu=new AlertDialog.Builder(this).setView(shell).create();
-        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
+        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);}game.invalidate();});
         menu.show();
         scroll.post(() -> scroll.scrollTo(0,0));
-        showVisibleMenuBanner();
+        if(onboardingStep<0)showVisibleMenuBanner();
         if(menu.getWindow()!=null){
-            configurePlatformEdgeToEdge(menu.getWindow());
-            menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
-            menu.getWindow().setLayout(android.view.WindowManager.LayoutParams.MATCH_PARENT,android.view.WindowManager.LayoutParams.MATCH_PARENT);
-            applySystemBarInsets(shell);
+            mountFullScreenMenu(shell);
         }
+    }
+
+    private void mountFullScreenMenu(FrameLayout shell){
+        android.view.Window window=menu.getWindow();if(window==null)return;
+        if(shell.getParent() instanceof android.view.ViewGroup parent)parent.removeView(shell);
+        window.setContentView(shell);configurePlatformEdgeToEdge(window);
+        window.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(INK));window.setLayout(-1,-1);applySystemBarInsets(shell);
     }
 
     private LinearLayout premiumBody() {
@@ -449,65 +565,96 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void addPremiumHeader(LinearLayout body,String title,String subtitle) {
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView icon=new ImageView(this);icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
+        TextView icon=text("‹",30,CYAN);icon.setGravity(Gravity.CENTER);icon.setContentDescription("Back to Route");icon.setBackground(background(0xFF10284A,14,0xFF245681));icon.setOnClickListener(v->{if(onboardingStep>=0)finishOnboarding();else showHome();});
         row.addView(icon,new LinearLayout.LayoutParams(dp(48),dp(48)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(10),0,0,0);
-        TextView t=text(title,21,TEXT);t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(t);
-        TextView sub=text(subtitle,10,MUTED);sub.setLetterSpacing(.06f);copy.addView(sub);
+        TextView t=text(title,19,TEXT);t.setTypeface(AppTypography.bold(this));copy.addView(t);
+        TextView sub=text(subtitle,12,MUTED);sub.setLetterSpacing(.06f);copy.addView(sub);
         row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));
         TextView coin=text("● "+wallet.balance(),12,GOLD);coin.setGravity(Gravity.CENTER);
-        coin.setTypeface(Typeface.DEFAULT,Typeface.BOLD);coin.setBackground(background(0xFF221B09,17,0xFF6E5512));
+        coin.setTypeface(AppTypography.bold(this));coin.setBackground(background(0xFF221B09,17,0xFF6E5512));
         menuBalance=coin;
         row.addView(coin,new LinearLayout.LayoutParams(dp(76),dp(38)));
         body.addView(row);
     }
 
+    private void dismissMenuForRoute() {
+        if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();menu=null;}
+        destroyBanner();clearMenuBannerSlot();
+    }
+
     private void showHome() {
-        stopGameplayBanner();
-        currentNav=0;
+        dismissMenuForRoute();hideResultBanner();stopGameplayBanner();currentNav=0;
+        game.setPaused(false);game.openLevels();onRouteOpened();
+    }
+    @Override public void onRouteOpened(){
+        hideResultBanner();stopGameplayBanner();currentNav=0;
+        if(routeNav!=null)routeNav.setVisibility(View.VISIBLE);
+        if(root!=null)root.requestLayout();
+    }
+    @Override public void onGameplayStarted(){
+        hideResultBanner();
+        if(routeNav!=null)routeNav.setVisibility(View.GONE);
+        stopGameplayBanner();if(root!=null)root.requestLayout();
+    }
+
+    private void finishOnboarding(){
+        settings.edit().putBoolean("route_onboarding_complete",true).remove("route_onboarding_step").apply();
+        getSharedPreferences("arrow_puzzle_faithful",MODE_PRIVATE).edit().putBoolean("tutorialSeen",true).apply();
+        game.finishGuidedTutorial();onboardingStep=-1;showHome();
+    }
+
+    private void showOnboarding(int step){
+        if(isDestroyed()||showingAd)return;
+        onboardingStep=Math.max(0,Math.min(2,step));
+        settings.edit().putInt("route_onboarding_step",onboardingStep).apply();
+        dismissMenuForRoute();hideResultBanner();stopGameplayBanner();game.setPaused(true);routeNav.setVisibility(View.GONE);
         LinearLayout body=premiumBody();
-        addPremiumHeader(body,"ARROW ESCAPE PRO","THINK  ·  PLAN  ·  SLIDE  ·  ESCAPE");
-
-        LinearLayout hero=panel();
-        hero.setBackground(gradient(0xFF103A67,0xFF08182F,22,CYAN));
-        TextView kicker=text("CONTINUE YOUR ESCAPE",11,CYAN);kicker.setTypeface(Typeface.DEFAULT,Typeface.BOLD);kicker.setLetterSpacing(.12f);hero.addView(kicker);
-        TextView levelTitle=text("Level "+game.currentLevelNumber(),28,TEXT);levelTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(levelTitle);
-        hero.addView(text("Chapter "+game.currentChapterNumber()+"  ·  "+game.currentChapterName()+"  ·  "+game.progressSummary(),12,MUTED));
-        hero.addView(button("▶  PLAY NOW",()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openPlay();enterGameplay();},true));
-        body.addView(hero);
-
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
-        LinearLayout daily=panel();
-        LinearLayout dailyRow=new LinearLayout(this);dailyRow.setGravity(Gravity.CENTER_VERTICAL);
-        TextView cup=text("🏆",30,GOLD);cup.setGravity(Gravity.CENTER);dailyRow.addView(cup,new LinearLayout.LayoutParams(dp(54),dp(54)));
-        LinearLayout dailyCopy=new LinearLayout(this);dailyCopy.setOrientation(LinearLayout.VERTICAL);dailyCopy.setPadding(dp(10),0,0,0);
-        TextView dt=text("Daily Challenge #"+game.dailyPuzzleNumber(),16,TEXT);dt.setTypeface(Typeface.DEFAULT,Typeface.BOLD);dailyCopy.addView(dt);
-        dailyCopy.addView(text(wallet.canRewardDailyChallenge(day)?"200 coins waiting today":"Completed today · replay for stars",12,wallet.canRewardDailyChallenge(day)?GOLD:GREEN));
-        dailyRow.addView(dailyCopy,new LinearLayout.LayoutParams(0,-2,1f));
-        Button go=new Button(this);go.setText("PLAY");go.setTextSize(12);go.setTypeface(Typeface.DEFAULT,Typeface.BOLD);go.setTextColor(TEXT);
-        go.setBackground(gradient(PURPLE,0xFF5A38D6,14,0));go.setOnClickListener(v->showDailyChallengePanel());
-        dailyRow.addView(go,new LinearLayout.LayoutParams(dp(82),dp(42)));daily.addView(dailyRow);body.addView(daily);
-
-        LinearLayout row1=new LinearLayout(this);row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.addView(tileButton("▦\nLEVELS\n200 PUZZLES",CYAN,()->{scheduleDailyChallengeReminder();if(menu!=null)menu.dismiss();game.openLevels();enterGameplay();}));
-        row1.addView(tileButton("🏆\nDAILY\n200 COINS",GOLD,this::showDailyChallengePanel));body.addView(row1);
-
-        LinearLayout row2=new LinearLayout(this);row2.setOrientation(LinearLayout.HORIZONTAL);
-        row2.addView(tileButton("★\nACHIEVEMENTS\n"+game.completedLevelCount()+" CLEARED",GOLD,this::showAchievements));
-        row2.addView(tileButton("🛒\nSTORE\nARROWS & THEMES",PURPLE,this::showPremiumStore));body.addView(row2);
-
-        presentFullScreen(body,0);
+        Button skip=button("Skip tutorial  ›",this::finishOnboarding,false);LinearLayout.LayoutParams skipLp=new LinearLayout.LayoutParams(dp(150),dp(48));skipLp.gravity=Gravity.END;skip.setLayoutParams(skipLp);body.addView(skip);
+        String[] titles={"WELCOME TO ARROW ESCAPE","YOUR ESCAPE TOOLS","LEARN TO ESCAPE"};
+        TextView title=text(titles[onboardingStep],26,TEXT);title.setTypeface(AppTypography.bold(this));body.addView(title);
+        body.addView(text("STEP "+(onboardingStep+1)+" OF 3",12,CYAN));
+        if(onboardingStep==0){
+            body.addView(text("Clear the arrows. Find your escape.",20,TEXT));
+            body.addView(new ArrowPreviewView(this,4,0),new LinearLayout.LayoutParams(-1,dp(190)));
+            body.addView(text("1000 levels · Rising water · One escape sequence",15,CYAN));
+            body.addView(text("Tap an arrow only when its full escape path is clear. Its body follows through the bends; other arrows and its own tail can block it.",15,MUTED));
+            body.addView(button("NEXT  ›",()->showOnboarding(1),true));
+        }else if(onboardingStep==1){
+            body.addView(text("Hint · highlights a safe move",18,GOLD));
+            body.addView(text("1 free hint every level attempt. At zero, tap a tool to watch an ad for one use.\nPrecise eraser · removes your selected arrow\nArea bomb · clears arrows in a limited area\nRow sweep · clears arrows touching one row",15,TEXT));
+            body.addView(text("Choose a target and preview it before confirming. Cancel is free; prices are shown before coins are spent.",15,MUTED));
+            body.addView(text("Route is your home. Daily has a separate challenge; Store has cosmetic previews; Awards tracks achievements and streaks; Me has your preferences.",15,CYAN));
+            body.addView(button("TRY THE PRACTICE  ›",()->showOnboarding(2),true));
+            body.addView(button("‹  BACK",()->showOnboarding(0),false));
+        }else{
+            body.addView(text("Clear the purple arrow first, then the cyan arrow.",16,TEXT));
+            body.addView(new TutorialPracticeView(this,this::finishOnboarding),new LinearLayout.LayoutParams(-1,dp(260)));
+            body.addView(text("Practice is free: no hearts, coins or campaign progress are used. In a real level, a blocked tap costs one heart. Pinch to zoom dense boards.",14,MUTED));
+            body.addView(button("‹  BACK",()->showOnboarding(1),false));
+        }
+        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.addView(body);
+        FrameLayout shell=new FrameLayout(this);shell.addView(scroll,new FrameLayout.LayoutParams(-1,-1));applySystemBarInsets(shell);
+        menu=new AlertDialog.Builder(this).setView(shell).create();menu.setOnCancelListener(d->finishOnboarding());menu.show();
+        if(menu.getWindow()!=null)mountFullScreenMenu(shell);
     }
 
     private void showPremiumStore() {
         LinearLayout body=premiumBody();
-        addPremiumHeader(body,"STORE","Arrows, themes and rewards in one premium space");
+        addPremiumHeader(body,"STORE","Preview · unlock · equip");
 
         LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
-        tabs.addView(tabButton("Arrow Garage",storeTab==0,()->{storeTab=0;showPremiumStore();}));
+        tabs.addView(tabButton("Arrows",storeTab==0,()->{storeTab=0;showPremiumStore();}));
         tabs.addView(tabButton("Themes",storeTab==1,()->{storeTab=1;showPremiumStore();}));
-        tabs.addView(tabButton("Coins",storeTab==2,()->{storeTab=2;showPremiumStore();}));
+        tabs.addView(tabButton("Rewards",storeTab==2,()->{storeTab=2;showPremiumStore();}));
         LinearLayout.LayoutParams tlp=new LinearLayout.LayoutParams(-1,dp(42));tlp.setMargins(0,dp(12),0,dp(8));tabs.setLayoutParams(tlp);body.addView(tabs);
+        if(storeTab<2){
+            LinearLayout hero=panel();
+            int arrow=game.currentArrowTypeIndex(),theme=game.currentBoardThemeIndex();
+            hero.addView(text(storeTab==0?game.arrowTypeNames()[arrow]:game.boardThemeNames()[theme],20,TEXT));
+            hero.addView(new ArrowPreviewView(this,arrow,theme),new LinearLayout.LayoutParams(-1,dp(140)));
+            hero.addView(text("✓  EQUIPPED · cosmetic changes only",12,CYAN));body.addView(hero);
+        }
 
         if(storeTab==0){
             body.addView(section("ARROW GARAGE"));
@@ -549,9 +696,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 },selected);
             }
         }else{
+            body.addView(section("YOUR BOOSTERS"));
+            for(int kind:new int[]{0,1,2,3,BoosterInventory.SCAN,BoosterInventory.TRIPLE}){final int selected=kind;body.addView(button(BoosterInventory.name(selected)+"  ×"+game.boosterCount(selected)+"  ·  WATCH AD",()->requestRewardedBooster(selected),false));}
+            body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             LinearLayout reward=panel();
-            TextView big=text("Earn coins without paying",18,TEXT);big.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(big);
+            TextView big=text("Earn coins without paying",18,TEXT);big.setTypeface(AppTypography.bold(this));reward.addView(big);
             reward.addView(text("Play levels, build your daily streak, beat the Daily Challenge, or watch a rewarded ad.",12,MUTED));
             body.addView(reward);
             watchButton=button("▶  WATCH AD  ·  +75 COINS",()->{if(rewardReady())requestRewardedCoins();else loadRewarded();},true);
@@ -559,7 +709,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(button("🏆  DAILY CHALLENGE  ·  +200 COINS",()->showDailyChallengePanel(),false));
             body.addView(button("🔥  DAILY STREAK REWARDS",()->{achievementTab=1;showAchievements();},false));
         }
-        presentFullScreen(body,3);
+        presentFullScreen(body,2);
     }
 
     private void addAchievementCard(LinearLayout body,String icon,String name,String goal,String progress,boolean done) {
@@ -567,27 +717,31 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         TextView badge=text(icon,24,done?GREEN:PURPLE);badge.setGravity(Gravity.CENTER);badge.setBackground(background(0xFF0A1733,14,done?GREEN:0xFF2C4E83));
         row.addView(badge,new LinearLayout.LayoutParams(dp(48),dp(48)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        TextView title=text(name,15,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(title);copy.addView(text(goal,12,MUTED));
+        TextView title=text(name,15,TEXT);title.setTypeface(AppTypography.bold(this));copy.addView(title);copy.addView(text(goal,12,MUTED));
         copy.addView(text(progress,11,done?GREEN:CYAN));row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));card.addView(row);body.addView(card);
     }
 
     private void showAchievements() {
-        LinearLayout body=premiumBody();addPremiumHeader(body,"ACHIEVEMENTS","Track progress, trophies and your daily streak");
+        LinearLayout body=premiumBody();addPremiumHeader(body,"AWARDS","Track progress, trophies and your daily streak");
         menuBalance=text(game.progressSummary(),13,CYAN);menuBalance.setGravity(Gravity.CENTER);body.addView(menuBalance);
 
         LinearLayout tabs=new LinearLayout(this);tabs.setOrientation(LinearLayout.HORIZONTAL);
-        tabs.addView(tabButton("All Achievements",achievementTab==0,()->{achievementTab=0;showAchievements();}));
-        tabs.addView(tabButton("Daily Streak",achievementTab==1,()->{achievementTab=1;showAchievements();}));
+        tabs.addView(tabButton("Achievements",achievementTab==0,()->{achievementTab=0;showAchievements();}));
+        tabs.addView(tabButton("Streak",achievementTab==1,()->{achievementTab=1;showAchievements();}));
+        tabs.addView(tabButton("Chapters",achievementTab==2,()->{achievementTab=2;showAchievements();}));
         LinearLayout.LayoutParams tlp=new LinearLayout.LayoutParams(-1,dp(42));tlp.setMargins(0,dp(12),0,dp(8));tabs.setLayoutParams(tlp);body.addView(tabs);
 
-        if(achievementTab==0){
+        if(achievementTab==2){
+            String[][] chapters=game.chapterAwardCards();
+            for(String[] chapter:chapters)addAchievementCard(body,"◆",chapter[0],chapter[1],chapter[2],chapter[3].equals("true"));
+        }else if(achievementTab==0){
             int complete=game.completedLevelCount(),perfect=game.perfectLevelCount(),stars=game.totalStarCount();
             addAchievementCard(body,"★","First Escape","Complete your first level",Math.min(complete,1)+" / 1",complete>=1);
             addAchievementCard(body,"◎","Perfect Run","Earn a 3★ clear",Math.min(perfect,1)+" / 1",perfect>=1);
             addAchievementCard(body,"♛","Puzzle Master","Complete 50 levels",Math.min(complete,50)+" / 50",complete>=50);
             addAchievementCard(body,"✦","Star Collector","Earn 300 stars",Math.min(stars,300)+" / 300",stars>=300);
             addAchievementCard(body,"◆","Perfectionist","Get 3★ on 50 levels",Math.min(perfect,50)+" / 50",perfect>=50);
-            addAchievementCard(body,"🏆","Boss Hunter","Clear all five boss milestones",game.allBossesComplete()?"5 / 5":"Keep climbing",game.allBossesComplete());
+            addAchievementCard(body,"🏆","Boss Hunter","Clear all "+(CampaignRules.LEVEL_COUNT/30)+" Extreme Hard checkpoints",game.allBossesComplete()?"Unlocked":"Keep climbing",game.allBossesComplete());
             int streak=wallet.streak();
             addAchievementCard(body,"🔥","Streak Starter","Reach a 3-day daily streak",Math.min(streak,3)+" / 3",streak>=3);
             addAchievementCard(body,"🔥","Week Warrior","Reach a 7-day daily streak",Math.min(streak,7)+" / 7",streak>=7);
@@ -595,7 +749,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         }else{
             long now=System.currentTimeMillis();int streak=wallet.streak();int next=wallet.nextDailyStreak(now);int reward=wallet.nextDailyReward(now);
             LinearLayout hero=panel();
-            TextView h=text("🔥  CURRENT STREAK  ·  "+streak+" DAYS",20,TEXT);h.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(h);
+            TextView h=text("🔥  CURRENT STREAK  ·  "+streak+" DAYS",20,TEXT);h.setTypeface(AppTypography.bold(this));hero.addView(h);
             hero.addView(text(wallet.canClaimDaily(now)?"Today's reward is ready: "+reward+" coins":"Today's streak reward is already claimed.",13,MUTED));body.addView(hero);
 
             HorizontalScrollView horizontal=new HorizontalScrollView(this);horizontal.setHorizontalScrollBarEnabled(false);
@@ -605,7 +759,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 dayCard.setPadding(dp(10),dp(10),dp(10),dp(10));
                 dayCard.setBackground(background((next==i+1&&wallet.canClaimDaily(now))?0xFF17385B:PANEL,15,(next==i+1&&wallet.canClaimDaily(now))?CYAN:0xFF244E87));
                 TextView d=text("DAY "+(i+1),11,MUTED);d.setGravity(Gravity.CENTER);dayCard.addView(d);
-                TextView c=text("● "+rewards[i],16,GOLD);c.setTypeface(Typeface.DEFAULT,Typeface.BOLD);c.setGravity(Gravity.CENTER);dayCard.addView(c);
+                TextView c=text("● "+rewards[i],16,GOLD);c.setTypeface(AppTypography.bold(this));c.setGravity(Gravity.CENTER);dayCard.addView(c);
                 LinearLayout.LayoutParams dlp=new LinearLayout.LayoutParams(dp(86),dp(76));dlp.setMargins(dp(4),0,dp(4),0);ladder.addView(dayCard,dlp);
             }
             horizontal.addView(ladder);body.addView(horizontal);
@@ -616,7 +770,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             },true);claim.setEnabled(wallet.canClaimDaily(now));body.addView(claim);
             body.addView(text("Rewards grow with your streak: 10 → 15 → 20 → 30 → 40 → 50 → 75 coins. After day 7, each continuing day earns 75 coins.",12,MUTED));
         }
-        presentFullScreen(body,4);
+        presentFullScreen(body,3);updatePlayGamesControls();refreshPlayGamesStatus();
     }
 
     private String challengeResetText() {
@@ -630,65 +784,99 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         settings.edit().putLong("daily_challenge_prompt_day",day).apply();
         dailyReminderScheduled=false;
         if(game!=null)game.removeCallbacks(dailyReminderTask);
-        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","A dedicated SUPER HARD puzzle · separate from Levels 1–200");
+        LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","Separate from your 1000-level route");
+        LinearLayout preview=panel();preview.addView(new ArrowPreviewView(this,0,0),new LinearLayout.LayoutParams(-1,dp(120)));body.addView(preview);
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
-        TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(crown);
-        TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(hard);
-        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 200 campaign levels",13,MUTED));
+        TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(AppTypography.bold(this));hero.addView(crown);
+        TextView hard=text("SUPER HARD",13,0xFFFF667F);hard.setGravity(Gravity.CENTER);hard.setTypeface(AppTypography.bold(this));hero.addView(hard);
+        hero.addView(text("Daily Puzzle "+game.dailyPuzzleNumber()+"  ·  Never taken from the 1000 campaign levels",13,MUTED));
         body.addView(hero);
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
-        amount.setGravity(Gravity.CENTER);amount.setTypeface(Typeface.DEFAULT,Typeface.BOLD);reward.addView(amount);
+        amount.setGravity(Gravity.CENTER);amount.setTypeface(AppTypography.bold(this));reward.addView(amount);
         reward.addView(text("Resets in "+challengeResetText(),12,MUTED));body.addView(reward);
         LinearLayout week=panel();
-        TextView streakTitle=text("🔥  CURRENT STREAK  ·  "+wallet.streak()+" DAYS",15,TEXT);streakTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);week.addView(streakTitle);
+        TextView streakTitle=text("🔥  CURRENT STREAK  ·  "+wallet.streak()+" DAYS",15,TEXT);streakTitle.setTypeface(AppTypography.bold(this));week.addView(streakTitle);
         LinearLayout dots=new LinearLayout(this);dots.setGravity(Gravity.CENTER);
         for(int i=1;i<=7;i++){
             TextView d=text(String.valueOf(i),12,i<=Math.min(7,wallet.streak())?INK:MUTED);
-            d.setGravity(Gravity.CENTER);d.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            d.setGravity(Gravity.CENTER);d.setTypeface(AppTypography.bold(this));
             d.setBackground(background(i<=Math.min(7,wallet.streak())?GOLD:0xFF0A1934,14,i<=Math.min(7,wallet.streak())?0:0xFF23466E));
             LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(38),1f);lp.setMargins(dp(3),dp(8),dp(3),0);dots.addView(d,lp);
         }
         week.addView(dots);body.addView(week);
         body.addView(button("▶  PLAY TODAY'S CHALLENGE",()->{if(menu!=null)menu.dismiss();game.startDailyChallenge();enterGameplay();},true));
         body.addView(text("Separate from campaign progress · reward once per day · replay anytime to improve stars.",12,MUTED));
-        presentFullScreen(body,2);
+        presentFullScreen(body,1);
     }
 
+    private android.widget.Switch preferenceToggle(String label,String key,boolean defaultValue){
+        android.widget.Switch toggle=new android.widget.Switch(this);toggle.setText(label);toggle.setTextSize(16);toggle.setTextColor(TEXT);toggle.setMinHeight(dp(52));
+        toggle.setThumbTintList(android.content.res.ColorStateList.valueOf(CYAN));toggle.setTrackTintList(android.content.res.ColorStateList.valueOf(0xFF245A75));
+        toggle.setChecked(settings.getBoolean(key,defaultValue));toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();if(key.equals("music")){music.setEnabled(checked);if(foreground&&!showingAd)music.resume();}game.invalidate();});return toggle;
+    }
     private void showProfile() {
-        currentNav=4;
-        LinearLayout body=premiumBody();
-        addPremiumHeader(body,"PLAYER","Your progress, preferences and support");
-
-        LinearLayout identity=panel();
-        LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
-        TextView avatar=text("★",30,CYAN);avatar.setGravity(Gravity.CENTER);avatar.setBackground(gradient(0xFF153D70,0xFF0A1D3A,22,CYAN));
-        row.addView(avatar,new LinearLayout.LayoutParams(dp(62),dp(62)));
+        currentNav=4;LinearLayout body=premiumBody();addPremiumHeader(body,"ME","Your profile and preferences");
+        LinearLayout identity=panel(),row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
+        TextView avatar=text("➜",30,CYAN);avatar.setGravity(Gravity.CENTER);avatar.setBackground(gradient(0xFF153D70,0xFF0A1D3A,30,CYAN));row.addView(avatar,new LinearLayout.LayoutParams(dp(60),dp(60)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(12),0,0,0);
-        TextView player=text("Arrow Player",20,TEXT);player.setTypeface(Typeface.DEFAULT,Typeface.BOLD);copy.addView(player);
-        copy.addView(text("Level "+game.currentLevelNumber()+"  ·  "+game.totalStarCount()+" stars",12,MUTED));
-        row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));identity.addView(row);body.addView(identity);
+        playGamesPlayerLabel=text(playGamesName,20,TEXT);playGamesPlayerLabel.setTypeface(AppTypography.bold(this));copy.addView(playGamesPlayerLabel);
+        copy.addView(text("Level "+game.currentLevelNumber()+" · "+game.totalStarCount()+" stars",13,MUTED));row.addView(copy,new LinearLayout.LayoutParams(0,-2,1f));identity.addView(row);body.addView(identity);
+        LinearLayout account=panel();account.addView(text("GOOGLE PLAY GAMES",14,CYAN));
+        playGamesStatusLabel=text(playGamesSignedIn?"Connected":"Optional · play without signing in",13,MUTED);account.addView(playGamesStatusLabel);
+        playGamesButton=button(playGamesSignedIn?"✓  Connected":"Sign in with Google Play Games",this::signInWithPlayGames,true);account.addView(playGamesButton);
+        account.addView(text("Progress saved on this device",12,MUTED));body.addView(account);
+        LinearLayout preferences=panel();preferences.addView(preferenceToggle("Music","music",true));preferences.addView(preferenceToggle("Sound effects","sound",true));preferences.addView(preferenceToggle("Vibration","haptics",true));body.addView(preferences);
+        body.addView(button("⚙  More settings",()->showMenu(false),false));body.addView(button("Replay tutorial",()->showOnboarding(0),false));body.addView(button("Help & privacy",this::showPrivacyPolicy,false));
+        body.addView(button("★  Rate Arrow Escape",this::openPlayStoreRating,false));presentFullScreen(body,4);updatePlayGamesControls();refreshPlayGamesStatus();
+        playGamesButton.setAlpha(playGamesButton.isEnabled()?1f:.55f);
+    }
 
-        LinearLayout stats=new LinearLayout(this);stats.setOrientation(LinearLayout.HORIZONTAL);
-        stats.addView(profileStat(String.valueOf(game.completedLevelCount()),"Levels"));
-        stats.addView(profileStat(String.valueOf(game.totalStarCount()),"Stars"));
-        stats.addView(profileStat(wallet.streak()+"d","Streak"));
-        body.addView(stats);
-
-        body.addView(section("YOUR JOURNEY"));
-        body.addView(button("★  Achievements & trophies",this::showAchievements,false));
-        body.addView(button("🔥  Daily streak rewards",()->{achievementTab=1;showAchievements();},false));
-        body.addView(section("PREFERENCES"));
-        body.addView(button("⚙  Settings",()->showMenu(false),false));
-        body.addView(button("★  Rate Arrow Escape",this::openPlayStoreRating,false));
-        body.addView(button("Privacy policy",this::showPrivacyPolicy,false));
-        presentFullScreen(body,4);
+    private void refreshPlayGamesStatus() {
+        if(!ArrowApplication.playGamesReady||isDestroyed()||playGamesSignInBusy)return;
+        com.google.android.gms.games.PlayGames.getGamesSignInClient(this).isAuthenticated()
+            .addOnCompleteListener(task->{
+                if(isDestroyed()||isFinishing())return;
+                playGamesSignedIn=task.isSuccessful()&&task.getResult()!=null&&task.getResult().isAuthenticated();
+                updatePlayGamesProfile();
+            });
+    }
+    private void signInWithPlayGames() {
+        if(!ArrowApplication.playGamesReady||playGamesSignInBusy||playGamesSignedIn)return;
+        playGamesSignInBusy=true;updatePlayGamesControls();
+        com.google.android.gms.games.PlayGames.getGamesSignInClient(this).signIn()
+            .addOnCompleteListener(task->{
+                if(isDestroyed()||isFinishing())return;
+                playGamesSignInBusy=false;
+                playGamesSignedIn=task.isSuccessful()&&task.getResult()!=null&&task.getResult().isAuthenticated();
+                if(!playGamesSignedIn)toast("Sign-in was not completed. You can try again.");
+                updatePlayGamesProfile();
+            });
+    }
+    private void updatePlayGamesProfile() {
+        if(isDestroyed())return;
+        if(!playGamesSignedIn){playGamesName="Arrow Player";updatePlayGamesControls();return;}
+        com.google.android.gms.games.PlayGames.getPlayersClient(this).getCurrentPlayer()
+            .addOnCompleteListener(task->{
+                if(isDestroyed()||isFinishing())return;
+                if(task.isSuccessful()&&task.getResult()!=null)playGamesName=task.getResult().getDisplayName();
+                updatePlayGamesControls();
+            });
+    }
+    private void updatePlayGamesControls() {
+        if(isDestroyed())return;
+        if(playGamesPlayerLabel!=null)playGamesPlayerLabel.setText(playGamesName);
+        if(playGamesStatusLabel!=null)playGamesStatusLabel.setText(playGamesSignedIn?"Connected to Google Play Games":ArrowApplication.playGamesReady?"Connect your Play Games profile":"Google Play Games is not available yet");
+        if(playGamesButton!=null){
+            playGamesButton.setText(playGamesSignInBusy?"Connecting…":playGamesSignedIn?"✓  Google Play Games connected":"Sign in with Google Play Games");
+            playGamesButton.setEnabled(ArrowApplication.playGamesReady&&!playGamesSignInBusy&&!playGamesSignedIn);
+        }
     }
 
     private LinearLayout profileStat(String value,String label) {
         LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setGravity(Gravity.CENTER);
         box.setBackground(gradient(0xFF0D2142,0xFF07152C,18,0xFF1E4F87));
-        TextView v=text(value,20,TEXT);v.setGravity(Gravity.CENTER);v.setTypeface(Typeface.DEFAULT,Typeface.BOLD);box.addView(v);
+        TextView v=text(value,20,TEXT);v.setGravity(Gravity.CENTER);v.setTypeface(AppTypography.bold(this));box.addView(v);
         TextView l=text(label,11,MUTED);l.setGravity(Gravity.CENTER);box.addView(l);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(78),1f);lp.setMargins(dp(4),dp(6),dp(4),dp(6));box.setLayoutParams(lp);
         return box;
@@ -728,9 +916,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
         LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);body.setPadding(dp(22),dp(20),dp(22),dp(20));body.setBackgroundColor(INK);
         TextView icon=text("♛",42,GOLD);icon.setGravity(Gravity.CENTER);body.addView(icon);
-        TextView title=text("Your Daily Challenge is ready!",22,TEXT);title.setGravity(Gravity.CENTER);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);body.addView(title);
+        TextView title=text("Your Daily Challenge is ready!",22,TEXT);title.setGravity(Gravity.CENTER);title.setTypeface(AppTypography.bold(this));body.addView(title);
         TextView copy=text("Complete today's SUPER HARD puzzle to earn 200 coins.",14,MUTED);copy.setGravity(Gravity.CENTER);body.addView(copy);
-        LinearLayout streak=panel();TextView st=text("🔥  Current streak: "+wallet.streak()+" days",16,TEXT);st.setTypeface(Typeface.DEFAULT,Typeface.BOLD);streak.addView(st);
+        LinearLayout streak=panel();TextView st=text("🔥  Current streak: "+wallet.streak()+" days",16,TEXT);st.setTypeface(AppTypography.bold(this));streak.addView(st);
         streak.addView(text("Today's streak reward: "+wallet.nextDailyReward(System.currentTimeMillis())+" coins",12,GOLD));body.addView(streak);
         body.addView(button("▶  PLAY NOW",()->{if(reminder!=null)reminder.dismiss();showDailyChallengePanel();},true));
         body.addView(button("Later",()->{if(reminder!=null)reminder.dismiss();},false));
@@ -742,7 +930,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void showMenu(boolean store) {
-        currentNav=store?3:4;
+        currentNav=store?2:4;
         if (isDestroyed() || showingAd) return;
         if (menu != null) { menu.setOnDismissListener(null); menu.dismiss(); }
         destroyBanner(); suspendGameBanner(); menuBalance = null; rewardStatus = null; watchButton = null;
@@ -757,20 +945,20 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         ImageView icon = new ImageView(this); icon.setImageResource(com.arrowescape.pro.R.mipmap.ic_launcher);
         brand.addView(icon,new LinearLayout.LayoutParams(dp(54),dp(54)));
         LinearLayout heading=new LinearLayout(this);heading.setOrientation(LinearLayout.VERTICAL);heading.setPadding(dp(12),0,0,0);
-        TextView title=text(store?"STORE":"SETTINGS",24,TEXT);title.setTypeface(Typeface.DEFAULT,Typeface.BOLD);heading.addView(title);
+        TextView title=text(store?"STORE":"SETTINGS",24,TEXT);title.setTypeface(AppTypography.bold(this));heading.addView(title);
         heading.addView(text(store?"Upgrade your style. Keep gameplay fair.":"Game preferences & support",12,MUTED));
         brand.addView(heading,new LinearLayout.LayoutParams(0,-2,1f));
         body.addView(brand);
 
         if (store) {
-            menuBalance=text("COINS  "+wallet.balance(),18,GOLD);menuBalance.setTypeface(Typeface.DEFAULT,Typeface.BOLD);
+            menuBalance=text("COINS  "+wallet.balance(),18,GOLD);menuBalance.setTypeface(AppTypography.bold(this));
             menuBalance.setGravity(Gravity.CENTER);
             menuBalance.setBackground(background(0xFF221C0D,16,0xFF6B5213));
             LinearLayout.LayoutParams balanceLp=new LinearLayout.LayoutParams(-1,dp(48));balanceLp.setMargins(0,dp(14),0,dp(6));menuBalance.setLayoutParams(balanceLp);
             body.addView(menuBalance);
 
             LinearLayout hero=panel();
-            TextView heroTitle=text("MAKE EVERY ESCAPE YOURS",18,TEXT);heroTitle.setTypeface(Typeface.DEFAULT,Typeface.BOLD);hero.addView(heroTitle);
+            TextView heroTitle=text("MAKE EVERY ESCAPE YOURS",18,TEXT);heroTitle.setTypeface(AppTypography.bold(this));hero.addView(heroTitle);
             hero.addView(text("Buy visual upgrades with coins you earn by playing. Purchases stay unlocked.",13,MUTED));
             body.addView(hero);
 
@@ -828,6 +1016,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 },selected);
             }
 
+            body.addView(section("YOUR BOOSTERS"));
+            for(int kind:new int[]{0,1,2,3,BoosterInventory.SCAN,BoosterInventory.TRIPLE}){final int selected=kind;body.addView(button(BoosterInventory.name(selected)+"  ×"+game.boosterCount(selected)+"  ·  WATCH AD",()->requestRewardedBooster(selected),false));}
+            body.addView(text("Gifts arrive at selected campaign checkpoints. Replaying a checkpoint never duplicates its gift. Coins unlock cosmetic styles.",12,MUTED));
             body.addView(section("COINS & REWARDS"));
             final Button[] daily=new Button[1];
             daily[0]=button(wallet.canClaimDaily(System.currentTimeMillis())?"CLAIM DAILY  ·  +100 COINS":"DAILY REWARD CLAIMED",()->{
@@ -855,14 +1046,14 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(button("Achievements & chapter trophies",this::showProgressHall,false));
         } else {
             body.addView(section("GAMEPLAY"));
-            String[] labels={"Sound effects","Vibration","High contrast arrows"};
-            String[] keys={"sound","haptics","contrast"};
+            String[] labels={"Soothing background music","Sound effects","Vibration","High contrast arrows","Reduce motion"};
+            String[] keys={"music","sound","haptics","contrast","reduce_motion"};
             for(int i=0;i<keys.length;i++){
                 String key=keys[i],label=labels[i];
                 android.widget.Switch toggle=new android.widget.Switch(this);
                 toggle.setText(label);toggle.setTextSize(16);toggle.setTextColor(TEXT);toggle.setMinHeight(dp(54));
-                toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")));
-                toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();game.invalidate();});
+                toggle.setChecked(settings.getBoolean(key,!key.equals("contrast")&&!key.equals("reduce_motion")));
+                toggle.setOnCheckedChangeListener((v,checked)->{settings.edit().putBoolean(key,checked).apply();if(key.equals("music")){music.setEnabled(checked);if(foreground&&!showingAd)music.resume();}game.invalidate();});
                 body.addView(toggle);
             }
             LinearLayout note=panel();
@@ -871,7 +1062,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(note);
 
             body.addView(section("GAME"));
-            body.addView(button("How to play",()->{menu.dismiss();game.showTutorialAgain();},false));
+            body.addView(button("Replay tutorial",()->showOnboarding(0),false));
             body.addView(button("Restart this level",()->{
                 new AlertDialog.Builder(this).setTitle("Restart level?").setMessage("Your coins stay safe. This puzzle starts again.")
                     .setNegativeButton("Keep playing",null).setPositiveButton("Restart",(d,w)->{menu.dismiss();game.restartCurrentLevel();}).show();
@@ -883,23 +1074,23 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             if(consent!=null && consent.getPrivacyOptionsRequirementStatus()==ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
                 body.addView(button("Privacy choices",()-> UserMessagingPlatform.showPrivacyOptionsForm(this,error->{
                     if(error!=null)toast("Privacy choices are unavailable right now.");
-                    if(!consent.canRequestAds()){interstitial=null;rewarded=null;destroyBanner();}else startAdsIfAllowed();
+                    applyConsentPrivacyState();
                 }),false));
             }
             body.addView(text("Version "+BuildConfig.VERSION_NAME,12,MUTED));
         }
 
-        body.addView(button(store?"BACK TO PUZZLE":"⌂  BACK TO HOME",()->{if(store)menu.dismiss();else showHome();},true));
+        body.addView(button(store?"BACK TO PUZZLE":"‹  BACK TO ROUTE",()->{if(store)menu.dismiss();else showHome();},true));
 
         ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);scroll.setBackgroundColor(INK);scroll.addView(body);
         FrameLayout shell=menuShell(scroll);
         menu=new AlertDialog.Builder(this).setView(shell).create();
-        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);if(gameplayBannerRequested)showGameBanner();}game.invalidate();});
+        menu.setOnDismissListener(d->{destroyBanner();clearMenuBannerSlot();menuBalance=null;rewardStatus=null;watchButton=null;if(!showingAd){game.setPaused(false);}game.invalidate();});
         menu.show();
         scroll.post(() -> scroll.scrollTo(0,0));
-        showVisibleMenuBanner();
+        if(onboardingStep<0)showVisibleMenuBanner();
         if(menu.getWindow()!=null){
-            menu.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
+            mountFullScreenMenu(shell);
         }
     }
 
@@ -923,18 +1114,29 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         AdSize size=adaptiveBannerSize(horizontalMarginDp);
         int height=Math.max(dp(50),size.getHeightInPixels(this));
         android.view.ViewGroup.LayoutParams lp=slot.getLayoutParams();
-        if(lp!=null){lp.height=height;slot.setLayoutParams(lp);}
+        if(lp!=null){lp.height=height+dp(24);slot.setLayoutParams(lp);}
+        slot.setPadding(0,dp(24),0,0);
+        slot.setMinimumHeight(0);
+        slot.setBackground(new AdRailBackdrop(dp(10),dp(16)));
         slot.removeAllViews();
-        // Keep the slot invisible until an actual creative is loaded. This prevents
-        // empty black ad rails on new/no-fill inventory.
-        slot.setVisibility(View.INVISIBLE);
-        AdView ad=new AdView(this);
-        slot.addView(ad,new FrameLayout.LayoutParams(-2,-2,Gravity.CENTER));
-        BannerAdRequest request=new BannerAdRequest.Builder(BuildConfig.ADMOB_BANNER_ID,size).build();
-        ad.loadAd(request,new AdLoadCallback<BannerAd>() {
-            @Override public void onAdLoaded(BannerAd loadedAd) {
-                bannerRetryCount=0;
-                loadedAd.setAdEventCallback(new BannerAdEventCallback() {});
+        // Reserve the requested footprint before loading, so controls never move into
+        // the ad area while the creative arrives. Buffer stays non-interactive.
+        slot.setVisibility(View.VISIBLE);
+        AdView ad=new AdView(this);ad.setVisibility(View.INVISIBLE);
+        ad.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
+        ad.setAdSize(size);
+        slot.addView(ad,new FrameLayout.LayoutParams(-2,height,Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL));
+        ad.setAdListener(new AdListener() {
+            @Override public void onAdLoaded() {
+                runOnUiThread(() -> {
+                if(!bannerRequestCurrent(ad,slot))return;
+                if(!canRequestAds()){
+                    ad.destroy();
+                    slot.removeView(ad);
+                    slot.setVisibility(View.GONE);
+                    return;
+                }
+                bannerRetryCount=0;ad.setVisibility(View.VISIBLE);
                 slot.setVisibility(View.VISIBLE);
                 if(slot==gameBannerSlot){
                     gameBannerHeightPx=height;
@@ -946,9 +1148,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                     setMenuBannerSpace(height,true);
                 }
                 Log.d("ArrowAds","Banner loaded");
+                });
             }
             @Override public void onAdFailedToLoad(LoadAdError error) {
-                slot.setVisibility(View.INVISIBLE);
+                runOnUiThread(() -> {
+                if(!bannerRequestCurrent(ad,slot))return;
+                slot.setVisibility(View.GONE);ad.setVisibility(View.INVISIBLE);
                 if(slot==gameBannerSlot){
                     gameBannerHeightPx=0; updateGameBottomInset();
                 }else if(slot==resultBannerSlot){
@@ -960,7 +1165,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                 if (bannerRetryCount >= MAX_BANNER_RETRIES || isDestroyed()) return;
                 bannerRetryCount++;
                 slot.postDelayed(() -> {
-                    if (isDestroyed() || !canRequestAds()) return;
+                    if (!bannerRequestCurrent(ad,slot) || !canRequestAds()) return;
                     if (slot == gameBannerSlot) {
                         if (gameBanner != null) { gameBanner.destroy(); gameBanner=null; }
                         showGameBanner();
@@ -972,27 +1177,31 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
                         showVisibleMenuBanner();
                     }
                 }, BANNER_RETRY_DELAY_MS);
+                });
             }
         });
+        ad.loadAd(new AdRequest.Builder().build());
         return ad;
     }
 
-    private void updateGameBottomInset() {
-        if(game==null||!(game.getLayoutParams() instanceof FrameLayout.LayoutParams))return;
-        int inset=0;
-        if(resultBannerSlot!=null&&resultBannerSlot.getVisibility()==View.VISIBLE)inset=resultBannerHeightPx;
-        else if(gameBannerSlot!=null&&gameBannerSlot.getVisibility()==View.VISIBLE)inset=gameBannerHeightPx;
-        FrameLayout.LayoutParams lp=(FrameLayout.LayoutParams)game.getLayoutParams();
-        if(lp.bottomMargin!=inset){lp.bottomMargin=inset;game.setLayoutParams(lp);}
+    private boolean bannerRequestCurrent(View ad,FrameLayout slot){
+        if(isDestroyed()||ad.getParent()!=slot)return false;
+        if(slot==resultBannerSlot)return game!=null&&game.isResultScreen();
+        if(slot==gameBannerSlot)return gameplayBannerRequested;
+        return slot==menuBannerSlot&&menu!=null&&menu.isShowing();
     }
 
-    private void enterGameplay() {
-        gameplayBannerRequested=true;
-        showGameBanner();
+    private void updateGameBottomInset() {
+        // LinearLayout measures the visible creative row; no cached-height
+        // margin can leave the game under a large or resized adaptive banner.
+        if(root!=null)root.requestLayout();
+        if(game!=null)game.invalidate();
     }
+
+    private void enterGameplay() {onGameplayStarted();}
 
     private void showGameBanner() {
-        if(!gameplayBannerRequested||!canRequestAds()||showingAd||isFinishing()||isDestroyed())return;
+        if(onboardingStep>=0||!gameplayBannerRequested||!canRequestAds()||showingAd||isFinishing()||isDestroyed())return;
         if(menu!=null&&menu.isShowing())return;
         if(resultBannerSlot!=null&&resultBannerSlot.getVisibility()==View.VISIBLE)return;
         if(gameBanner!=null)return;
@@ -1014,42 +1223,34 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         FrameLayout shell=new FrameLayout(this);
         shell.setBackgroundColor(INK);
         activeMenuScroll=scroll;
-
-        FrameLayout.LayoutParams scrollParams=new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,FrameLayout.LayoutParams.MATCH_PARENT);
-        // No blank ad rail before an ad actually loads.
-        scrollParams.bottomMargin=dp(68);
-        shell.addView(scroll,scrollParams);
-
-        LinearLayout nav=new LinearLayout(this);nav.setOrientation(LinearLayout.HORIZONTAL);nav.setGravity(Gravity.CENTER);
-        nav.setPadding(dp(6),dp(4),dp(6),dp(4));
-        nav.setBackground(gradient(0xFF07162F,0xFF040D20,0,0xFF15345E));
-        nav.addView(navButton("⌂\nHome",0));
-        nav.addView(navButton("▦\nLevels",1));
-        nav.addView(navButton("★\nDaily",2));
-        nav.addView(navButton("🛒\nStore",3));
-        nav.addView(navButton("●\nMe",4));
+        LinearLayout column=new LinearLayout(this);column.setOrientation(LinearLayout.VERTICAL);
+        shell.addView(column,new FrameLayout.LayoutParams(-1,-1));
+        column.addView(scroll,new LinearLayout.LayoutParams(-1,0,1f));
+        LinearLayout nav=navigationBar(currentNav);
         activeMenuNav=nav;
-        FrameLayout.LayoutParams navParams=new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,dp(68),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-        navParams.bottomMargin=0;
-        shell.addView(nav,navParams);
-
+        column.addView(nav,new LinearLayout.LayoutParams(-1,dp(68)));
         menuBannerSlot=new FrameLayout(this);
         menuBannerSlot.setBackgroundColor(INK);
-        menuBannerSlot.setVisibility(View.INVISIBLE);
-        FrameLayout.LayoutParams adParams=new FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,dp(68),Gravity.BOTTOM|Gravity.CENTER_HORIZONTAL);
-        shell.addView(menuBannerSlot,adParams);
+        menuBannerSlot.setVisibility(View.GONE);
+        column.addView(menuBannerSlot,new LinearLayout.LayoutParams(-1,-2));
         return shell;
+    }
+
+    private LinearLayout navigationBar(int selected){
+        LinearLayout nav=new LinearLayout(this);nav.setGravity(Gravity.CENTER);nav.setPadding(dp(6),dp(4),dp(6),dp(4));
+        nav.setBackground(gradient(0xFF091B33,0xFF041020,0,0xFF1A466A));
+        String[] labels={"Route","Daily","Store","Awards","Me"};
+        for(int i=0;i<labels.length;i++)nav.addView(navButton(labels[i],i));
+        return nav;
     }
 
     private TextView navButton(String label,int index) {
         boolean selected=currentNav==index;
         TextView b=text(label,11,selected?CYAN:MUTED);
-        b.setPadding(0,0,0,0);
+        b.setPadding(0,dp(3),0,dp(3));
+        RouteNavIcon icon=new RouteNavIcon(index,selected?CYAN:MUTED);icon.setBounds(0,0,dp(23),dp(23));b.setCompoundDrawables(null,icon,null,null);b.setCompoundDrawablePadding(dp(3));
         b.setGravity(Gravity.CENTER);
-        b.setTypeface(Typeface.DEFAULT,selected?Typeface.BOLD:Typeface.NORMAL);
+        b.setTypeface(selected?AppTypography.bold(this):AppTypography.regular(this));
         b.setBackground(selected?background(0xFF102A52,15,0xFF1F5C96):background(0x00000000,15,0));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,-1,1f);lp.setMargins(dp(2),0,dp(2),0);b.setLayoutParams(lp);
         b.setOnClickListener(v->openNav(index));
@@ -1057,37 +1258,23 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void setMenuBannerSpace(int adHeight,boolean visible) {
-        if(activeMenuNav==null||activeMenuScroll==null)return;
-        int safeHeight=visible?Math.max(dp(50),adHeight):0;
-        if(activeMenuNav.getLayoutParams() instanceof FrameLayout.LayoutParams){
-            FrameLayout.LayoutParams navParams=(FrameLayout.LayoutParams)activeMenuNav.getLayoutParams();
-            navParams.bottomMargin=safeHeight;
-            navParams.height=dp(68);
-            activeMenuNav.setLayoutParams(navParams);
-        }
-        if(activeMenuScroll.getLayoutParams() instanceof FrameLayout.LayoutParams){
-            FrameLayout.LayoutParams scrollParams=(FrameLayout.LayoutParams)activeMenuScroll.getLayoutParams();
-            scrollParams.bottomMargin=dp(68)+safeHeight;
-            activeMenuScroll.setLayoutParams(scrollParams);
-        }
+        // Scroll area, navigation and ad each own a row in the same column.
+        if(activeMenuNav!=null)activeMenuNav.requestLayout();
+        if(activeMenuScroll!=null)activeMenuScroll.requestLayout();
     }
 
     private void openNav(int index) {
-        if(index==currentNav && index!=1)return;
+        if(index==currentNav&&index!=0)return;
+        onboardingStep=-1;
         if(index==0){showHome();return;}
-        if(index==1){
-            currentNav=1;
-            scheduleDailyChallengeReminder();
-            if(menu!=null){menu.setOnDismissListener(null);menu.dismiss();}
-            game.setPaused(false);game.openLevels();enterGameplay();return;
-        }
-        if(index==2){showDailyChallengePanel();return;}
-        if(index==3){showPremiumStore();return;}
+        if(index==1){showDailyChallengePanel();return;}
+        if(index==2){showPremiumStore();return;}
+        if(index==3){showAchievements();return;}
         showProfile();
     }
 
     private void showVisibleMenuBanner() {
-        if(menuBannerSlot==null||menu==null||!menu.isShowing()||banner!=null)return;
+        if(onboardingStep>=0||menuBannerSlot==null||menu==null||!menu.isShowing()||banner!=null)return;
         if(!canRequestAds()){
             menuBannerSlot.setVisibility(View.INVISIBLE);
             setMenuBannerSpace(0,false);
@@ -1103,7 +1290,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void showResultBanner() {
         runOnUiThread(() -> {
-            if(resultBannerSlot==null||!canRequestAds()||isFinishing()||isDestroyed())return;
+            if(resultBannerSlot==null||game==null||!game.isResultScreen()||!canRequestAds()||isFinishing()||isDestroyed())return;
             hideResultBanner();
             suspendGameBanner();
             resultBanner=createAdaptiveBanner(resultBannerSlot,0);
@@ -1148,7 +1335,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dialog.show();if(dialog.getWindow()!=null)dialog.getWindow().setBackgroundDrawableResource(com.arrowescape.pro.R.drawable.dialog_background);
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
-    @Override protected void onPause(){super.onPause();game.saveProgress();game.setPaused(true);}
-    @Override protected void onResume(){super.onResume();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
-    @Override protected void onDestroy(){destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
+    @Override public void onWindowFocusChanged(boolean hasFocus){super.onWindowFocusChanged(hasFocus);if(hasFocus&&foreground&&!showingAd&&music!=null)music.resume();}
+    @Override protected void onPause(){cancelPendingBooster();foreground=false;if(music!=null)music.suspend();super.onPause();game.saveProgress();game.setPaused(true);}
+    @Override protected void onResume(){super.onResume();foreground=true;if(music!=null&&!showingAd)music.resume();refreshPlayGamesStatus();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
+    @Override protected void onDestroy(){cancelPendingBooster();if(music!=null)music.release();destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }

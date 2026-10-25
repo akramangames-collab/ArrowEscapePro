@@ -33,8 +33,8 @@ for name, source in (("values/styles.xml", styles), ("values-v31/styles.xml", st
     require('android:windowLightStatusBar">false' in source, f"{name}: status icons must remain light")
 
 # Product architecture: these are separate first-class destinations from Home.
-for label in ("LEVELS", "DAILY CHALLENGE", "ACHIEVEMENTS", "STORE"):
-    require(label in main, f"Home/navigation contract missing destination: {label}")
+for label in ("Route", "DAILY CHALLENGE", "AWARDS", "STORE"):
+    require(label in main, f"Route/navigation contract missing destination: {label}")
 require("showPremiumStore()" in main, "Dedicated Store surface missing")
 require("showAchievements()" in main, "Dedicated Achievements surface missing")
 require("showDailyChallengePanel()" in main, "Dedicated Daily Challenge surface missing")
@@ -72,7 +72,7 @@ if failures:
 
 print("UI/UX contract OK")
 print(" - dark navy/cyan theme consistent through Android 12+")
-print(" - Home destinations preserved")
+print(" - direct Route and companion destinations preserved")
 print(" - Daily Challenge reward copy matches wallet logic")
 print(" - streak ladder preserved")
 print(" - premium native dialog styling/motion preserved")

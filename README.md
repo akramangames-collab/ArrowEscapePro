@@ -1,97 +1,50 @@
 # Arrow Escape: Puzzle Maze
 
-Current release-hardening line for the Android arrow puzzle game.
+Android package: `com.arrowescape.pro` · **v1.7.0 candidate (versionCode 51)** · minimum Android API 24 · target API 36.
 
-## Current build
+## Gameplay and release contents
 
-- Version: `1.0.2`
-- Version code: `3`
-- Package: `com.arrowescape.pro`
-- Minimum SDK: `24`
-- Compile SDK: `36`
-- Target SDK: `36`
-- Java: `17`
-- Active hardening branch: `v26-release-hardening`
+Arrow heads move forward while their bodies follow the entire winding path. A move is legal only if the head's whole escape route is clear of other arrows and its own moving tail. The original V42 cage, key box, flying key animation, rescue character art and classic four-button HUD are preserved.
 
-## Gameplay baseline
+V51 adds **1,000 distinct deterministic campaign levels**, water rising during active puzzle time, rescue character expressions at water danger thresholds, and a timed level failure when the cage fills. Levels 1–5 are introductory (120 seconds); later levels have one unassisted removal order by the independent solver. **The gold cage-key arrow must be tapped manually last** and cannot be erased, bombed, swept or removed through Triple Escape. A blocked booster does not spend stock.
 
-The approved V15 movement model remains the gameplay foundation: the arrow head travels forward while the body follows the original path like a snake. Later releases preserve that movement while adding full escape validation, including own-tail/body clearance and blocking by other live arrows.
+The supported booster inventory is Hint, Eraser, Bomb, Sweep, Safe Scan and Triple Escape. Mistake Shield is retired. Separately, the earned Flow Shield protects at most one mistake in a level attempt (including after resuming a save). Replays cannot collect the same level's coins twice.
 
-The current product line retains the 200-level campaign, persistent progression/economy, hearts, hints, Daily Challenge, streak rewards, achievements, store/settings surfaces, production AdMob IDs in release and Google test IDs in debug.
+See [WATER-RESCUE.md](WATER-RESCUE.md) for rules, timer/resume behavior, and balancing limitations.
+
+## Verify a release candidate
+
+```bash
+python3 scripts/generate-water-levels.py --check
+python3 scripts/verify-water-levels.py
+python3 scripts/verify-levels.py
+bash scripts/test-wallet.sh
+gradle :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease
+```
+
+The GitHub Actions workflow `.github/workflows/v42-restore-release.yml` checks preserved cage/character hashes, level pack generation, the independent 1,000-level solver, runtime tests, lint, release APK/AAB, and **absence of AD_ID from the compiled release APK**. It creates GitHub Actions artifacts. Do not treat a successful CI build as physical-device gameplay QA or Google Play policy approval.
 
 ## Release signing
 
-Private signing material must never be committed to this repository.
-
-`app/build.gradle.kts` supports release signing only when all four environment values are present:
+**Never commit the keystore or passwords.** Release signing requires the original Google Play upload key. Gradle takes the environment variables:
 
 - `ARROW_RELEASE_STORE_FILE`
 - `ARROW_RELEASE_STORE_PASSWORD`
 - `ARROW_RELEASE_KEY_ALIAS`
 - `ARROW_RELEASE_KEY_PASSWORD`
 
-The GitHub release workflow supplies the known upload-key alias `arrowescape-upload` and maps the remaining values from these repository secrets:
+The workflow can use repository secrets `ARROW_RELEASE_KEYSTORE_B64`, `ARROW_RELEASE_STORE_PASSWORD`, and `ARROW_RELEASE_KEY_PASSWORD`, with the known original alias `arrowescape-upload`. When secrets are present on a trusted branch push, it verifies the original upload certificate fingerprint and signs the APK/AAB. Without them, the workflow emits clearly labeled **UNSIGNED** files; those cannot be uploaded to Google Play as final release artifacts. The signing step is disabled for pull-request events.
 
-- `ARROW_RELEASE_KEYSTORE_B64` — base64 encoded existing release/upload keystore
-- `ARROW_RELEASE_STORE_PASSWORD`
-- `ARROW_RELEASE_KEY_PASSWORD`
+## Ads, privacy, and publishing gate
 
-The verified Play upload certificate SHA-256 fingerprint is pinned in the workflow, so a different keystore cannot silently produce the release artifact.
+Debug builds use Google test ad IDs; release builds use the existing production AdMob IDs. Google Mobile Ads / UMP consent-gating is implemented in app code with child-directed and G-rated ad requests. This does **not** prove AdMob account-side blocking controls or real creatives are safe. Review [PLAY-ADS-POLICY-RELEASE-GATES-v49.md](PLAY-ADS-POLICY-RELEASE-GATES-v49.md) and the updated [privacy policy](PRIVACY_POLICY.md).
 
-Use the same existing release/upload key that was used for the Play Store app. Do not create a replacement key unless the Play Console key-management process explicitly requires it.
-
-## GitHub Actions policy
-
-To avoid wasting Actions minutes, the release-hardening branch has one workflow only:
-
-`.github/workflows/aab-1.0.1.yml`
-
-It is `workflow_dispatch` only. Normal pushes do not start a build.
-
-When manually started, it:
-
-1. Fails immediately if any required signing secret is missing.
-2. Installs Android SDK 36.
-3. Restores the private keystore only inside the runner temporary directory.
-4. Verifies the deterministic level pack, clearance/solvability rules, wallet tests and UI/UX contract.
-5. Runs Android lint.
-6. Builds the release AAB with the configured signing key.
-7. Verifies the AAB signature and checks that its signer certificate matches the pinned Play upload-certificate SHA-256 fingerprint.
-8. Uploads `PLAY-STORE-Arrow-Escape-1.0.2-SDK36-SIGNED.aab` plus its SHA-256 checksum.
-
-Legacy V16/V22/V23/V24/V30 auto-build and self-modifying workflows are intentionally removed from this branch.
-
-## Local/static verification
-
-The repository contains the existing validation scripts used throughout development:
-
-```sh
-python3 scripts/generate-hard-levels.py --check
-python3 scripts/verify-levels.py
-bash scripts/test-wallet.sh
-python3 scripts/verify-ui-ux.py
-```
-
-For an Android build with a configured SDK/Gradle environment:
-
-```sh
-gradle :app:lintDebug :app:assembleDebug :app:bundleRelease
-```
-
-Without the four release-signing environment variables, Gradle may still produce an unsigned release artifact for development checks. Such an artifact is **not** the final Play Store update bundle.
-
-## Ads
-
-Debug builds use Google's official test ad IDs. Release builds keep the production AdMob IDs already configured for Arrow Escape. Production ads must not be clicked during verification.
-
-## Play Store release rule
-
-Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.0.2` / code `3` is already configured for SDK 36.
+Before publishing: test on a real phone (including menus, water timeouts, booster protection, resume, ad delivery and ad-consent withdrawal), verify production signing, update accurate Play Console Data Safety/target audiences/content rating information, and check the public privacy policy URL. Do **not** publish V51 on CI alone.
 
 ## Official website and support
 
-Arrow Escape is developed by [AK Software Labs](https://aksoftwarelabs.tech/).
+Developed by [AK Software Labs](https://aksoftwarelabs.tech/).
 
-- [Arrow Escape product page and support information](https://aksoftwarelabs.tech/apps/arrow-escape/)
+- [Arrow Escape product page](https://aksoftwarelabs.tech/apps/arrow-escape/)
 - App support: [support@aksoftwarelabs.tech](mailto:support@aksoftwarelabs.tech)
-- More from AK Software Labs: [FestivalWish — personalized festival greeting cards](https://greeting.aksoftwarelabs.tech/)
+- [Other AK Software Labs projects](https://aksoftwarelabs.tech/)

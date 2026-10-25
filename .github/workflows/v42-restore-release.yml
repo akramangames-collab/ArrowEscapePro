@@ -1,0 +1,140 @@
+name: Arrow Escape v51 Water Rescue Release Verification
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - feature/cage-water-1000
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-original-release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - name: Verify v42 cage/character preservation and v51 water gameplay
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'a757b5d40dacf601442092d1253143791bf9d7edcfd958bcb51bde50259811a4  app/src/main/java/com/arrowescape/pro/CageRescue.java' \
+            '3daf6cde999a0f0b81f8c534b58a7b45984ab3ffe54eed6454bb2040474b9460  app/src/main/java/com/arrowescape/pro/RescueCharacterArt.java' \
+            '9b23bd016fa6c220c7a76f6d9f7ddc61bc544cc6b4eeec08e5ed358ab2d50b50  app/src/main/assets/characters/rescue-boy-expressions.png' | sha256sum -c -
+          grep -Fq 'versionCode = 51' app/build.gradle.kts
+          grep -Fq 'versionName = "1.7.0"' app/build.gradle.kts
+          grep -Fq 'play-services-ads:25.5.0' app/build.gradle.kts
+          grep -Fq 'MAX_AD_CONTENT_RATING_G' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'WATCH AD +1' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'AD +1' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'float controlY=h-insetBottom-dp(65),gap=dp(7)' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'drawRescueGoal(c,now)' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'drawExtraBoosterChip(c,scanHit' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'drawExtraBoosterChip(c,tripleHit' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'requestRewardedBooster(int kind)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'if(!BoosterInventory.available(kind)' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'Mistake Shield' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          ! grep -Fq 'Mistake Shield' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'SCAN=4, TRIPLE=6' app/src/main/java/com/arrowescape/pro/BoosterInventory.java
+          grep -Fq 'applyConsentPrivacyState()' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'if(!canRequestAds()){' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'if (canRequestAds()) { interstitial = ad' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'if (canRequestAds()) { rewarded = ad' app/src/main/java/com/arrowescape/pro/MainActivity.java
+          grep -Fq 'https://developers.google.com/admob/android/privacy/play-data-disclosure' app/src/main/assets/privacy-policy.txt
+          ! grep -Fq 'next-gen/privacy/play-data-disclosure' app/src/main/assets/privacy-policy.txt
+          cmp app/src/main/assets/privacy-policy.txt PRIVACY.md
+          grep -Fq 'Device' app/src/main/assets/privacy-policy.txt
+          test ! -e app/src/main/java/com/arrowescape/pro/RescueCageScene.java
+          test ! -e .github/v42-original-restore-payload.base64
+          python3 scripts/generate-water-levels.py --check
+          python3 scripts/verify-water-levels.py
+          python3 scripts/verify-levels.py
+          grep -Fq 'LEVEL_COUNT = 1000' app/src/main/java/com/arrowescape/pro/CampaignRules.java
+          grep -Fq 'if(!rescueBoard||challengeActive()||finished||failed||keyEscaping())return;' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'boosterTargets.removeIf(p->isCageKey(p));' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'if(level<=5' app/src/main/java/com/arrowescape/pro/CageWater.java || grep -Fq 'level<=5?120f' app/src/main/java/com/arrowescape/pro/CageWater.java
+          echo 'ORIGINAL_V42_CAGE_CHARACTER_AND_1000_WATER_LEVELS_VERIFIED'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install Android 36.1
+        run: |
+          set -euo pipefail
+          SDKMANAGER="/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platform-tools" "platforms;android-36.1" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.6.0'
+      - name: Test lint APK and AAB
+        run: |
+          set -euo pipefail
+          bash scripts/test-wallet.sh
+          python3 scripts/generate-water-levels.py --check
+          python3 scripts/verify-water-levels.py
+          gradle :app:testDebugUnitTest :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
+          APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
+          AAB="app/build/outputs/bundle/release/app-release.aab"
+          test -n "$APK" && test -s "$APK" && test -s "$AAB"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='51' versionName='1.7.0'"
+          # The *merged* APK, not only the source manifest, must omit AD_ID.
+          if /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump permissions "$APK" | grep -Fq 'com.google.android.gms.permission.AD_ID'; then
+            echo "::error::Merged release APK still requests advertising ID permission"
+            exit 1
+          fi
+          echo "RELEASE_APK_AD_ID_PERMISSION_ABSENT"
+
+          unzip -t "$AAB" > /dev/null
+          mkdir -p dist
+          DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$DEBUG_APK"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$DEBUG_APK" | grep -F "package: name='com.arrowescape.pro.preview' versionCode='51'"
+          cp "$DEBUG_APK" dist/Arrow-Escape-1.7.0-v51-INSTALLABLE-TEST.apk
+          cp "$APK" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk
+          cp "$AAB" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
+      - name: Sign with existing Play upload key
+        if: github.event_name != 'pull_request'
+        env:
+          UPLOAD_KEYSTORE_B64: ${{ secrets.ARROW_RELEASE_KEYSTORE_B64 }}
+          UPLOAD_STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
+          UPLOAD_KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$UPLOAD_KEYSTORE_B64" ] || [ -z "$UPLOAD_STORE_PASSWORD" ] || [ -z "$UPLOAD_KEY_PASSWORD" ]; then
+            echo "Signing secrets unavailable: preserving verified UNSIGNED artifacts for separate original-key signing. Never upload these directly to Play."
+            exit 0
+          fi
+          umask 077
+          UPLOAD_KEY_PATH="$RUNNER_TEMP/arrow-original-upload.jks"
+          trap 'rm -f "$UPLOAD_KEY_PATH"' EXIT
+          printf '%s' "$UPLOAD_KEYSTORE_B64" | base64 --decode > "$UPLOAD_KEY_PATH"
+          CERT_SHA=$(keytool -list -v -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -alias arrowescape-upload | sed -n 's/.*SHA256: //p' | tr -d ':' | tr '[:upper:]' '[:lower:]')
+          test "$CERT_SHA" = "c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f"
+          BT="/usr/local/lib/android/sdk/build-tools/36.0.0"
+          "$BT/zipalign" -p -f 4 dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          "$BT/apksigner" sign --ks "$UPLOAD_KEY_PATH" --ks-key-alias arrowescape-upload --ks-pass env:UPLOAD_STORE_PASSWORD --key-pass env:UPLOAD_KEY_PASSWORD --out dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          cp dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab
+          jarsigner -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -keypass:env UPLOAD_KEY_PASSWORD dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab arrowescape-upload
+          "$BT/apksigner" verify --verbose --print-certs dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.apk
+          jarsigner -verify dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab
+          rm dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
+          cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
+          sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
+      - name: Record final artifact checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum *.apk *.aab > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Arrow-Escape-v51-Verified-APK-AAB
+          path: dist/
+          retention-days: 14
+          if-no-files-found: error

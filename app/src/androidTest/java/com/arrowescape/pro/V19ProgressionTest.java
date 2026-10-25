@@ -41,7 +41,7 @@ public class V19ProgressionTest {
         int weeklyLevel=(Integer)get(first,"level");
         assertTrue((Boolean)get(first,"weeklyChallenge"));
         assertFalse((Boolean)get(first,"dailyChallenge"));
-        assertTrue(weeklyLevel>=80&&weeklyLevel<=200&&weeklyLevel%5==0);
+        assertTrue(weeklyLevel>=120&&weeklyLevel<=396&&weeklyLevel%12==0);
         assertEquals(17,gamePrefs.getInt("lastLevel",-1));
         assertEquals(17,gamePrefs.getInt("maxUnlocked",-1));
 
@@ -75,8 +75,8 @@ public class V19ProgressionTest {
         assertEquals(2,game.achievementCount());
         String summary=game.progressSummary();
         String details=game.progressDetails();
-        assertTrue(summary.contains("60/600★"));
-        assertTrue(summary.contains("1/8 chapter trophies"));
+        assertTrue(summary.contains("60/1200★"));
+        assertTrue(summary.contains("1/13 chapter trophies"));
         assertTrue(details.contains("CH 1 · First Escape — GOLD TROPHY"));
         assertTrue(details.contains("✓ First Escape"));
         assertTrue(details.contains("✓ Perfect Start"));

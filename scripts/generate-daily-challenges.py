@@ -2,7 +2,7 @@
 """Generate a dedicated offline Daily Challenge pack.
 
 These puzzles are NOT copied from levels.txt and never participate in the normal
-1-200 progression.  The constructive dependency graph guarantees solvability;
+1-400 progression.  The constructive dependency graph guarantees solvability;
 each challenge has exactly one opening move and full self-tail clearance.
 """
 import argparse
@@ -220,7 +220,7 @@ def main():
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content)
-    print(f"Verified {COUNT} unique dedicated Daily Challenges; zero overlap with the 200 normal levels.")
+    print(f"Verified {COUNT} unique dedicated Daily Challenges; zero overlap with the 400 normal levels.")
 
 
 if __name__ == "__main__":
