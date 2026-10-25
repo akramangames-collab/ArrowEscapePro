@@ -741,7 +741,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             addAchievementCard(body,"♛","Puzzle Master","Complete 50 levels",Math.min(complete,50)+" / 50",complete>=50);
             addAchievementCard(body,"✦","Star Collector","Earn 300 stars",Math.min(stars,300)+" / 300",stars>=300);
             addAchievementCard(body,"◆","Perfectionist","Get 3★ on 50 levels",Math.min(perfect,50)+" / 50",perfect>=50);
-            addAchievementCard(body,"🏆","Boss Hunter","Clear all 13 Extreme Hard checkpoints",game.allBossesComplete()?"Unlocked":"Keep climbing",game.allBossesComplete());
+            addAchievementCard(body,"🏆","Boss Hunter","Clear all "+(CampaignRules.LEVEL_COUNT/30)+" Extreme Hard checkpoints",game.allBossesComplete()?"Unlocked":"Keep climbing",game.allBossesComplete());
             int streak=wallet.streak();
             addAchievementCard(body,"🔥","Streak Starter","Reach a 3-day daily streak",Math.min(streak,3)+" / 3",streak>=3);
             addAchievementCard(body,"🔥","Week Warrior","Reach a 7-day daily streak",Math.min(streak,7)+" / 7",streak>=7);

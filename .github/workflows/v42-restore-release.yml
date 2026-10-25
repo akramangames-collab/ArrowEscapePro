@@ -79,7 +79,7 @@ jobs:
           bash scripts/test-wallet.sh
           python3 scripts/generate-water-levels.py --check
           python3 scripts/verify-water-levels.py
-          gradle :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease --stacktrace
+          gradle :app:testDebugUnitTest :app:lintRelease :app:assembleDebug :app:assembleRelease :app:bundleRelease --stacktrace
           APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
           AAB="app/build/outputs/bundle/release/app-release.aab"
           test -n "$APK" && test -s "$APK" && test -s "$AAB"
@@ -93,6 +93,10 @@ jobs:
 
           unzip -t "$AAB" > /dev/null
           mkdir -p dist
+          DEBUG_APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$DEBUG_APK"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$DEBUG_APK" | grep -F "package: name='com.arrowescape.pro.preview' versionCode='51'"
+          cp "$DEBUG_APK" dist/Arrow-Escape-1.7.0-v51-INSTALLABLE-TEST.apk
           cp "$APK" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk
           cp "$AAB" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
       - name: Sign with existing Play upload key
@@ -123,6 +127,11 @@ jobs:
           rm dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
+      - name: Record final artifact checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum *.apk *.aab > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: Arrow-Escape-v51-Verified-APK-AAB
