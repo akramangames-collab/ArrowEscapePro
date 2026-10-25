@@ -1,16 +1,13 @@
-name: Arrow Escape v50 Families Ads & Data Safety Audit CI
+name: Arrow Escape v51 Water Rescue Release Verification
 
 on:
   pull_request:
     branches:
       - main
-      - feature/v48-v42-scan-triple-no-shield
   push:
     branches:
-      - restore/v42-original-families-policy-v47
       - main
-      - feature/v48-v42-scan-triple-no-shield
-      - fix/v50-single-flow-shield
+      - feature/cage-water-1000
   workflow_dispatch:
 
 permissions:
@@ -22,16 +19,15 @@ jobs:
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v5
-      - name: Verify original v42 cage, character, 400 levels and Families policy
+      - name: Verify v42 cage/character preservation and v51 water gameplay
         run: |
           set -euo pipefail
           printf '%s\n' \
             'a757b5d40dacf601442092d1253143791bf9d7edcfd958bcb51bde50259811a4  app/src/main/java/com/arrowescape/pro/CageRescue.java' \
             '3daf6cde999a0f0b81f8c534b58a7b45984ab3ffe54eed6454bb2040474b9460  app/src/main/java/com/arrowescape/pro/RescueCharacterArt.java' \
-            '9b23bd016fa6c220c7a76f6d9f7ddc61bc544cc6b4eeec08e5ed358ab2d50b50  app/src/main/assets/characters/rescue-boy-expressions.png' \
-            '4a8468ac871ef3b7cb523016ba919888c7bf6dd6225cf2a51c0cd89fd909eb01  app/src/main/assets/levels.txt' | sha256sum -c -
-          grep -Fq 'versionCode = 50' app/build.gradle.kts
-          grep -Fq 'versionName = "1.6.11"' app/build.gradle.kts
+            '9b23bd016fa6c220c7a76f6d9f7ddc61bc544cc6b4eeec08e5ed358ab2d50b50  app/src/main/assets/characters/rescue-boy-expressions.png' | sha256sum -c -
+          grep -Fq 'versionCode = 51' app/build.gradle.kts
+          grep -Fq 'versionName = "1.7.0"' app/build.gradle.kts
           grep -Fq 'play-services-ads:25.5.0' app/build.gradle.kts
           grep -Fq 'MAX_AD_CONTENT_RATING_G' app/src/main/java/com/arrowescape/pro/MainActivity.java
           grep -Fq 'TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE' app/src/main/java/com/arrowescape/pro/MainActivity.java
@@ -56,7 +52,14 @@ jobs:
           grep -Fq 'Device' app/src/main/assets/privacy-policy.txt
           test ! -e app/src/main/java/com/arrowescape/pro/RescueCageScene.java
           test ! -e .github/v42-original-restore-payload.base64
-          echo 'RESTORED_ORIGINAL_V42_GAMEPLAY_AND_ART_VERIFIED'
+          python3 scripts/generate-water-levels.py --check
+          python3 scripts/verify-water-levels.py
+          python3 scripts/verify-levels.py
+          grep -Fq 'LEVEL_COUNT = 1000' app/src/main/java/com/arrowescape/pro/CampaignRules.java
+          grep -Fq 'if(!rescueBoard||challengeActive()||finished||failed||keyEscaping())return;' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'boosterTargets.removeIf(p->isCageKey(p));' app/src/main/java/com/arrowescape/pro/ArrowGameView.java
+          grep -Fq 'if(level<=5' app/src/main/java/com/arrowescape/pro/CageWater.java || grep -Fq 'level<=5?120f' app/src/main/java/com/arrowescape/pro/CageWater.java
+          echo 'ORIGINAL_V42_CAGE_CHARACTER_AND_1000_WATER_LEVELS_VERIFIED'
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
@@ -74,11 +77,13 @@ jobs:
         run: |
           set -euo pipefail
           bash scripts/test-wallet.sh
+          python3 scripts/generate-water-levels.py --check
+          python3 scripts/verify-water-levels.py
           gradle :app:testDebugUnitTest :app:lintRelease :app:assembleRelease :app:bundleRelease --stacktrace
           APK="$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*unsigned*.apk' -print -quit)"
           AAB="app/build/outputs/bundle/release/app-release.aab"
           test -n "$APK" && test -s "$APK" && test -s "$AAB"
-          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='50' versionName='1.6.11'"
+          /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump badging "$APK" | grep -F "package: name='com.arrowescape.pro' versionCode='51' versionName='1.7.0'"
           # The *merged* APK, not only the source manifest, must omit AD_ID.
           if /usr/local/lib/android/sdk/build-tools/36.0.0/aapt dump permissions "$APK" | grep -Fq 'com.google.android.gms.permission.AD_ID'; then
             echo "::error::Merged release APK still requests advertising ID permission"
@@ -88,9 +93,10 @@ jobs:
 
           unzip -t "$AAB" > /dev/null
           mkdir -p dist
-          cp "$APK" dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.apk
-          cp "$AAB" dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.aab
+          cp "$APK" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk
+          cp "$AAB" dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
       - name: Sign with existing Play upload key
+        if: github.event_name != 'pull_request'
         env:
           UPLOAD_KEYSTORE_B64: ${{ secrets.ARROW_RELEASE_KEYSTORE_B64 }}
           UPLOAD_STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
@@ -108,18 +114,18 @@ jobs:
           CERT_SHA=$(keytool -list -v -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -alias arrowescape-upload | sed -n 's/.*SHA256: //p' | tr -d ':' | tr '[:upper:]' '[:lower:]')
           test "$CERT_SHA" = "c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f"
           BT="/usr/local/lib/android/sdk/build-tools/36.0.0"
-          "$BT/zipalign" -p -f 4 dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
-          "$BT/apksigner" sign --ks "$UPLOAD_KEY_PATH" --ks-key-alias arrowescape-upload --ks-pass env:UPLOAD_STORE_PASSWORD --key-pass env:UPLOAD_KEY_PASSWORD --out dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
-          cp dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.aab dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.aab
-          jarsigner -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -keypass:env UPLOAD_KEY_PASSWORD dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.aab arrowescape-upload
-          "$BT/apksigner" verify --verbose --print-certs dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.apk
-          jarsigner -verify dist/Arrow-Escape-1.6.11-v50-ORIGINAL-SIGNED.aab
-          rm dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.apk dist/Arrow-Escape-1.6.11-v50-V42-UNSIGNED.aab
+          "$BT/zipalign" -p -f 4 dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          "$BT/apksigner" sign --ks "$UPLOAD_KEY_PATH" --ks-key-alias arrowescape-upload --ks-pass env:UPLOAD_STORE_PASSWORD --key-pass env:UPLOAD_KEY_PASSWORD --out dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.apk "$RUNNER_TEMP/arrow-aligned.apk"
+          cp dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab
+          jarsigner -keystore "$UPLOAD_KEY_PATH" -storepass:env UPLOAD_STORE_PASSWORD -keypass:env UPLOAD_KEY_PASSWORD dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab arrowescape-upload
+          "$BT/apksigner" verify --verbose --print-certs dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.apk
+          jarsigner -verify dist/Arrow-Escape-1.7.0-v51-ORIGINAL-SIGNED.aab
+          rm dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.apk dist/Arrow-Escape-1.7.0-v51-WATER-UNSIGNED.aab
           cp app/build/outputs/mapping/release/mapping.txt dist/mapping.txt
           sha256sum dist/*.apk dist/*.aab > dist/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-v50-Verified-APK-AAB
+          name: Arrow-Escape-v51-Verified-APK-AAB
           path: dist/
-          retention-days: 7
+          retention-days: 14
           if-no-files-found: error
