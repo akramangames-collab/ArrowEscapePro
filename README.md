@@ -87,3 +87,11 @@ Debug builds use Google's official test ad IDs. Release builds keep the producti
 ## Play Store release rule
 
 Only upload the manually generated artifact whose signing verification passes with the existing Play release/upload identity. Version `1.0.2` / code `3` is already configured for SDK 36.
+
+## Official website and support
+
+Arrow Escape is developed by [AK Software Labs](https://aksoftwarelabs.tech/).
+
+- [Arrow Escape product page and support information](https://aksoftwarelabs.tech/apps/arrow-escape/)
+- App support: [support@aksoftwarelabs.tech](mailto:support@aksoftwarelabs.tech)
+- More from AK Software Labs: [FestivalWish — personalized festival greeting cards](https://greeting.aksoftwarelabs.tech/)
