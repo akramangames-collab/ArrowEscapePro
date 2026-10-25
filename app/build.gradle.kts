@@ -30,8 +30,8 @@ android {
         applicationId = "com.arrowescape.pro"
         minSdk = 24
         targetSdk = 36
-        versionCode = 52
-        versionName = "1.8.0"
+        versionCode = 53
+        versionName = "2.0.0-preview"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resValue("string", "game_services_project_id", playGamesProjectId)
         buildConfigField("boolean", "PLAY_GAMES_CONFIGURED", (playGamesReady && !playGamesProjectId.isEmpty()).toString())

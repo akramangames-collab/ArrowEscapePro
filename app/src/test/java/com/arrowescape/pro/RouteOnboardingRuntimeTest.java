@@ -48,7 +48,7 @@ public class RouteOnboardingRuntimeTest {
    tap(p,.68f,.3f);tap(p,.4f,.4f);assertEquals(-1,get(a,"onboardingStep"));
    assertEquals(balance,wallet.balance());assertEquals(level,game.currentLevelNumber());assertEquals(0,game.completedLevelCount());
    assertEquals("LEVELS",get(game,"screen").toString());assertEquals(View.VISIBLE,((View)get(a,"routeNav")).getVisibility());
-   render((View)get(a,"root"),720,1560,"route-home");
+   assertNotNull(text(dialog(a),"PLAY · LEVEL"));render(dialog(a),720,1560,"premium-home");
    call(a,"showOnboarding",new Class[]{int.class},0);text(dialog(a),"Skip tutorial").performClick();assertEquals("LEVELS",get(game,"screen").toString());
   }
   try(var c=Robolectric.buildActivity(MainActivity.class).setup()){idle();assertEquals(-1,get(c.get(),"onboardingStep"));assertEquals("LEVELS",get(get(c.get(),"game"),"screen").toString());}
@@ -65,11 +65,20 @@ public class RouteOnboardingRuntimeTest {
  }
  @Test public void resultActionsFitPhoneAndLandscapeAndActiveGameHasNoBanner()throws Exception{
   try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
-   MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});ArrowGameView game=(ArrowGameView)get(a,"game");game.openPlay();
+   MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});ArrowGameView game=(ArrowGameView)get(a,"game");text(dialog(a),"PLAY · LEVEL").performClick();
    assertEquals(View.GONE,((View)get(a,"routeNav")).getVisibility());assertFalse((Boolean)get(a,"gameplayBannerRequested"));
    render((View)get(a,"root"),720,1560,"gameplay");set(game,"finished",true);set(game,"earnedStars",2);set(game,"winReward",25);
    for(int[] size:new int[][]{{720,1560},{1280,800}}){render((View)get(a,"root"),size[0],size[1],"win-"+size[0]);for(String key:new String[]{"primaryHit","secondaryHit","tertiaryHit","shareHit"}){RectF hit=(RectF)get(game,key);assertTrue(hit.top>=0);assertTrue(hit.bottom<=game.getHeight());}}
    set(game,"finished",false);set(game,"failed",true);render((View)get(a,"root"),720,1560,"retry");RectF route=(RectF)get(game,"tertiaryHit");tap(game,route.centerX()/game.getWidth(),route.centerY()/game.getHeight());assertEquals("LEVELS",get(game,"screen").toString());
+  }
+ }
+ @Test public void premiumHomeGuidesAndSettingsAreRealNativePages()throws Exception{
+  try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
+   MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});
+   assertNotNull(text(dialog(a),"PLAY · LEVEL"));render(dialog(a),720,1560,"premium-home");
+   call(a,"showBoosterCollection",new Class[]{});assertNotNull(text(dialog(a),"BOOSTERS"));
+   call(a,"showBoosterDetails",new Class[]{int.class,boolean.class},6,true);assertNotNull(practice(dialog(a)));assertNotNull(text(dialog(a),"GET BOOSTER"));render(dialog(a),720,1560,"premium-booster");
+   for(String page:new String[]{"showNotificationSettings","showStatistics","showRewardHistory","showGameRules","showDeveloper","showWeeklyChallengePanel"}){call(a,page,new Class[]{});render(dialog(a),720,1560,page);assertTrue(((AlertDialog)get(a,"menu")).isShowing());}
   }
  }
  @Test public void interruptedTutorialResumesItsStepAfterActivityRecreation()throws Exception{
@@ -81,7 +90,7 @@ public class RouteOnboardingRuntimeTest {
  @Test public void routePlayResumesUnfinishedRunAndChapterCardsCover1000Levels()throws Exception{
   try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
    MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});ArrowGameView game=(ArrowGameView)get(a,"game");
-   set(game,"hearts",2);game.openLevels();render((View)get(a,"root"),720,1560,"route-resume");RectF play=(RectF)get(game,"mapCurrentHit");tap(game,play.centerX()/game.getWidth(),play.centerY()/game.getHeight());assertEquals(2,get(game,"hearts"));assertEquals("PLAY",get(game,"screen").toString());
+   set(game,"hearts",2);text(dialog(a),"LEVELS & CHAPTERS").performClick();render((View)get(a,"root"),720,1560,"route-resume");RectF play=(RectF)get(game,"mapCurrentHit");tap(game,play.centerX()/game.getWidth(),play.centerY()/game.getHeight());assertEquals(2,get(game,"hearts"));assertEquals("PLAY",get(game,"screen").toString());
    String[][] chapters=game.chapterAwardCards();assertEquals(25,chapters.length);assertTrue(chapters[0][1].contains("1–40"));assertTrue(chapters[24][1].contains("961–1000"));
   }
  }

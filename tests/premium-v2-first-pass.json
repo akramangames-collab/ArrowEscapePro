@@ -1,0 +1,68 @@
+{
+  "note": "Full suite after navigation fixes; subsequent compact-home change receives targeted rerun. Not physical-device QA.",
+  "suites": [
+    {
+      "name": "com.arrowescape.pro.CampaignRuntimeTest",
+      "tests": "27",
+      "failures": "0",
+      "errors": "0",
+      "time": "44.4"
+    },
+    {
+      "name": "com.arrowescape.pro.CageWaterTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.003"
+    },
+    {
+      "name": "com.arrowescape.pro.PremiumV2RuntimeTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.073"
+    },
+    {
+      "name": "com.arrowescape.pro.CageRescueTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.arrowescape.pro.AmbientMusicRuntimeTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "time": "10.281"
+    },
+    {
+      "name": "com.arrowescape.pro.BoosterInventoryRuntimeTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "time": "0.734"
+    },
+    {
+      "name": "com.arrowescape.pro.RouteOnboardingRuntimeTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "time": "24.348"
+    },
+    {
+      "name": "com.arrowescape.pro.BannerLayoutRuntimeTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "time": "1.451"
+    },
+    {
+      "name": "com.arrowescape.pro.StartupRuntimeTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "time": "16.733"
+    }
+  ]
+}

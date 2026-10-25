@@ -26,5 +26,10 @@ public final class BoosterInventory {
         int kind=giftKind(level),amount=giftAmount(level);if(kind<0||prefs.getBoolean("boost_level_"+level,false))return 0;
         return prefs.edit().putInt("boost_stock_"+kind,count(kind)+amount).putBoolean("boost_level_"+level,true).commit()?amount:0;
     }
+    public synchronized boolean dailyChoiceClaimed(long day){return prefs.getBoolean("daily_booster_choice_"+day,false);}
+    public synchronized boolean claimDailyChoice(long day,int kind,long completedDay){
+        if(!available(kind)||day<0||day>GameDay.today()||completedDay!=day||dailyChoiceClaimed(day))return false;
+        return prefs.edit().putInt("boost_stock_"+kind,count(kind)+1).putBoolean("daily_booster_choice_"+day,true).commit();
+    }
     private static void check(int kind){if(kind<0||kind>=COUNT)throw new IllegalArgumentException("Unknown booster");}
 }

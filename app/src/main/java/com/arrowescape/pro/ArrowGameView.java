@@ -116,6 +116,7 @@ public class ArrowGameView extends View {
     private RescueCharacterArt rescueArt;
     private final CageRescue cageRescue=new CageRescue();
     private final CageWater cageWater=new CageWater();
+    private Heartbeat heartbeat;
     private int savedWaterSecond;
     private long rescueReactionUntil, rescueEncouragementUntil;
     private boolean finished = false;
@@ -297,8 +298,10 @@ public class ArrowGameView extends View {
     private void updateWater(float dt){
         if(!rescueBoard||challengeActive()||finished||failed||keyEscaping())return;
         cageWater.advance(dt);
+        if(heartbeat==null)heartbeat=new Heartbeat(getContext(),settings);
+        heartbeat.tick(cageWater.fraction(),SystemClock.elapsedRealtime());
         if(cageWater.full()){
-            failed=true;autoMovesRemaining=0;cancelBooster();showToast("Cage full · time ran out");buzz(150);saveProgress();
+            failed=true;autoMovesRemaining=0;cancelBooster();showToast("Danger meter full · time ran out");buzz(150);saveProgress();
         }else if((int)cageWater.elapsed()!=savedWaterSecond){savedWaterSecond=(int)cageWater.elapsed();saveProgress();}
     }
     private void updateAnimations(float dt, long now) {
@@ -362,8 +365,8 @@ public class ArrowGameView extends View {
                 }
                 prefs.edit().putInt("lastLevel", Math.min(MAX_LEVEL, level + 1)).apply();
                 boolean firstClear=bestStars(level)==0;
-                saveBestStars(level, earnedStars);
                 winReward=firstClear?wallet.rewardLevel(runId,level,earnedStars):0;
+                saveBestStars(level, earnedStars);
                 winBoosterKind=BoosterInventory.giftKind(level);
                 winBoosterAmount=inventory.rewardLevel(level);
             }
@@ -395,7 +398,7 @@ public class ArrowGameView extends View {
             : "CH " + chapterNumber(level) + " · " + chapterName(level) + " · " + difficulty();
         if (!challengeActive() && combo >= 2) sub += " · STREAK x" + combo;
         label(c, sub, w/2, top + dp(49), 11, difficultyColor, challengeActive() || isSuperHard(level) || combo >= 3);
-        if(rescueBoard&&!challengeActive())label(c,"WATER "+Math.round(cageWater.fraction()*100)+"%  ·  "+cageWater.remainingSeconds()+"s",w/2,top+dp(65),11,cageWater.danger()==2?RED:BLUE,true);
+        if(rescueBoard&&!challengeActive())label(c,hazard().meter+" "+Math.round(cageWater.fraction()*100)+"%  ·  "+cageWater.remainingSeconds()+"s",w/2,top+dp(65),11,cageWater.danger()==2?RED:BLUE,true);
         else if(combo>=2)label(c,"FLOW ×"+combo,w/2,top+dp(65),10,BLUE,true);
         drawGear(c, w-dp(31), top+dp(30));
         float statY = top + dp(84);
@@ -723,7 +726,7 @@ public class ArrowGameView extends View {
         paint.setColor(0xFF233E55);c.drawRoundRect(bubble,unit*.3f,unit*.3f,paint);
         paint.setColor(expression==RescueCharacterArt.STARTLED?RED:NAVY);paint.setTextAlign(Paint.Align.CENTER);
         paint.setTypeface(AppTypography.bold(getContext()));paint.setTextSize(unit*.45f);
-        String message=cageRescue.cageOpened()?"I’m free!":cageWater.danger()==2?"Hurry! Water is rising!":cageWater.danger()==1?"Water is getting high!":"Find the gold key!";
+        String message=cageRescue.cageOpened()?"I’m free!":cageWater.danger()==2?"Hurry! "+hazard().title+"!":cageWater.danger()==1?"Danger is rising!":"Find the gold key!";
         if(expression!=RescueCharacterArt.STARTLED&&cageRescue.boxOpened()&&!cageRescue.cageOpened())
             message=cageRescue.keyProgress()>0?"Here comes the key!":"Key box unlocked!";
         c.drawText(message,cx,bubble.centerY()+unit*.15f,paint);
@@ -732,7 +735,7 @@ public class ArrowGameView extends View {
         c.drawText(cageRescue.cageOpened()?"Cage open!":cageRescue.boxOpened()?"Unlocking cage…":"Find gold arrow",cx-unit*3.65f,cy+sy*3.25f,paint);
         paint.setColor(MUTED);paint.setTextSize(unit*.35f);
         paint.setColor(cageWater.danger()==2?RED:BLUE);
-        c.drawText(Math.round(cageWater.fraction()*100)+"% WATER · "+cageWater.remainingSeconds()+"s",cx-unit*3.65f,cy+sy*3.85f,paint);
+        c.drawText("♥ "+Math.round(60000f/Heartbeat.interval(cageWater.fraction()))+"  ·  "+Math.round(cageWater.fraction()*100)+"% "+hazard().meter+" · "+cageWater.remainingSeconds()+"s",cx-unit*3.65f,cy+sy*3.85f,paint);
         // A low frame rate is enough for idle breathing and a soft platform pulse.
         if(isShown()&&!paused&&!tutorial&&!finished&&!failed)postInvalidateDelayed(80);
         else if(isShown()&&!paused){
@@ -774,17 +777,25 @@ public class ArrowGameView extends View {
         }
     }
 
+    private RescueHazard hazard(){return RescueHazard.forLevel(level);}
+
     private void drawCageWater(Canvas c,float cx,float cy,float unit,float sy,long now){
         float left=cx-unit*3.4f,right=cx+unit*3.4f,top=cy-sy*2.86f,bottom=cy+sy*2.55f;
         float fill=cageRescue.cageOpened()?0:cageWater.fraction(),surface=bottom-(bottom-top)*fill;
         c.save();c.clipRect(left,top,right,bottom);
-        paint.setStyle(Paint.Style.FILL);paint.setColor(Color.argb(145,20,163,235));c.drawRect(left,surface,right,bottom,paint);
+        paint.setStyle(Paint.Style.FILL);paint.setColor(((hazard().color & 0x00FFFFFF) | 0x91000000));c.drawRect(left,surface,right,bottom,paint);
         if(fill>0){
             Path wave=new Path();wave.moveTo(left,surface);boolean animate=!settings.getBoolean("reduce_motion",false)&&!paused;
             for(int i=0;i<=24;i++)wave.lineTo(left+(right-left)*i/24f,surface+(float)Math.sin(i*.65+(animate?now/240.0:0))*sy*.055f);
-            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(unit*.08f);paint.setColor(0xFF88E6FF);c.drawPath(wave,paint);
+            paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(unit*.08f);paint.setColor(hazard().highlight);c.drawPath(wave,paint);
         }
-        c.restore();paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeWidth(unit*.35f);paint.setColor(0xFF8AA3B7);
+        if(hazard()==RescueHazard.FIRE&&fill>0){
+            paint.setColor(hazard().highlight);paint.setStyle(Paint.Style.FILL);
+            for(int i=0;i<7;i++){float x=left+(right-left)*(i+.5f)/7;float sway=settings.getBoolean("reduce_motion",false)?0:(float)Math.sin(now/350.0+i)*unit*.12f;
+                Path flame=new Path();flame.moveTo(x-unit*.3f,bottom);flame.quadTo(x-unit*.45f,surface,x+sway,surface-unit*.5f);flame.quadTo(x+unit*.5f,surface,x+unit*.3f,bottom);c.drawPath(flame,paint);}
+        }
+        c.restore();if(hazard()!=RescueHazard.WATER){paint.setStyle(Paint.Style.FILL);return;}
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeWidth(unit*.35f);paint.setColor(0xFF8AA3B7);
         Path pipe=new Path();pipe.moveTo(cx+unit*4f,cy-sy*3.05f);pipe.lineTo(cx+unit*2.6f,cy-sy*3.05f);pipe.lineTo(cx+unit*2.6f,top+sy*.35f);c.drawPath(pipe,paint);
         if(!cageRescue.cageOpened()){paint.setColor(0xFF46CBFF);paint.setStrokeWidth(unit*.16f);c.drawLine(cx+unit*2.6f,top+sy*.35f,cx+unit*2.6f,Math.max(top+sy*.35f,surface),paint);}
         paint.setStyle(Paint.Style.FILL);paint.setStrokeCap(Paint.Cap.SQUARE);
@@ -1190,8 +1201,8 @@ public class ArrowGameView extends View {
             RectF r=modal(c,285);
             label(c,"NEW CHAPTER · "+chapterNumber(level)+"/"+CHAPTER_COUNT,r.centerX(),r.top+dp(47),13,BLUE,true);
             label(c,chapterName(level),r.centerX(),r.top+dp(92),24,BOSS_GOLD,true);
-            label(c,"DENSE ARROWS · FASTER WATER",r.centerX(),r.top+dp(135),13,NAVY,true);
-            label(c,"One safe order. Rescue before the cage fills.",r.centerX(),r.top+dp(177),12,TEXT,false);
+            label(c,hazard().title.toUpperCase(java.util.Locale.ROOT),r.centerX(),r.top+dp(135),13,NAVY,true);
+            label(c,hazard().tutorial,r.centerX(),r.top+dp(177),12,TEXT,false);
             label(c,"Tap anywhere to begin",r.centerX(),r.bottom-dp(28),12,MUTED,false);
             return;
         }
@@ -1235,7 +1246,7 @@ public class ArrowGameView extends View {
         Path demo=new Path();demo.moveTo(r.centerX()-dp(72),y+dp(25));demo.lineTo(r.centerX()-dp(14),y+dp(25));demo.lineTo(r.centerX()-dp(14),y);demo.lineTo(r.centerX()+dp(62),y);c.drawPath(demo,paint);paint.setStyle(Paint.Style.FILL);drawMiniArrow(c,r.centerX()+dp(63),y,dp(15),NAVY,0);
         label(c,"Blocked taps cost one heart.",r.centerX(),r.top+dp(253),14,TEXT,false);
         label(c,"Earn tools from gifts or optional reward ads.",r.centerX(),r.top+dp(280),14,TEXT,false);
-        label(c,"Rescue before the cage fills with water!",r.centerX(),r.top+dp(306),14,TEXT,false);
+        label(c,hazard().tutorial,r.centerX(),r.top+dp(306),14,TEXT,false);
         primaryHit.set(r.left+dp(22),r.bottom-dp(72),r.right-dp(22),r.bottom-dp(22));
         action(c,primaryHit,"Let's play",BLUE,Color.WHITE);
     }
@@ -1262,8 +1273,8 @@ public class ArrowGameView extends View {
         }else{drawCoin(c,w/2,dp(218),dp(57));label(c,"CHALLENGE COMPLETE",w/2,dp(303),12,BLUE,true);}
         RectF rewards=new RectF(dp(24),dp(323),w-dp(24),dp(441));polishedPill(c,rewards,0xFF173D46,0xFF10243B);strokeRound(c,rewards,0xFF36736E,dp(1));
         label(c,winReward>0?"+"+winReward+" COINS":"REWARD ALREADY CLAIMED",w/2,dp(354),21,BOSS_GOLD,true);
-        label(c,rescue?cageWater.remainingSeconds()+"s TO SPARE  ·  "+mistakes+" MISTAKES":"Wallet: "+wallet.balance()+" coins",w/2,dp(382),12,NAVY,true);
-        label(c,winBoosterAmount>0?"GIFT +"+winBoosterAmount+" "+BoosterInventory.name(winBoosterKind):"Your rescue is saved. Ready for the next?",w/2,dp(413),12,MUTED,false);
+        label(c,"BALANCE: "+wallet.balance()+" COINS · REWARD CLAIMED",w/2,dp(382),12,NAVY,true);
+        label(c,winBoosterAmount>0?"GIFT +"+winBoosterAmount+" "+BoosterInventory.name(winBoosterKind):dailyChallenge?"200 coins + booster choice on Daily page":"Your rescue is saved. Ready for the next?",w/2,dp(413),12,MUTED,false);
         c.restore();w=actualWidth;
         action(c,primaryHit,challengeActive()?"BACK TO ROUTE":level<MAX_LEVEL?"NEXT RESCUE  ›":"ALL 1000 RESCUED!",BLUE,0xFF001822);
         action(c,secondaryHit,"▶  WATCH AD · +1 BOMB",DAILY_PURPLE,NAVY);action(c,shareHit,"Share rescue",PALE,NAVY);
@@ -1278,7 +1289,7 @@ public class ArrowGameView extends View {
     private void drawFail(Canvas c) {
         drawScenicBackdrop(c);float w=getWidth(),h=getHeight(),top=insetTop+dp(18),bottom=h-insetBottom;
         label(c,"TRY AGAIN",w/2,top+dp(28),27,NAVY,true);
-        label(c,cageWater.full()?"Cage filled with water. Try the rescue again.":"Your coins are safe. Find a fresh way out.",w/2,top+dp(56),13,MUTED,false);
+        label(c,cageWater.full()?"Danger meter full. Try the rescue again.":"Your coins are safe. Find a fresh way out.",w/2,top+dp(56),13,MUTED,false);
         primaryHit.set(dp(24),bottom-dp(180),w-dp(24),bottom-dp(130));secondaryHit.set(dp(24),bottom-dp(118),w-dp(24),bottom-dp(68));tertiaryHit.set(dp(24),bottom-dp(60),w-dp(24),bottom-dp(12));
         float portraitTop=top+dp(76),portraitBottom=primaryHit.top-dp(14);
         if(rescueBoard&&!challengeActive()&&portraitBottom-portraitTop>=dp(70))rescueArt.draw(c,RescueCharacterArt.STARTLED,w/2,portraitBottom,Math.min(dp(260),portraitBottom-portraitTop),w*.45f);
@@ -1556,7 +1567,7 @@ public class ArrowGameView extends View {
     public void startDailyChallenge() {
         if(packedDailyChallenges==null||packedDailyChallenges.length==0){showToast("Daily Challenge unavailable");return;}
         normalLevelBeforeChallenge=Math.max(1,Math.min(MAX_LEVEL,prefs.getInt("lastLevel",level)));
-        challengeDay=System.currentTimeMillis()/Wallet.DAY_MS;
+        challengeDay=GameDay.today();
         weeklyChallenge=false;challengeWeek=-1L;dailyChallenge=true;
         // Daily Challenge is its own puzzle pack. MAX_LEVEL is only a difficulty
         // profile marker for special mechanics; no campaign level is loaded.
@@ -1565,7 +1576,7 @@ public class ArrowGameView extends View {
 
     public void startWeeklyChallenge() {
         normalLevelBeforeChallenge=Math.max(1,Math.min(MAX_LEVEL,prefs.getInt("lastLevel",level)));
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        long day=GameDay.today();
         challengeWeek=day/7L;
         dailyChallenge=false;challengeDay=-1L;weeklyChallenge=true;
         setupLevel(weeklyLevelForWeek(challengeWeek),false);
@@ -1580,11 +1591,11 @@ public class ArrowGameView extends View {
     private int dailyChallengeNumberForDay(long day){return dailyChallengeIndex(day)+1;}
     private int weeklyLevelForWeek(long week){return 120+(int)Math.floorMod(week*97L+11L,24L)*12;}
     public int bestDailyStarsToday(){
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        long day=GameDay.today();
         return prefs.getLong("challenge_star_day",-1L)==day?prefs.getInt("challenge_best_stars",0):0;
     }
     public int bestWeeklyStarsThisWeek(){
-        long week=(System.currentTimeMillis()/Wallet.DAY_MS)/7L;
+        long week=(GameDay.today())/7L;
         return prefs.getLong("weekly_challenge_star_week",-1L)==week?prefs.getInt("weekly_challenge_best_stars",0):0;
     }
     private void exitChallengeToCampaign(){
@@ -2592,7 +2603,7 @@ public class ArrowGameView extends View {
 
     @Override public boolean performClick(){super.performClick();return true;}
     public void setPaused(boolean value){paused=value;lastFrame=0;invalidate();}
-    public void release(){tone.release();if(rescueArt!=null)rescueArt.release();}
+    public void release(){if(heartbeat!=null)heartbeat.release();tone.release();if(rescueArt!=null)rescueArt.release();}
     private void playSound(int id,int duration){if(settings.getBoolean("sound",true))tone.startTone(id,duration);}
     public boolean canBuyHeart(){return !finished&&!failed&&hearts<3;}
     public boolean needsRevive(){return failed;}
@@ -2606,6 +2617,10 @@ public class ArrowGameView extends View {
         if(challengeActive())exitChallengeToCampaign();
         showLevelSelect();
     }
+    public int unlockedLevel(){return maxUnlocked;}
+    public void openChapter(int chapter){
+        openLevels();levelPage=(CampaignRules.chapterStart(chapter)-1)/20;mapScroll=0;invalidate();
+    }
     public void openPlay(){
         // The Home screen PLAY button always means the normal 1–1000 campaign.
         // Daily/weekly challenges have their own entry points and must never trap
@@ -2613,9 +2628,10 @@ public class ArrowGameView extends View {
         if(challengeActive())exitChallengeToCampaign();
         screen=Screen.PLAY;host.onGameplayStarted();invalidate();
     }
+    public boolean completedDailyChallenge(){return dailyChallenge&&finished&&winReward>0;}
     public boolean isResultScreen(){return screen==Screen.PLAY&&finished;}
     public int currentLevelNumber(){return challengeActive()?Math.max(1,Math.min(MAX_LEVEL,normalLevelBeforeChallenge)):level;}
-    public int dailyPuzzleNumber(){return dailyChallengeNumberForDay(System.currentTimeMillis()/Wallet.DAY_MS);}
+    public int dailyPuzzleNumber(){return dailyChallengeNumberForDay(GameDay.today());}
     public int totalStarCount(){return totalStars();}
     public int completedLevelCount(){return completedLevels();}
     public int perfectLevelCount(){return perfectLevels();}
@@ -2650,9 +2666,9 @@ public class ArrowGameView extends View {
             boolean savedWeekly=state.optBoolean("weeklyChallenge",false);
             boolean savedDaily=state.optBoolean("dailyChallenge",false);
             if(savedWeekly){
-                weeklyChallenge=true;dailyChallenge=false;challengeWeek=state.optLong("challengeWeek",(System.currentTimeMillis()/Wallet.DAY_MS)/7L);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);
+                weeklyChallenge=true;dailyChallenge=false;challengeWeek=state.optLong("challengeWeek",(GameDay.today())/7L);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(savedLevel,false);
             } else if(savedDaily){
-                dailyChallenge=true;weeklyChallenge=false;challengeDay=state.optLong("challengeDay",System.currentTimeMillis()/Wallet.DAY_MS);normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(MAX_LEVEL,false);
+                dailyChallenge=true;weeklyChallenge=false;challengeDay=state.optLong("challengeDay",GameDay.today());normalLevelBeforeChallenge=state.optInt("normalLevel",prefs.getInt("lastLevel",1));setupLevel(MAX_LEVEL,false);
             } else startLevel(savedLevel);
             runId=state.getString("run");hearts=Math.max(0,Math.min(3,state.getInt("hearts")));
             hints=Math.max(0,Math.min(1,state.getInt("hints")));erasers=Math.max(0,state.getInt("erasers"));mistakes=state.optInt("mistakes",0);

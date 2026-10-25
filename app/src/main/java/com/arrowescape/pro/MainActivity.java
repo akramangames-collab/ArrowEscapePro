@@ -130,7 +130,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         installBackHandler();
         game.postDelayed(() -> {
             if (isFinishing() || isDestroyed()) return;
-            if(settings.contains("route_onboarding_step"))showOnboarding(settings.getInt("route_onboarding_step",0));else if(settings.getBoolean("route_onboarding_complete",false))showHome();else showOnboarding(0);
+            if(getIntent().getBooleanExtra("open_daily",false))showDailyChallengePanel();else if(settings.contains("route_onboarding_step"))showOnboarding(settings.getInt("route_onboarding_step",0));else if(settings.getBoolean("route_onboarding_complete",false))showHome();else showOnboarding(0);
         }, 450L);
         consent = UserMessagingPlatform.getConsentInformation(this);
         requestConsentAndStartAds();
@@ -252,7 +252,18 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if (watchButton != null) watchButton.setText(rewardReady() ? "WATCH AD  ·  +75 COINS" : loadingReward ? "LOADING AD…" : "TRY REWARD AD");
         if (watchButton != null) watchButton.setEnabled(!loadingReward && !showingAd);
     }
-    @Override public void onLevelCompleted() { showResultBanner(); }
+    @Override public void onLevelCompleted() {
+        showResultBanner();
+        if(game.completedDailyChallenge())game.postDelayed(()->{
+            if(isDestroyed()||showingAd)return;long day=wallet.completedChallengeDay();
+            BoosterInventory stock=new BoosterInventory(getSharedPreferences("arrow_puzzle_faithful",MODE_PRIVATE));
+            if(day<0||stock.dailyChoiceClaimed(day))return;
+            int[] kinds={0,1,2,3,4,6};String[] labels=new String[kinds.length];for(int i=0;i<kinds.length;i++)labels[i]=BoosterInventory.name(kinds[i]);
+            new AlertDialog.Builder(this).setTitle("Choose your free daily booster")
+                .setItems(labels,(d,index)->{boolean saved=stock.claimDailyChoice(day,kinds[index],wallet.completedChallengeDay());toast(saved?"Booster saved to inventory":"Could not grant booster");game.invalidate();})
+                .setNegativeButton("Choose later in Daily",(d,w)->{}).show();
+        },800);
+    }
     @Override public void onContinueAfterWin(Runnable proceed) {
         hideResultBanner();
         completedSinceAd++;
@@ -585,7 +596,26 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void showHome() {
         dismissMenuForRoute();hideResultBanner();stopGameplayBanner();currentNav=0;
-        game.setPaused(false);game.openLevels();onRouteOpened();
+        game.openLevels();game.setPaused(true);
+        LinearLayout body=premiumBody();
+        addPremiumHeader(body,"ARROW ESCAPE","by AK Software Labs");
+        LinearLayout hero=panel();
+        TextView logo=text("ARROW ESCAPE",28,TEXT);logo.setGravity(Gravity.CENTER);logo.setTypeface(AppTypography.bold(this));hero.addView(logo);
+        hero.addView(new RescueHeroView(this),new LinearLayout.LayoutParams(-1,dp(110)));
+        TextView mission=text("Rescue Puzzle · One clear path.",13,CYAN);mission.setGravity(Gravity.CENTER);hero.addView(mission);body.addView(hero);
+        body.addView(text("CHAPTER "+CampaignRules.chapter(game.currentLevelNumber())+" · "+CampaignRules.chapterName(game.currentLevelNumber()),14,GOLD));
+        body.addView(text("Level "+game.currentLevelNumber()+" · "+game.completedLevelCount()+" / 1000 rescued · "+wallet.streak()+" day streak",14,MUTED));
+        body.addView(button("PLAY · LEVEL "+game.currentLevelNumber(),()->{dismissMenuForRoute();game.setPaused(false);game.openPlay();enterGameplay();},true));
+        body.addView(button("CHAPTERS",this::showChapters,false));
+        body.addView(button("LEVELS & CHAPTERS",()->{dismissMenuForRoute();game.setPaused(false);game.openLevels();onRouteOpened();},false));
+        body.addView(button("DAILY CHALLENGE",this::showDailyChallengePanel,false));
+        body.addView(button("WEEKLY CHALLENGE",this::showWeeklyChallengePanel,false));
+        body.addView(button("BOOSTERS",this::showBoosterCollection,false));
+        body.addView(button("REWARDS & ACHIEVEMENTS",this::showAchievements,false));
+        body.addView(button("STORE",this::showPremiumStore,false));
+        body.addView(button("SETTINGS",this::showProfile,false));
+        body.addView(button("ABOUT AK SOFTWARE LABS",this::showDeveloper,false));
+        presentFullScreen(body,0);
     }
     @Override public void onRouteOpened(){
         hideResultBanner();stopGameplayBanner();currentNav=0;
@@ -593,9 +623,83 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(root!=null)root.requestLayout();
     }
     @Override public void onGameplayStarted(){
+        if(!game.isResultScreen())RescueReminder.played(this);
         hideResultBanner();
         if(routeNav!=null)routeNav.setVisibility(View.GONE);
         stopGameplayBanner();if(root!=null)root.requestLayout();
+    }
+
+
+    private void showChapters(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"CHAPTERS","25 chapters · 40 levels each");
+        body.addView(button("CONTINUE · LEVEL "+game.currentLevelNumber(),()->{dismissMenuForRoute();game.setPaused(false);game.openPlay();enterGameplay();},true));
+        String[][] cards=game.chapterAwardCards();for(int i=0;i<cards.length;i++){final int ch=i+1;boolean unlocked=CampaignRules.chapterStart(ch)<=game.unlockedLevel();
+            LinearLayout card=panel();card.addView(text(cards[i][0],18,unlocked?GOLD:MUTED));card.addView(text(cards[i][1]+" · "+cards[i][2],14,MUTED));
+            card.addView(text(RescueHazard.forLevel(CampaignRules.chapterStart(ch)).title,14,CYAN));
+            Button open=button(unlocked?"VIEW LEVELS":"LOCKED",()->{dismissMenuForRoute();game.setPaused(false);game.openChapter(ch);},false);open.setEnabled(unlocked);card.addView(open);body.addView(card);
+        }presentFullScreen(body,0);
+    }
+    private void showWeeklyChallengePanel(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"WEEKLY CHALLENGE","A separate elite puzzle");
+        body.addView(text("250–350 coins based on stars · once per week",20,GOLD));
+        body.addView(text("Best stars this week: "+game.bestWeeklyStarsThisWeek()+" / 3. Campaign progress remains separate.",16,TEXT));
+        body.addView(button("PLAY WEEKLY CHALLENGE",()->{dismissMenuForRoute();game.setPaused(false);game.startWeeklyChallenge();enterGameplay();},true));presentFullScreen(body,1);
+    }
+    private void showStatistics(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"PLAYER STATISTICS","Saved on this device");
+        body.addView(text(game.progressDetails(),16,TEXT));body.addView(text("Wallet: "+wallet.balance()+" coins",20,GOLD));
+        body.addView(button("REWARD HISTORY",this::showRewardHistory,false));presentFullScreen(body,4);
+    }
+    private void showRewardHistory(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"REWARD HISTORY","Latest 100 wallet transactions");
+        String history=wallet.rewardHistory();body.addView(text(history.isEmpty()?"New wallet transactions will appear here. Existing balances are preserved.":history,14,TEXT));presentFullScreen(body,4);
+    }
+    private void showGameRules(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"HOW TO PLAY","Clear paths. Save the character.");
+        body.addView(text("1. Tap an arrow only when its entire moving path is clear. Its body follows the head through every bend. Other arrows and its own tail can block it.\n\n2. Blocked taps cost a heart. Use the preview and hints to plan.\n\n3. Clear every other arrow before manually escaping the golden key. Boosters never remove the key.\n\n4. Water, heat and sand are chapter-based timers. Menus and tutorials pause danger.\n\n5. Campaign rewards are for first clears; daily challenge rewards are once per day. Choose your daily booster after winning.",16,TEXT));
+        body.addView(button("FREE PRACTICE",()->showOnboarding(2),true));body.addView(button("BOOSTER GUIDE",this::showBoosterCollection,false));presentFullScreen(body,4);
+    }
+    private void showNotificationSettings(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"NOTIFICATIONS","Your choice · local time");
+        body.addView(text("Standard: once at 6 PM. Frequent: 10 AM, noon, 2, 4, 6 and 8 PM. Reminders stop after you play a level that day. Android may delay delivery. Quiet hours: 9 PM–10 AM.",15,MUTED));
+        for(String[] option:new String[][]{{"Notifications","notifications"},{"Daily challenge reminders","daily_reminders"},{"Streak reminders","streak_reminders"},{"Every two hours · explicit opt-in","reminders_frequent"}}){
+            android.widget.Switch t=preferenceToggle(option[0],option[1],false);
+            t.setOnCheckedChangeListener((v,on)->{settings.edit().putBoolean(option[1],on).commit();
+                if(on&&option[1].equals("notifications")&&android.os.Build.VERSION.SDK_INT>=33&&checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS},91);
+                RescueReminder.schedule(this);
+            });body.addView(t);
+        }presentFullScreen(body,4);
+    }
+    @Override protected void onNewIntent(android.content.Intent intent){super.onNewIntent(intent);setIntent(intent);if(intent.getBooleanExtra("open_daily",false))showDailyChallengePanel();}
+    private void showDeveloper(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"AK SOFTWARE LABS","About the developer");
+        body.addView(text("Arrow Escape: Rescue Puzzle",26,TEXT));
+        body.addView(text("A rescue puzzle game from AK Software Labs. Clear full arrow paths and release the golden key manually, last.",16,MUTED));
+        body.addView(button("OFFICIAL WEBSITE",()->openExternal("https://aksoftwarelabs.tech"),true));
+        body.addView(text("Support: support@aksoftwarelabs.tech",16,TEXT));
+        body.addView(button("GAME & SUPPORT",()->openExternal("https://aksoftwarelabs.tech/apps/arrow-escape/"),false));
+        body.addView(button("PRIVACY POLICY",this::showPrivacyPolicy,false));
+        presentFullScreen(body,4);
+    }
+    private void openExternal(String url){try{startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse(url)));}catch(android.content.ActivityNotFoundException e){toast("No browser available");}}
+    private void showBoosterCollection(){
+        LinearLayout body=premiumBody();addPremiumHeader(body,"BOOSTERS","Learn · practice · collect");
+        for(int k:new int[]{0,1,2,3,4,6}){final int kind=k;body.addView(button(BoosterInventory.name(k)+" · ×"+game.boosterCount(k),()->showBoosterDetails(kind,false),false));}
+        body.addView(text("FLOW SHIELD · Automatic protection earned during play. One use per level. Mistake Shield is retired.",15,CYAN));
+        presentFullScreen(body,4);
+    }
+    private void showBoosterDetails(int kind,boolean demo){
+        String[] details={"Highlights one arrow whose complete escape path is clear, including its own tail.","Remove one eligible arrow you select. Preview the target before confirming.","Remove eligible arrows in a limited area around your chosen target.","Remove eligible arrows touching your selected row.","Highlights every currently legal arrow for eight seconds.","", "Automatically escapes up to three eligible arrows, checking legality again after each move."};
+        LinearLayout body=premiumBody();addPremiumHeader(body,BoosterInventory.name(kind).toUpperCase(java.util.Locale.ROOT),"Inventory · "+game.boosterCount(kind));
+        body.addView(new ArrowPreviewView(this,kind%5,0),new LinearLayout.LayoutParams(-1,dp(150)));
+        body.addView(text("HOW TO USE",18,GOLD));body.addView(text(details[kind],17,TEXT));
+        body.addView(text(kind==0||kind==4||kind==6?"During a level, tap this tool to activate it. Hint and Scan help you read the board; Triple Escape moves eligible arrows for you. The tool uses your saved stock when it activates.":"Open the tools during a level, choose this booster, then follow the target preview. Use it when a route needs clearing. Cancel before confirming to keep your stock.",15,MUTED));
+        body.addView(text("Golden key protection: removal boosters never remove the key. It must escape manually LAST. Automatic moves also exclude the golden key.",15,CYAN));
+        if(demo){body.addView(text("FREE PATH PRACTICE · no inventory or progress is used",14,GOLD));body.addView(new TutorialPracticeView(this,()->toast("Practice complete · inventory unchanged")),new LinearLayout.LayoutParams(-1,dp(260)));}
+        body.addView(button("WATCH DEMO · FREE PATH PRACTICE",()->showBoosterDetails(kind,true),false));
+        body.addView(button("GET BOOSTER · REWARDED AD",()->requestRewardedBooster(kind),true));
+        body.addView(text("Also earned from daily challenge choices and campaign milestone gifts.",14,MUTED));
+        body.addView(button("BACK TO BOOSTERS",this::showBoosterCollection,false));presentFullScreen(body,4);
     }
 
     private void finishOnboarding(){
@@ -774,13 +878,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private String challengeResetText() {
-        long now=System.currentTimeMillis();long next=((now/Wallet.DAY_MS)+1L)*Wallet.DAY_MS;long seconds=Math.max(0,(next-now)/1000L);
+        long now=System.currentTimeMillis();long next=GameDay.nextMidnight(now,java.time.ZoneId.systemDefault());long seconds=Math.max(0,(next-now)/1000L);
         long h=seconds/3600L,m=(seconds%3600L)/60L,s=seconds%60L;
         return String.format(java.util.Locale.US,"%02d:%02d:%02d",h,m,s);
     }
 
     private void showDailyChallengePanel() {
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        long day=GameDay.today();
         settings.edit().putLong("daily_challenge_prompt_day",day).apply();
         dailyReminderScheduled=false;
         if(game!=null)game.removeCallbacks(dailyReminderTask);
@@ -794,6 +898,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         body.addView(hero);
         LinearLayout reward=panel();TextView amount=text(rewardReady?"●  REWARD  200 COINS":"✓  TODAY'S 200 COINS CLAIMED",22,rewardReady?GOLD:GREEN);
         amount.setGravity(Gravity.CENTER);amount.setTypeface(AppTypography.bold(this));reward.addView(amount);
+        reward.addView(text("PLUS one booster of your choice · claimed once per completed day",13,CYAN));
+        if(!rewardReady){
+            BoosterInventory stock=new BoosterInventory(getSharedPreferences("arrow_puzzle_faithful",MODE_PRIVATE));
+            for(int k:new int[]{0,1,2,3,4,6}){final int kind=k;
+                if(!stock.dailyChoiceClaimed(day))reward.addView(button("CHOOSE "+BoosterInventory.name(k),()->{
+                    toast(stock.claimDailyChoice(day,kind,wallet.completedChallengeDay())?"Booster saved":"Already claimed or could not save");showDailyChallengePanel();
+                },false));
+            }
+        }
         reward.addView(text("Resets in "+challengeResetText(),12,MUTED));body.addView(reward);
         LinearLayout week=panel();
         TextView streakTitle=text("🔥  CURRENT STREAK  ·  "+wallet.streak()+" DAYS",15,TEXT);streakTitle.setTypeface(AppTypography.bold(this));week.addView(streakTitle);
@@ -826,7 +939,18 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         playGamesStatusLabel=text(playGamesSignedIn?"Connected":"Optional · play without signing in",13,MUTED);account.addView(playGamesStatusLabel);
         playGamesButton=button(playGamesSignedIn?"✓  Connected":"Sign in with Google Play Games",this::signInWithPlayGames,true);account.addView(playGamesButton);
         account.addView(text("Progress saved on this device",12,MUTED));body.addView(account);
-        LinearLayout preferences=panel();preferences.addView(preferenceToggle("Music","music",true));preferences.addView(preferenceToggle("Sound effects","sound",true));preferences.addView(preferenceToggle("Vibration","haptics",true));body.addView(preferences);
+        LinearLayout preferences=panel();preferences.addView(preferenceToggle("Music","music",true));preferences.addView(preferenceToggle("Sound effects","sound",true));preferences.addView(preferenceToggle("Vibration","haptics",true));
+        preferences.addView(preferenceToggle("Heartbeat sound","heartbeat_sound",false));
+        preferences.addView(preferenceToggle("Heartbeat vibration","heartbeat_vibration",false));
+        preferences.addView(preferenceToggle("Reduced motion","reduce_motion",false));
+        preferences.addView(button("Heartbeat intensity · tap to change",()->{
+            int next=(settings.getInt("heartbeat_intensity",1)+1)%3;settings.edit().putInt("heartbeat_intensity",next).apply();toast("Heartbeat: "+new String[]{"Low","Medium","High"}[next]);
+        },false));body.addView(preferences);
+        body.addView(button("PLAYER STATISTICS",this::showStatistics,false));
+        body.addView(button("GAME RULES",this::showGameRules,false));
+        body.addView(button("NOTIFICATION SETTINGS",this::showNotificationSettings,false));
+        body.addView(button("BOOSTER GUIDE",this::showBoosterCollection,false));
+        body.addView(button("ABOUT DEVELOPER",this::showDeveloper,false));
         body.addView(button("⚙  More settings",()->showMenu(false),false));body.addView(button("Replay tutorial",()->showOnboarding(0),false));body.addView(button("Help & privacy",this::showPrivacyPolicy,false));
         body.addView(button("★  Rate Arrow Escape",this::openPlayStoreRating,false));presentFullScreen(body,4);updatePlayGamesControls();refreshPlayGamesStatus();
         playGamesButton.setAlpha(playGamesButton.isEnabled()?1f:.55f);
@@ -884,7 +1008,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void scheduleDailyChallengeReminder() {
         if(dailyReminderScheduled || game==null)return;
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        long day=GameDay.today();
         if(!wallet.canRewardDailyChallenge(day))return;
         if(settings.getLong("daily_challenge_prompt_day",-1L)==day)return;
         dailyReminderScheduled=true;
@@ -894,7 +1018,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private void tryShowDailyChallengeReminder() {
         if(isFinishing()||isDestroyed()||game==null){dailyReminderScheduled=false;return;}
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        long day=GameDay.today();
         if(!wallet.canRewardDailyChallenge(day)||settings.getLong("daily_challenge_prompt_day",-1L)==day){
             dailyReminderScheduled=false;
             return;
@@ -908,7 +1032,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
     private void maybeShowDailyChallengeReminder() {
-        long day=System.currentTimeMillis()/Wallet.DAY_MS;
+        long day=GameDay.today();
         if(!wallet.canRewardDailyChallenge(day))return;
         if(settings.getLong("daily_challenge_prompt_day",-1L)==day)return;
         settings.edit().putLong("daily_challenge_prompt_day",day).apply();
@@ -1034,7 +1158,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
             body.addView(watchButton);rewardStatus=text("",12,MUTED);body.addView(rewardStatus);updateRewardStatus();loadRewarded();
 
             body.addView(section("CHALLENGES"));
-            long day=System.currentTimeMillis()/Wallet.DAY_MS;
+            long day=GameDay.today();
             body.addView(button(wallet.canRewardDailyChallenge(day)?"DAILY CHALLENGE  ·  UP TO +150":"REPLAY DAILY CHALLENGE",()->{menu.dismiss();game.startDailyChallenge();},false));
             long week=day/7L;
             body.addView(button(wallet.canRewardWeeklyChallenge(week)?"WEEKLY CHALLENGE  ·  UP TO +350":"REPLAY WEEKLY CHALLENGE",()->{menu.dismiss();game.startWeeklyChallenge();},false));
@@ -1336,7 +1460,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
     private void toast(String message) { if(!isDestroyed())Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
     @Override public void onWindowFocusChanged(boolean hasFocus){super.onWindowFocusChanged(hasFocus);if(hasFocus&&foreground&&!showingAd&&music!=null)music.resume();}
-    @Override protected void onPause(){cancelPendingBooster();foreground=false;if(music!=null)music.suspend();super.onPause();game.saveProgress();game.setPaused(true);}
-    @Override protected void onResume(){super.onResume();foreground=true;if(music!=null&&!showingAd)music.resume();refreshPlayGamesStatus();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
+    @Override protected void onPause(){cancelPendingBooster();foreground=false;RescueReminder.active=false;if(music!=null)music.suspend();super.onPause();game.saveProgress();game.setPaused(true);}
+    @Override protected void onResume(){super.onResume();foreground=true;RescueReminder.active=true;RescueReminder.schedule(this);if(music!=null&&!showingAd)music.resume();refreshPlayGamesStatus();if(game!=null)game.setPaused(showingAd||(menu!=null&&menu.isShowing())||(reminder!=null&&reminder.isShowing()));if(gameplayBannerRequested&&gameBanner==null&&(menu==null||!menu.isShowing()))showGameBanner();else if(menu!=null&&menu.isShowing())showVisibleMenuBanner();}
     @Override protected void onDestroy(){cancelPendingBooster();if(music!=null)music.release();destroyBanner();stopGameplayBanner();hideResultBanner();if(game!=null)game.removeCallbacks(dailyReminderTask);if(reminder!=null)reminder.dismiss();if(menu!=null)menu.dismiss();if(game!=null)game.release();super.onDestroy();}
 }
