@@ -78,11 +78,11 @@ public class RouteOnboardingRuntimeTest {
    text(dialog(c.get()),"Skip tutorial").performClick();assertEquals("LEVELS",get(get(c.get(),"game"),"screen").toString());
   }
  }
- @Test public void routePlayResumesUnfinishedRunAndChapterCardsCover400Levels()throws Exception{
+ @Test public void routePlayResumesUnfinishedRunAndChapterCardsCover1000Levels()throws Exception{
   try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
    MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});ArrowGameView game=(ArrowGameView)get(a,"game");
    set(game,"hearts",2);game.openLevels();render((View)get(a,"root"),720,1560,"route-resume");RectF play=(RectF)get(game,"mapCurrentHit");tap(game,play.centerX()/game.getWidth(),play.centerY()/game.getHeight());assertEquals(2,get(game,"hearts"));assertEquals("PLAY",get(game,"screen").toString());
-   String[][] chapters=game.chapterAwardCards();assertEquals(28,chapters.length);assertTrue(chapters[0][1].contains("1–20"));assertTrue(chapters[27][1].contains("961–1000"));
+   String[][] chapters=game.chapterAwardCards();assertEquals(50,chapters.length);assertTrue(chapters[0][1].contains("1–20"));assertTrue(chapters[49][1].contains("981–1000"));
   }
  }
 
