@@ -34,18 +34,26 @@ This branch is an internal development preview, not the finished redesign and no
 | APK | TESTED | Signed APK v2 verified; package/title/version checked. Internal development preview only; not device-tested. |
 | AAB | TESTED | JAR signature verified and original certificate matched. No testing-track upload performed. |
 | Signing | TESTED | Recovered original upload key verified against SHA-256 C0:F5:B8:4B:37:5B:47:75:BC:C6:7C:37:E0:57:A2:6C:B3:D6:54:FE:79:38:D4:8B:65:8E:B4:23:E4:41:42:9F. Key/credentials kept outside git. Artifact signatures checked separately. |
-| Automated tests | TESTED | Full Android suite: 53 passed after navigation fixes. Plain Java wallet: 64 assertions passed. Independent verifier: 1000 layouts / 47,142 legal unique-sequence moves, golden key last, self-tail clearance. Final full suite passed 53/53; release lint passed with 25 warnings and 0 errors. Build/signature/hash verification saved separately. |
+| Automated tests | TESTED | V55: 64 debug and 12 release startup tests passed. Wallet: 64 assertions. Campaign: 1,000 layouts and 47,142 legal moves. Daily: 366 outputs. Release lint: 32 warnings, zero errors. Retained CI links and signed artifact hashes below. |
 | Production release | REQUIRES APPROVAL | Finish remaining work, account audits, physical/emulator QA, testing-track validation, then obtain final approval. |
 
 ## V55 verification and artifact delivery
 
-Source commit: `05b55845373d9cc8d6ba1b35abd86b121797b434`.
+Runtime source: `05b55845373d9cc8d6ba1b35abd86b121797b434`.
+Verification: https://github.com/akramangames-collab/ArrowEscapePro/actions/runs/40376304015
+Release build inputs: https://github.com/akramangames-collab/ArrowEscapePro/actions/runs/40377283288
 
 Original logo, mascot/icon, teal-and-gold lobby, rounded puzzle board, curved level map and shared native page styling are implemented. The V54 startup guard remains.
 
-Prior-session validation completed 64 debug and 12 release startup tests; release lint reported 30 warnings and zero errors. A subsequent recovery rebuild again passed 64 debug tests, campaign verification (1,000 levels; 47,142 legal unique-sequence moves) and 64 wallet assertions. Workspace maintenance removed local artifacts before persistent delivery. These are historical test observations, not evidence that a download is currently available.
+Fresh retained CI verification passed **64 debug + 12 release startup tests**, 64 plain-Java wallet assertions, the 1,000-level campaign (47,142 legal unique-sequence moves, golden key last and self-tail clearance), and all 366 deterministic daily outputs. Release lint has **32 warnings and zero errors**.
 
-The branch now has a V55 review workflow that retains build artifacts, reports and actual native renders. Original-key signed release files are delivered only when the existing signing secrets are available and the certificate matches. Otherwise, only the separately packaged development APK is eligible for delivery. No substitute production identity is created. Current workflow outcome must be checked before claiming downloadable APK/AAB completion.
+The original upload key was recovered privately for final signing because CI signing secrets were unavailable. APK and AAB signatures both verify against the original certificate. The release inputs match all **70 tested runtime/build file hashes**. Package, label and version were checked in the signed APK; new logo and mascot bytes match the source package and the retired character atlas is absent.
+
+Current deliverable hashes:
+- APK: `37fe392c91941f55d8086e4277a09b039cbada357de67e3be2bfca5c9e2ecd6d`
+- AAB: `a54b9d1da44121b02b4f8eb4fcd772ffdc804eada943abf0dd4251c601846da1`
+
+See `tests/v55-redesign-verification.json` for the full record. These are review artifacts, not a production-ready release. No physical-device or emulator QA, Play publication or new ad spend occurred.
 
 ## Technical limits
 

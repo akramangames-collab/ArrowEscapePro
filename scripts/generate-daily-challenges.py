@@ -220,7 +220,7 @@ def main():
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content)
-    print(f"Verified {COUNT} unique dedicated Daily Challenges; zero overlap with the 400 normal levels.")
+    print(f"Verified {COUNT} unique dedicated Daily Challenges; zero overlap with the complete campaign.")
 
 
 if __name__ == "__main__":
