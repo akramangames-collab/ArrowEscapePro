@@ -12,7 +12,7 @@ This branch is an internal development preview, not the finished redesign and no
 | Complete redesigned game | PENDING | Existing game extended; full visual/feature specification is not finished. |
 | Updated UI/UX | TESTED | Dedicated home, hero cage, chapter collection, booster collection/guides, statistics, history, help, developer and notification pages. Native rendering tests; further device QA needed. |
 | Professional game logo | COMPLETED | Original illustrated arrow/cage/key logo, matching mascot and launcher icon integrated into the native app. See design/REDESIGN-V55.md. Play listing assets remain pending. |
-| Company branding | COMPLETED | Live website confirms AK Software Labs and support@aksoftwarelabs.tech. Text branding added; verified company logo asset still needed. |
+| Company branding | PENDING | Live website confirms AK Software Labs and support@aksoftwarelabs.tech. Text branding added; verified company logo asset still needed. |
 | Banner system | TESTED | Existing centralized adaptive menu/result rail reused. Gameplay intentionally remains banner-free. More eligible screens, refresh/navigation reuse and physical placement audit remain. |
 | Heartbeat | TESTED | Game-danger interval, optional quiet audio/haptics, low/medium/high haptic amplitude, silent-mode guard, reduced-motion setting. Actual-device perception/accessibility QA pending. |
 | Rescue hazards | TESTED | Water, fire/heat and sand timer environments with stable chapter assignment. These share timer rules; electric, freezing, darkness, laser and separate heartbeat-mode mechanics are not implemented. |
