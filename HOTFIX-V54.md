@@ -25,3 +25,5 @@ Startup runtime tests on API 24, 30, 35 and 36 cover:
 Run both debug and release startup tests, and build the signed release from frozen runtime source. Record source fingerprints before and after validation. No physical-device or emulator test is implied by Robolectric coverage.
 
 Validation results and artifact hashes are recorded in the V54 verification report after completion. No production publication is authorized by this hotfix.
+
+Release unit tests are explicitly enabled because AGP 9 defaults to creating unit tests only for the tested (debug) build type. Reference: https://developer.android.com/build/releases/agp-9-0-0-release-notes
