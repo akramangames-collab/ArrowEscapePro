@@ -21,7 +21,7 @@ final class RescueCharacterArt {
         BitmapFactory.Options options=new BitmapFactory.Options();
         options.inScaled=false;
         options.inSampleSize=2;
-        try(InputStream stream=context.getAssets().open("characters/rescue-boy-expressions.png")) {
+        try(InputStream stream=context.getAssets().open("characters/rescue-mascot-expressions.png")) {
             atlas=BitmapFactory.decodeStream(stream,null,options);
         } catch(IOException e) {
             throw new IllegalStateException("Bundled rescue character is missing",e);

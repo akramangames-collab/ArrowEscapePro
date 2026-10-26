@@ -30,12 +30,13 @@ public class RouteOnboardingRuntimeTest {
  private static void set(Object o,String k,Object v)throws Exception{Field f=o.getClass().getDeclaredField(k);f.setAccessible(true);f.set(o,v);}
  private static Object call(Object o,String k,Class<?>[] types,Object... values)throws Exception{Method m=o.getClass().getDeclaredMethod(k,types);m.setAccessible(true);return m.invoke(o,values);}
  private static TextView text(View v,String prefix){if(v instanceof TextView t&&t.getText().toString().startsWith(prefix))return t;if(v instanceof ViewGroup g)for(int i=0;i<g.getChildCount();i++){TextView t=text(g.getChildAt(i),prefix);if(t!=null)return t;}return null;}
- private static View practice(View v){if(v instanceof TutorialPracticeView)return v;if(v instanceof ViewGroup g)for(int i=0;i<g.getChildCount();i++){View t=practice(g.getChildAt(i));if(t!=null)return t;}return null;}
+ private static View practice(View v){if(v instanceof TutorialPracticeView||v instanceof BoosterDemoView)return v;if(v instanceof ViewGroup g)for(int i=0;i<g.getChildCount();i++){View t=practice(g.getChildAt(i));if(t!=null)return t;}return null;}
  private static void render(View v,int w,int h,String name)throws Exception{
   v.measure(View.MeasureSpec.makeMeasureSpec(w,1073741824),View.MeasureSpec.makeMeasureSpec(h,1073741824));v.layout(0,0,w,h);
   Bitmap b=Bitmap.createBitmap(w,h,Bitmap.Config.ARGB_8888);v.draw(new Canvas(b));File dir=new File("build/approved-ui-previews");dir.mkdirs();try(FileOutputStream out=new FileOutputStream(new File(dir,name+".png"))){b.compress(Bitmap.CompressFormat.PNG,100,out);}b.recycle();
  }
  private static View dialog(MainActivity a)throws Exception{return ((AlertDialog)get(a,"menu")).getWindow().findViewById(android.R.id.content);}
+ private static Wallet walletFor(MainActivity a)throws Exception{return (Wallet)get(a,"wallet");}
  private static void idle(){shadowOf(android.os.Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));}
  private static void tap(View v,float x,float y){long t=100;v.onTouchEvent(MotionEvent.obtain(t,t,0,x*v.getWidth(),y*v.getHeight(),0));v.onTouchEvent(MotionEvent.obtain(t,t+30,1,x*v.getWidth(),y*v.getHeight(),0));}
  @Test public void firstLaunchPracticeSkipAndNextLaunchRouteAreIsolatedFromProgress()throws Exception{
@@ -67,7 +68,7 @@ public class RouteOnboardingRuntimeTest {
   try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
    MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});ArrowGameView game=(ArrowGameView)get(a,"game");text(dialog(a),"PLAY · LEVEL").performClick();
    assertEquals(View.GONE,((View)get(a,"routeNav")).getVisibility());assertFalse((Boolean)get(a,"gameplayBannerRequested"));
-   render((View)get(a,"root"),720,1560,"gameplay");set(game,"finished",true);set(game,"earnedStars",2);set(game,"winReward",25);
+   render((View)get(a,"root"),720,1560,"gameplay");set(game,"finished",true);set(game,"earnedStars",2);set(game,"winReward",walletFor(a).rewardLevel("layout-fixture",game.currentLevelNumber(),2));
    for(int[] size:new int[][]{{720,1560},{1280,800}}){render((View)get(a,"root"),size[0],size[1],"win-"+size[0]);for(String key:new String[]{"primaryHit","secondaryHit","tertiaryHit","shareHit"}){RectF hit=(RectF)get(game,key);assertTrue(hit.top>=0);assertTrue(hit.bottom<=game.getHeight());}}
    set(game,"finished",false);set(game,"failed",true);render((View)get(a,"root"),720,1560,"retry");RectF route=(RectF)get(game,"tertiaryHit");tap(game,route.centerX()/game.getWidth(),route.centerY()/game.getHeight());assertEquals("LEVELS",get(game,"screen").toString());
   }

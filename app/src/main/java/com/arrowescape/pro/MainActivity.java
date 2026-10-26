@@ -85,15 +85,15 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private boolean dailyReminderScheduled;
     private final Runnable dailyReminderTask = this::tryShowDailyChallengeReminder;
 
-    private final int INK = 0xFF020817;
-    private final int PANEL = 0xFF08162E;
-    private final int PANEL_2 = 0xFF10264A;
-    private final int CYAN = 0xFF22D3EE;
-    private final int BLUE = 0xFF2F8DF3;
+    private final int INK = 0xFF05262D;
+    private final int PANEL = 0xFF0A343C;
+    private final int PANEL_2 = 0xFF114650;
+    private final int CYAN = 0xFF38DFD8;
+    private final int BLUE = 0xFF30B9BC;
     private final int PURPLE = 0xFF8B5CF6;
     private final int TEXT = 0xFFF8FBFF;
-    private final int MUTED = 0xFF8FA7C8;
-    private final int GOLD = 0xFFFFC83D;
+    private final int MUTED = 0xFFA3C5C6;
+    private final int GOLD = 0xFFFFCE63;
     private final int GREEN = 0xFF34D399;
     private final int RED = 0xFFFF5C78;
 
@@ -128,8 +128,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         gameColumn.addView(resultBannerSlot,new LinearLayout.LayoutParams(-1,-2));
         setContentView(root);
         installBackHandler();
+        LinearLayout brandIntro=new LinearLayout(this);brandIntro.setGravity(Gravity.CENTER);brandIntro.setOrientation(LinearLayout.VERTICAL);brandIntro.setBackgroundColor(INK);
+        brandIntro.addView(new GameLogoView(this),new LinearLayout.LayoutParams(-1,dp(170)));
+        TextView by=text("by AK Software Labs",14,MUTED);by.setGravity(Gravity.CENTER);brandIntro.addView(by);root.addView(brandIntro,new FrameLayout.LayoutParams(-1,-1));
+        if(!settings.getBoolean("reduce_motion",false)){brandIntro.setAlpha(.3f);brandIntro.animate().alpha(1f).setDuration(260).start();}
         game.postDelayed(() -> {
             if (isFinishing() || isDestroyed()) return;
+            root.removeView(brandIntro);
             if(getIntent().getBooleanExtra("open_daily",false))showDailyChallengePanel();else if(settings.contains("route_onboarding_step"))showOnboarding(settings.getInt("route_onboarding_step",0));else if(settings.getBoolean("route_onboarding_complete",false))showHome();else showOnboarding(0);
         }, 450L);
         consent = UserMessagingPlatform.getConsentInformation(this);
@@ -469,8 +474,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         b.setLetterSpacing(.01f);
         b.setTextColor(primary ? 0xFF00131D : TEXT);
         b.setBackground(primary
-            ? gradient(0xFF21F1E7,0xFF05BDD6,26,0xFF57FFF6)
-            : gradient(0xFF122B48,0xFF091A31,20,0xFF2B5278));
+            ? gradient(0xFFFFD675,0xFFF1AD38,22,0xFFFFE9A3)
+            : gradient(0xFF164B53,0xFF0D343E,20,0xFF36727A));
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,dp(54));
         lp.setMargins(0,dp(7),0,dp(5)); b.setLayoutParams(lp);
         b.setElevation(dp(primary?5:2));
@@ -480,7 +485,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private LinearLayout panel() {
         LinearLayout p=new LinearLayout(this);p.setOrientation(LinearLayout.VERTICAL);
         p.setPadding(dp(16),dp(15),dp(16),dp(15));
-        p.setBackground(gradient(0xFF0D2142,0xFF07152C,20,0xFF1E4F87));
+        p.setBackground(gradient(0xFF10464E,0xFF082E36,20,0xFF2B6770));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(-1,-2);lp.setMargins(0,dp(7),0,dp(8));p.setLayoutParams(lp);
         return p;
     }
@@ -527,7 +532,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         Button b=new Button(this);
         b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTypeface(AppTypography.bold(this));
         b.setTextColor(TEXT);b.setGravity(Gravity.CENTER);
-        b.setBackground(gradient(0xFF0C2142,0xFF08162E,20,accent));
+        b.setBackground(gradient(0xFF164B53,0xFF0A343C,20,accent));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(118),1f);lp.setMargins(dp(5),dp(6),dp(5),dp(6));b.setLayoutParams(lp);
         b.setOnClickListener(v->action.run());return b;
     }
@@ -535,7 +540,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private Button tabButton(String label, boolean selected, Runnable action) {
         Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(12);b.setTypeface(AppTypography.bold(this));
         b.setTextColor(selected?0xFF00131D:MUTED);
-        b.setBackground(selected?gradient(CYAN,BLUE,14,0):background(0xFF0A1934,14,0xFF193F70));
+        b.setBackground(selected?gradient(CYAN,BLUE,14,0):background(0xFF0B343C,14,0xFF2B6870));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(44),1f);lp.setMargins(dp(3),0,dp(3),0);b.setLayoutParams(lp);
         b.setOnClickListener(v->action.run());return b;
     }
@@ -570,13 +575,13 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private LinearLayout premiumBody() {
         LinearLayout body=new LinearLayout(this);body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(dp(16),dp(16),dp(16),dp(22));
-        body.setBackground(gradient(0xFF020817,0xFF04112A,0,0));
+        body.setBackground(gradient(0xFF05262D,0xFF07313A,0,0));
         return body;
     }
 
     private void addPremiumHeader(LinearLayout body,String title,String subtitle) {
         LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);
-        TextView icon=text("‹",30,CYAN);icon.setGravity(Gravity.CENTER);icon.setContentDescription("Back to Route");icon.setBackground(background(0xFF10284A,14,0xFF245681));icon.setOnClickListener(v->{if(onboardingStep>=0)finishOnboarding();else showHome();});
+        TextView icon=text("‹",30,CYAN);icon.setGravity(Gravity.CENTER);icon.setContentDescription("Back to Route");icon.setBackground(background(0xFF164B53,14,0xFF39868B));icon.setOnClickListener(v->{if(onboardingStep>=0)finishOnboarding();else showHome();});
         row.addView(icon,new LinearLayout.LayoutParams(dp(48),dp(48)));
         LinearLayout copy=new LinearLayout(this);copy.setOrientation(LinearLayout.VERTICAL);copy.setPadding(dp(10),0,0,0);
         TextView t=text(title,19,TEXT);t.setTypeface(AppTypography.bold(this));copy.addView(t);
@@ -598,22 +603,21 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dismissMenuForRoute();hideResultBanner();stopGameplayBanner();currentNav=0;
         game.openLevels();game.setPaused(true);
         LinearLayout body=premiumBody();
-        addPremiumHeader(body,"ARROW ESCAPE","by AK Software Labs");
-        LinearLayout hero=panel();
-        TextView logo=text("ARROW ESCAPE",28,TEXT);logo.setGravity(Gravity.CENTER);logo.setTypeface(AppTypography.bold(this));hero.addView(logo);
-        hero.addView(new RescueHeroView(this),new LinearLayout.LayoutParams(-1,dp(110)));
-        TextView mission=text("Rescue Puzzle · One clear path.",13,CYAN);mission.setGravity(Gravity.CENTER);hero.addView(mission);body.addView(hero);
-        body.addView(text("CHAPTER "+CampaignRules.chapter(game.currentLevelNumber())+" · "+CampaignRules.chapterName(game.currentLevelNumber()),14,GOLD));
-        body.addView(text("Level "+game.currentLevelNumber()+" · "+game.completedLevelCount()+" / 1000 rescued · "+wallet.streak()+" day streak",14,MUTED));
+        LinearLayout status=new LinearLayout(this);status.setGravity(Gravity.CENTER_VERTICAL);
+        TextView studio=text("AK SOFTWARE LABS",10,MUTED);studio.setLetterSpacing(.14f);status.addView(studio,new LinearLayout.LayoutParams(0,-2,1));
+        TextView bank=text("● "+wallet.balance()+"  ·  "+wallet.streak()+" DAY STREAK",12,GOLD);status.addView(bank);body.addView(status);
+        body.addView(new GameLogoView(this),new LinearLayout.LayoutParams(-1,dp(120)));
+        body.addView(new RescueHeroView(this),new LinearLayout.LayoutParams(-1,dp(155)));
+        TextView chapter=text("CHAPTER "+CampaignRules.chapter(game.currentLevelNumber())+" · "+CampaignRules.chapterName(game.currentLevelNumber()),12,CYAN);chapter.setGravity(Gravity.CENTER);body.addView(chapter);
         body.addView(button("PLAY · LEVEL "+game.currentLevelNumber(),()->{dismissMenuForRoute();game.setPaused(false);game.openPlay();enterGameplay();},true));
+        TextView progress=text(game.completedLevelCount()+" / 1000 rescues  ·  "+game.totalStarCount()+" stars",12,MUTED);progress.setGravity(Gravity.CENTER);body.addView(progress);
+        LinearLayout row=new LinearLayout(this);
+        row.addView(lobbyTile("LEVELS & CHAPTERS","Continue your journey",0,()->{dismissMenuForRoute();game.setPaused(false);game.openLevels();onRouteOpened();}));
+        row.addView(lobbyTile("DAILY CHALLENGE","200 coins + a booster",1,this::showDailyChallengePanel));body.addView(row);
+        row=new LinearLayout(this);row.addView(lobbyTile("BOOSTERS","Your rescue toolkit",2,this::showBoosterCollection));row.addView(lobbyTile("REWARDS","Streaks & achievements",3,this::showAchievements));body.addView(row);
+        row=new LinearLayout(this);row.addView(lobbyTile("STORE","Make it your own",4,this::showPremiumStore));row.addView(lobbyTile("SETTINGS","Sound, play & reminders",5,this::showProfile));body.addView(row);
         body.addView(button("CHAPTERS",this::showChapters,false));
-        body.addView(button("LEVELS & CHAPTERS",()->{dismissMenuForRoute();game.setPaused(false);game.openLevels();onRouteOpened();},false));
-        body.addView(button("DAILY CHALLENGE",this::showDailyChallengePanel,false));
         body.addView(button("WEEKLY CHALLENGE",this::showWeeklyChallengePanel,false));
-        body.addView(button("BOOSTERS",this::showBoosterCollection,false));
-        body.addView(button("REWARDS & ACHIEVEMENTS",this::showAchievements,false));
-        body.addView(button("STORE",this::showPremiumStore,false));
-        body.addView(button("SETTINGS",this::showProfile,false));
         body.addView(button("ABOUT AK SOFTWARE LABS",this::showDeveloper,false));
         presentFullScreen(body,0);
     }
@@ -633,6 +637,12 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     }
 
 
+    private Button lobbyTile(String title,String subtitle,int icon,Runnable action){
+        Button b=tileButton(title+"\n"+subtitle,icon%2==0?CYAN:GOLD,action);b.setTextSize(12);
+        android.graphics.drawable.Drawable d=icon==2?new BoosterIcon(2,GOLD):new RouteNavIcon(icon==0?0:icon==1?1:icon==3?3:icon==4?2:4,icon%2==0?CYAN:GOLD);
+        d.setBounds(0,0,dp(27),dp(27));b.setCompoundDrawables(null,d,null,null);b.setCompoundDrawablePadding(dp(7));
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(108),1);lp.setMargins(dp(4),dp(5),dp(4),dp(5));b.setLayoutParams(lp);return b;
+    }
     private void showChapters(){
         LinearLayout body=premiumBody();addPremiumHeader(body,"CHAPTERS","25 chapters · 40 levels each");
         body.addView(button("CONTINUE · LEVEL "+game.currentLevelNumber(),()->{dismissMenuForRoute();game.setPaused(false);game.openPlay();enterGameplay();},true));
@@ -676,7 +686,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     @Override protected void onNewIntent(android.content.Intent intent){super.onNewIntent(intent);setIntent(intent);if(intent.getBooleanExtra("open_daily",false))showDailyChallengePanel();}
     private void showDeveloper(){
         LinearLayout body=premiumBody();addPremiumHeader(body,"AK SOFTWARE LABS","About the developer");
-        body.addView(text("Arrow Escape: Rescue Puzzle",26,TEXT));
+        body.addView(new GameLogoView(this),new LinearLayout.LayoutParams(-1,dp(140)));
+        body.addView(text("Arrow Escape: Rescue Puzzle",22,TEXT));
         body.addView(text("A rescue puzzle game from AK Software Labs. Clear full arrow paths and release the golden key manually, last.",16,MUTED));
         body.addView(button("OFFICIAL WEBSITE",()->openExternal("https://aksoftwarelabs.tech"),true));
         body.addView(text("Support: support@aksoftwarelabs.tech",16,TEXT));
@@ -687,19 +698,21 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void openExternal(String url){try{startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,android.net.Uri.parse(url)));}catch(android.content.ActivityNotFoundException e){toast("No browser available");}}
     private void showBoosterCollection(){
         LinearLayout body=premiumBody();addPremiumHeader(body,"BOOSTERS","Learn · practice · collect");
-        for(int k:new int[]{0,1,2,3,4,6}){final int kind=k;body.addView(button(BoosterInventory.name(k)+" · ×"+game.boosterCount(k),()->showBoosterDetails(kind,false),false));}
+        int[] kinds={0,1,2,3,4,6};
+        for(int i=0;i<kinds.length;i+=2){LinearLayout row=new LinearLayout(this);for(int n=i;n<i+2;n++){final int k=kinds[n];Button tile=tileButton(BoosterInventory.name(k)+"\n×"+game.boosterCount(k)+" saved",k%2==0?CYAN:GOLD,()->showBoosterDetails(k,false));
+            BoosterIcon icon=new BoosterIcon(k,k%2==0?CYAN:GOLD);icon.setBounds(0,0,dp(38),dp(38));tile.setCompoundDrawables(null,icon,null,null);tile.setCompoundDrawablePadding(dp(8));row.addView(tile);}body.addView(row);}
         body.addView(text("FLOW SHIELD · Automatic protection earned during play. One use per level. Mistake Shield is retired.",15,CYAN));
         presentFullScreen(body,4);
     }
     private void showBoosterDetails(int kind,boolean demo){
         String[] details={"Highlights one arrow whose complete escape path is clear, including its own tail.","Remove one eligible arrow you select. Preview the target before confirming.","Remove eligible arrows in a limited area around your chosen target.","Remove eligible arrows touching your selected row.","Highlights every currently legal arrow for eight seconds.","", "Automatically escapes up to three eligible arrows, checking legality again after each move."};
         LinearLayout body=premiumBody();addPremiumHeader(body,BoosterInventory.name(kind).toUpperCase(java.util.Locale.ROOT),"Inventory · "+game.boosterCount(kind));
-        body.addView(new ArrowPreviewView(this,kind%5,0),new LinearLayout.LayoutParams(-1,dp(150)));
+        if(demo){body.addView(text("FREE PRACTICE · stock is never used",13,GOLD));body.addView(new BoosterDemoView(this,kind),new LinearLayout.LayoutParams(-1,dp(245)));}
+        else{ImageView visual=new ImageView(this);visual.setImageDrawable(new BoosterIcon(kind,GOLD));visual.setPadding(dp(12),dp(12),dp(12),dp(12));body.addView(visual,new LinearLayout.LayoutParams(-1,dp(88)));}
         body.addView(text("HOW TO USE",18,GOLD));body.addView(text(details[kind],17,TEXT));
         body.addView(text(kind==0||kind==4||kind==6?"During a level, tap this tool to activate it. Hint and Scan help you read the board; Triple Escape moves eligible arrows for you. The tool uses your saved stock when it activates.":"Open the tools during a level, choose this booster, then follow the target preview. Use it when a route needs clearing. Cancel before confirming to keep your stock.",15,MUTED));
         body.addView(text("Golden key protection: removal boosters never remove the key. It must escape manually LAST. Automatic moves also exclude the golden key.",15,CYAN));
-        if(demo){body.addView(text("FREE PATH PRACTICE · no inventory or progress is used",14,GOLD));body.addView(new TutorialPracticeView(this,()->toast("Practice complete · inventory unchanged")),new LinearLayout.LayoutParams(-1,dp(260)));}
-        body.addView(button("WATCH DEMO · FREE PATH PRACTICE",()->showBoosterDetails(kind,true),false));
+        body.addView(button("WATCH DEMO · FREE PRACTICE",()->showBoosterDetails(kind,true),false));
         body.addView(button("GET BOOSTER · REWARDED AD",()->requestRewardedBooster(kind),true));
         body.addView(text("Also earned from daily challenge choices and campaign milestone gifts.",14,MUTED));
         body.addView(button("BACK TO BOOSTERS",this::showBoosterCollection,false));presentFullScreen(body,4);
@@ -892,7 +905,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         dailyReminderScheduled=false;
         if(game!=null)game.removeCallbacks(dailyReminderTask);
         LinearLayout body=premiumBody();addPremiumHeader(body,"DAILY CHALLENGE","Separate from your 1000-level route");
-        LinearLayout preview=panel();preview.addView(new ArrowPreviewView(this,0,0),new LinearLayout.LayoutParams(-1,dp(120)));body.addView(preview);
+        LinearLayout preview=panel();preview.addView(new RescueHeroView(this),new LinearLayout.LayoutParams(-1,dp(130)));body.addView(preview);
         boolean rewardReady=wallet.canRewardDailyChallenge(day);
         LinearLayout hero=panel();
         TextView crown=text("♛  DAILY CHALLENGE #"+game.dailyPuzzleNumber(),20,GOLD);crown.setGravity(Gravity.CENTER);crown.setTypeface(AppTypography.bold(this));hero.addView(crown);
@@ -917,7 +930,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         for(int i=1;i<=7;i++){
             TextView d=text(String.valueOf(i),12,i<=Math.min(7,wallet.streak())?INK:MUTED);
             d.setGravity(Gravity.CENTER);d.setTypeface(AppTypography.bold(this));
-            d.setBackground(background(i<=Math.min(7,wallet.streak())?GOLD:0xFF0A1934,14,i<=Math.min(7,wallet.streak())?0:0xFF23466E));
+            d.setBackground(background(i<=Math.min(7,wallet.streak())?GOLD:0xFF0B343C,14,i<=Math.min(7,wallet.streak())?0:0xFF23466E));
             LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(38),1f);lp.setMargins(dp(3),dp(8),dp(3),0);dots.addView(d,lp);
         }
         week.addView(dots);body.addView(week);
@@ -1002,7 +1015,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private LinearLayout profileStat(String value,String label) {
         LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setGravity(Gravity.CENTER);
-        box.setBackground(gradient(0xFF0D2142,0xFF07152C,18,0xFF1E4F87));
+        box.setBackground(gradient(0xFF10464E,0xFF082E36,18,0xFF2B6770));
         TextView v=text(value,20,TEXT);v.setGravity(Gravity.CENTER);v.setTypeface(AppTypography.bold(this));box.addView(v);
         TextView l=text(label,11,MUTED);l.setGravity(Gravity.CENTER);box.addView(l);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,dp(78),1f);lp.setMargins(dp(4),dp(6),dp(4),dp(6));box.setLayoutParams(lp);
@@ -1365,8 +1378,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
 
     private LinearLayout navigationBar(int selected){
         LinearLayout nav=new LinearLayout(this);nav.setGravity(Gravity.CENTER);nav.setPadding(dp(6),dp(4),dp(6),dp(4));
-        nav.setBackground(gradient(0xFF091B33,0xFF041020,0,0xFF1A466A));
-        String[] labels={"Route","Daily","Store","Awards","Me"};
+        nav.setBackground(gradient(0xFF0A343C,0xFF05262D,0,0xFF235A63));
+        String[] labels={"Home","Daily","Store","Awards","Me"};
         for(int i=0;i<labels.length;i++)nav.addView(navButton(labels[i],i));
         return nav;
     }
@@ -1378,7 +1391,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         RouteNavIcon icon=new RouteNavIcon(index,selected?CYAN:MUTED);icon.setBounds(0,0,dp(23),dp(23));b.setCompoundDrawables(null,icon,null,null);b.setCompoundDrawablePadding(dp(3));
         b.setGravity(Gravity.CENTER);
         b.setTypeface(selected?AppTypography.bold(this):AppTypography.regular(this));
-        b.setBackground(selected?background(0xFF102A52,15,0xFF1F5C96):background(0x00000000,15,0));
+        b.setBackground(selected?background(0xFF17545C,15,0xFF3B8A90):background(0x00000000,15,0));
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(0,-1,1f);lp.setMargins(dp(2),0,dp(2),0);b.setLayoutParams(lp);
         b.setOnClickListener(v->openNav(index));
         return b;
