@@ -27,3 +27,7 @@ Run both debug and release startup tests, and build the signed release from froz
 Validation results and artifact hashes are recorded in the V54 verification report after completion. No production publication is authorized by this hotfix.
 
 Release unit tests are explicitly enabled because AGP 9 defaults to creating unit tests only for the tested (debug) build type. Reference: https://developer.android.com/build/releases/agp-9-0-0-release-notes
+
+## Verified outcome
+
+V53 reproduced 12/12 startup failures. V54 passed all 61 debug tests and 12 release-configuration startup tests on API 24, 30, 35 and 36. Release lint passed with 25 warnings and no errors. APK v2 and AAB JAR signatures verified against the original upload certificate. All 64 runtime/build input fingerprints were unchanged during test/build. No physical-device or emulator QA was performed. See `tests/v54-startup-hotfix-verification.json`.

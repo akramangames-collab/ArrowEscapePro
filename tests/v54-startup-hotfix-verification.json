@@ -1,0 +1,101 @@
+{
+  "versionCode": 54,
+  "versionName": "2.0.0-preview.1",
+  "package": "com.arrowescape.pro",
+  "app_name": "Arrow Escape: Rescue Puzzle",
+  "status": "Startup hotfix tested; full redesign remains an internal preview",
+  "reproduced_failure": "V53 constructor-time callback dereferenced MainActivity.game before assignment; 12/12 startup cases failed on API 24,30,35,36",
+  "fix": "Return from constructor-time gameplay callback until game is assigned",
+  "source_commit": "ae36dfac2472b2eec07c3d0e01bbaa2450005901",
+  "source_tree": "90a861de6ef80ba8791667d53966884bd569d833",
+  "runtime_and_build_source_inputs": 64,
+  "source_unchanged_during_tests_and_build": true,
+  "source_manifest_sha256": "dfec0886210726eb088c0d503374a833acee490be97579703814cc9f70bbf9b9",
+  "tests": {
+    "testDebugUnitTest": [
+      {
+        "name": "com.arrowescape.pro.BannerLayoutRuntimeTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.CageRescueTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.CageWaterTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.BoosterInventoryRuntimeTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.AmbientMusicRuntimeTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.PremiumV2RuntimeTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.StartupRuntimeTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.CampaignRuntimeTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.arrowescape.pro.RouteOnboardingRuntimeTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0
+      }
+    ],
+    "testReleaseUnitTest": [
+      {
+        "name": "com.arrowescape.pro.StartupRuntimeTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0
+      }
+    ]
+  },
+  "lint": {
+    "warning": 25
+  },
+  "apk_signature": "APK v2 verified",
+  "aab_signature": "JAR verified",
+  "original_signing_certificate_sha256": "c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f",
+  "save_schema_changes": false,
+  "physical_device_or_emulator_qa": false,
+  "published_to_play": false,
+  "files": [
+    {
+      "name": "Arrow-Escape-V54-STARTUP-FIX.apk",
+      "bytes": 7740685,
+      "sha256": "9dd7fcebc62c001cdce59f9b6f012da481aa4a63afd03ed0d972aad2bad58a28"
+    },
+    {
+      "name": "Arrow-Escape-V54-STARTUP-FIX.aab",
+      "bytes": 10213292,
+      "sha256": "911ea8b2eb1e0efc1661333d69ba3ff0fb8d3296cc2b818bcce1c48d22745823"
+    }
+  ]
+}
