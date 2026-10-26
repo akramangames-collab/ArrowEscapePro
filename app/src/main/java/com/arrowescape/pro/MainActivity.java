@@ -623,6 +623,9 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         if(root!=null)root.requestLayout();
     }
     @Override public void onGameplayStarted(){
+        // The view constructor calls this before onCreate assigns the game field.
+        // Initialization is not a player-started level and must have no side effects.
+        if(game==null)return;
         if(!game.isResultScreen())RescueReminder.played(this);
         hideResultBanner();
         if(routeNav!=null)routeNav.setVisibility(View.GONE);

@@ -1,5 +1,7 @@
 # Premium V2 — implementation checkpoint
 
+**V53 startup crash:** superseded by the V54 hotfix. See `HOTFIX-V54.md`. Earlier V53 test results did not cover the final callback edit. The redesign remains an internal preview.
+
 Selected name: **Arrow Escape: Rescue Puzzle** (27 characters). Package remains `com.arrowescape.pro`. Version code 53; version name `2.0.0-preview`.
 
 This branch is an internal development preview, not the finished redesign and not approved for production. No Play production publication or advertising spend was performed.

@@ -1,0 +1,1 @@
+Internal preview hotfix: fixes an initialization-time crash when opening the app. Existing progress and inventory are retained. No production publication.
