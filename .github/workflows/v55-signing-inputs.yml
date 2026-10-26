@@ -1,0 +1,35 @@
+name: V55 private-signing build inputs
+on:
+  push:
+    branches: [build/v55-signing-inputs]
+permissions:
+  contents: read
+jobs:
+  build-inputs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with: {distribution: temurin, java-version: '21'}
+      - name: Install SDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36.1" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '9.6.0'}
+      - name: Prepare intermediate inputs for original-key signing
+        run: |
+          set -euo pipefail
+          gradle --no-daemon --console=plain --max-workers=4 :app:assembleRelease :app:bundleRelease
+          mkdir inputs
+          cp app/build/outputs/apk/release/app-release-unsigned.apk inputs/UNSIGNED-INPUT-NOT-INSTALLABLE.apk
+          cp app/build/outputs/bundle/release/app-release.aab inputs/UNSIGNED-INPUT-NOT-FOR-PLAY.aab
+          git rev-parse HEAD > inputs/source-commit.txt
+          git ls-files -z app/src app/build.gradle.kts build.gradle.kts settings.gradle.kts gradle.properties | xargs -0 sha256sum > inputs/runtime-inputs.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: V55-INTERMEDIATE-SIGNING-INPUTS
+          path: inputs/
+          retention-days: 1
+          if-no-files-found: error
