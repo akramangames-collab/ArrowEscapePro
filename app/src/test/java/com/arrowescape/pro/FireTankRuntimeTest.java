@@ -24,6 +24,11 @@ public class FireTankRuntimeTest {
     @SuppressWarnings("unchecked") ArrayList<Object> pieces=(ArrayList<Object>)get(game,"pieces");
     Class<?> piece=pieces.get(0).getClass();Object keyPiece=null;
     for(Object p:pieces)if((int)get(p,"id")==key)keyPiece=p;assertNotNull(keyPiece);
+    @SuppressWarnings("unchecked") ArrayList<Object> targets=(ArrayList<Object>)get(game,"boosterTargets");
+    targets.clear();targets.add(keyPiece);set(game,"boosterTargeted",true);set(game,"boosterMode",1);
+    invoke(game,"confirmBooster",new Class[]{});assertFalse("tank key must resist removal", (boolean)get(keyPiece,"removed"));
+    assertTrue("protected target is removed from selection",targets.isEmpty());
+    set(game,"boosterMode",0);
     CageWater timer=(CageWater)get(game,"cageWater");timer.restore(5f);
     float before=timer.elapsed();invoke(game,"updateWater",new Class[]{float.class},1f);assertTrue(timer.elapsed()>before);
     int steps=0;
