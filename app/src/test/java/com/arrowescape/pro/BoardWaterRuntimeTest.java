@@ -23,6 +23,8 @@ public class BoardWaterRuntimeTest {
    set(game,"rescueBoard",true);set(game,"level",1);
    set(game,"boardViewportLeft",0f);set(game,"boardViewportTop",0f);
    set(game,"boardViewportRight",300f);set(game,"boardViewportBottom",300f);
+   set(game,"boardLeft",0f);set(game,"boardTop",0f);set(game,"gridW",30);set(game,"gridH",30);
+   set(game,"cell",10f);set(game,"boardStretchY",1f);
    CageWater water=(CageWater)get(game,"cageWater");water.reset(1,3);
    Method draw=ArrowGameView.class.getDeclaredMethod("drawBoardWater",Canvas.class,long.class);draw.setAccessible(true);
    Bitmap dry=Bitmap.createBitmap(300,300,Bitmap.Config.ARGB_8888);
@@ -36,4 +38,24 @@ public class BoardWaterRuntimeTest {
    dry.recycle();wet.recycle();heat.recycle();
   }
  }
+ @Test public void waterlineReachesHeadAtFailureAndRestores()throws Exception{
+  try(var controller=Robolectric.buildActivity(MainActivity.class).setup()){
+   ArrowGameView game=(ArrowGameView)get(controller.get(),"game");
+   Method start=ArrowGameView.class.getDeclaredMethod("startLevel",int.class);start.setAccessible(true);start.invoke(game,1);
+   set(game,"boardViewportBottom",300f);set(game,"boardTop",0f);set(game,"gridH",30);set(game,"cell",10f);set(game,"boardStretchY",1f);
+   CageWater water=(CageWater)get(game,"cageWater");water.reset(1,3);
+   Method surface=ArrowGameView.class.getDeclaredMethod("waterSurfaceY");surface.setAccessible(true);
+   Method update=ArrowGameView.class.getDeclaredMethod("updateWater",float.class);update.setAccessible(true);
+   water.restore(119f);assertTrue((float)surface.invoke(game)>119.1f);
+   update.invoke(game,.5f);assertFalse((boolean)get(game,"failed"));
+   update.invoke(game,.5f);assertTrue((boolean)get(game,"failed"));assertEquals(119.1f,(float)surface.invoke(game),.01f);
+   game.saveProgress();
+   try(var resumed=Robolectric.buildActivity(MainActivity.class).setup()){
+    ArrowGameView restored=(ArrowGameView)get(resumed.get(),"game");assertTrue((boolean)get(restored,"failed"));
+    restored.grantRevive();assertFalse((boolean)get(restored,"failed"));
+    assertEquals(.5f,((CageWater)get(restored,"cageWater")).fraction(),.001f);
+   }
+  }
+ }
+
 }

@@ -324,7 +324,7 @@ public class ArrowGameView extends View {
         if(heartbeat==null)heartbeat=new Heartbeat(getContext(),settings);
         heartbeat.tick(cageWater.fraction(),SystemClock.elapsedRealtime());
         if(cageWater.full()){
-            failed=true;autoMovesRemaining=0;cancelBooster();showToast("Danger meter full · time ran out");buzz(150);saveProgress();
+            failed=true;autoMovesRemaining=0;cancelBooster();showToast(hazard()==RescueHazard.WATER?"Water reached the character!":"Danger meter full · time ran out");buzz(150);saveProgress();
         }else if((int)cageWater.elapsed()!=savedWaterSecond){savedWaterSecond=(int)cageWater.elapsed();saveProgress();}
     }
     private void updateAnimations(float dt, long now) {
@@ -810,31 +810,56 @@ public class ArrowGameView extends View {
 
     private RescueHazard hazard(){return RescueHazard.forLevel(level);}
 
-    /** A translucent rising water backdrop; arrows and controls are drawn above it. */
+    /** The same world-space waterline is used for the board and character. */
+    private float waterSurfaceY(){
+        float bottom=boardViewportBottom-dp(3);
+        float cy=boardTop+(gridH/2)*cell*boardStretchY;
+        // rescueArt is drawn with its head at this height. At 100% the water
+        // reaches it, which is the very same threshold that ends the level.
+        float head=cy-cell*boardStretchY*3.09f;
+        return bottom-(bottom-head)*cageWater.fraction();
+    }
+
+    private float waterWaveY(float x,float surface,long now){
+        boolean motion=!paused&&!settings.getBoolean("reduce_motion",false);
+        float phase=motion?(now%6000L)/700f:0f;
+        float wave=(float)(Math.sin(x*.035f+phase)*.65+Math.sin(x*.071f-phase*.7)*.35)*dp(1.6f);
+        float cy=boardTop+(gridH/2)*cell*boardStretchY;
+        float head=cy-cell*boardStretchY*3.09f;
+        return Math.max(head,surface+wave);
+    }
+
+    /** Layered transparent water and small moving highlights, with clear arrows above. */
     private void drawBoardWater(Canvas c,long now){
         if(!rescueBoard||challengeActive()||hazard()!=RescueHazard.WATER||cageRescue.cageOpened())return;
-        float f=Math.max(0f,Math.min(1f,cageWater.fraction()));
-        if(f<=0f)return;
+        if(cageWater.fraction()<=0f)return;
         float left=boardViewportLeft+dp(3),right=boardViewportRight-dp(3);
-        float top=boardViewportTop+dp(3),bottom=boardViewportBottom-dp(3);
-        float surface=bottom-(bottom-top)*f;
-        boolean animate=!paused&&!settings.getBoolean("reduce_motion",false);
-        float phase=animate?(now%3000L)/480f:0f;
-        Path water=new Path();water.moveTo(left,bottom);water.lineTo(left,surface);
-        for(int i=0;i<=40;i++){
-            float x=left+(right-left)*i/40f;
-            float y=surface+(float)Math.sin(i*.42f+phase)*dp(2);
-            water.lineTo(x,y);
+        float bottom=boardViewportBottom-dp(3),surface=waterSurfaceY();
+        Path water=new Path();water.moveTo(left,bottom);water.lineTo(left,waterWaveY(left,surface,now));
+        for(int i=1;i<=40;i++){
+            float x=left+(right-left)*i/40f;water.lineTo(x,waterWaveY(x,surface,now));
         }
         water.lineTo(right,bottom);water.close();
-        paint.setStyle(Paint.Style.FILL);paint.setColor(0x3625BFFF);paint.setShader(null);c.drawPath(water,paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setShader(new LinearGradient(0,surface,0,Math.max(surface+1,bottom),
+                0x6544DBF3,0xA9095B9C,Shader.TileMode.CLAMP));
+        c.drawPath(water,paint);paint.setShader(null);
         Path crest=new Path();
         for(int i=0;i<=40;i++){
-            float x=left+(right-left)*i/40f;
-            float y=surface+(float)Math.sin(i*.42f+phase)*dp(2);
+            float x=left+(right-left)*i/40f,y=waterWaveY(x,surface,now);
             if(i==0)crest.moveTo(x,y);else crest.lineTo(x,y);
         }
-        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.5f));paint.setColor(0xAA7DEBFF);c.drawPath(crest,paint);
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.4f));paint.setColor(0xD4C7F8FF);c.drawPath(crest,paint);
+        // Sparse glints keep the scene legible even on small devices.
+        paint.setStrokeWidth(dp(1));paint.setColor(0x555FE6FF);
+        boolean motion=!paused&&!settings.getBoolean("reduce_motion",false);
+        float drift=motion?(now%4000L)/4000f:0f;
+        for(int i=0;i<10;i++){
+            float x=left+(right-left)*((i*37%97)/97f);
+            float depth=(i*53%89)/89f;
+            float y=surface+dp(5)+(bottom-surface-dp(5))*((depth+drift*.12f)%1f);
+            if(y>surface+dp(2)&&y<bottom-dp(2))c.drawLine(x,y,x+dp(3+i%3),y,paint);
+        }
         paint.setStyle(Paint.Style.FILL);
     }
 
@@ -851,12 +876,20 @@ public class ArrowGameView extends View {
 
     private void drawCageWater(Canvas c,float cx,float cy,float unit,float sy,long now){
         float left=cx-unit*3.4f,right=cx+unit*3.4f,top=cy-sy*2.86f,bottom=cy+sy*2.55f;
-        float fill=(cageRescue.cageOpened()||waterTankOpened())?0:cageWater.fraction(),surface=bottom-(bottom-top)*fill;
+        float fill=(cageRescue.cageOpened()||waterTankOpened())?0:cageWater.fraction();
+        float surface=hazard()==RescueHazard.WATER?waterSurfaceY():bottom-(bottom-top)*fill;
         c.save();c.clipRect(left,top,right,bottom);
-        paint.setStyle(Paint.Style.FILL);paint.setColor(((hazard().color & 0x00FFFFFF) | 0x91000000));c.drawRect(left,surface,right,bottom,paint);
-        if(fill>0){
+        if(fill>0&&surface<bottom){
+            if(hazard()==RescueHazard.WATER){
+                Path body=new Path();body.moveTo(left,bottom);body.lineTo(left,waterWaveY(left,surface,now));
+                for(int i=1;i<=24;i++){float x=left+(right-left)*i/24f;body.lineTo(x,waterWaveY(x,surface,now));}
+                body.lineTo(right,bottom);body.close();
+                paint.setStyle(Paint.Style.FILL);paint.setShader(new LinearGradient(0,surface,0,Math.max(surface+1,bottom),0xA04FDBF3,0xC9095993,Shader.TileMode.CLAMP));
+                c.drawPath(body,paint);paint.setShader(null);
+            }else{paint.setStyle(Paint.Style.FILL);paint.setColor(((hazard().color & 0x00FFFFFF) | 0x91000000));c.drawRect(left,surface,right,bottom,paint);}
             Path wave=new Path();wave.moveTo(left,surface);boolean animate=!settings.getBoolean("reduce_motion",false)&&!paused;
-            for(int i=0;i<=24;i++)wave.lineTo(left+(right-left)*i/24f,surface+(float)Math.sin(i*.65+(animate?now/240.0:0))*sy*.055f);
+            for(int i=0;i<=24;i++){float x=left+(right-left)*i/24f;
+                wave.lineTo(x,hazard()==RescueHazard.WATER?waterWaveY(x,surface,now):surface+(float)Math.sin(i*.65+(animate?now/240.0:0))*sy*.055f);}
             paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(unit*.08f);paint.setColor(hazard().highlight);c.drawPath(wave,paint);
         }
         if(hazard()==RescueHazard.FIRE&&fill>0){
@@ -867,7 +900,7 @@ public class ArrowGameView extends View {
         c.restore();if(hazard()!=RescueHazard.WATER){paint.setStyle(Paint.Style.FILL);return;}
         paint.setStyle(Paint.Style.STROKE);paint.setStrokeCap(Paint.Cap.ROUND);paint.setStrokeWidth(unit*.35f);paint.setColor(0xFF8AA3B7);
         Path pipe=new Path();pipe.moveTo(cx+unit*4f,cy-sy*3.05f);pipe.lineTo(cx+unit*2.6f,cy-sy*3.05f);pipe.lineTo(cx+unit*2.6f,top+sy*.35f);c.drawPath(pipe,paint);
-        if(!cageRescue.cageOpened()){paint.setColor(0xFF46CBFF);paint.setStrokeWidth(unit*.16f);c.drawLine(cx+unit*2.6f,top+sy*.35f,cx+unit*2.6f,Math.max(top+sy*.35f,surface),paint);}
+        if(!cageRescue.cageOpened()&&fill>0){paint.setColor(0xFF46CBFF);paint.setStrokeWidth(unit*.16f);c.drawLine(cx+unit*2.6f,top+sy*.35f,cx+unit*2.6f,Math.min(bottom,Math.max(top+sy*.35f,surface)),paint);}
         paint.setStyle(Paint.Style.FILL);paint.setStrokeCap(Paint.Cap.SQUARE);
     }
 
@@ -1375,7 +1408,7 @@ public class ArrowGameView extends View {
     private void drawFail(Canvas c) {
         drawScenicBackdrop(c);float w=getWidth(),h=getHeight(),top=insetTop+dp(18),bottom=h-insetBottom;
         label(c,"TRY AGAIN",w/2,top+dp(28),27,NAVY,true);
-        label(c,cageWater.full()?"Danger meter full. Try the rescue again.":"Your coins are safe. Find a fresh way out.",w/2,top+dp(56),13,MUTED,false);
+        label(c,cageWater.full()?(hazard()==RescueHazard.WATER?"Water reached the character. Try again.":"Danger meter full. Try the rescue again."):"Your coins are safe. Find a fresh way out.",w/2,top+dp(56),13,MUTED,false);
         primaryHit.set(dp(24),bottom-dp(180),w-dp(24),bottom-dp(130));secondaryHit.set(dp(24),bottom-dp(118),w-dp(24),bottom-dp(68));tertiaryHit.set(dp(24),bottom-dp(60),w-dp(24),bottom-dp(12));
         float portraitTop=top+dp(76),portraitBottom=primaryHit.top-dp(14);
         if(rescueBoard&&!challengeActive()&&portraitBottom-portraitTop>=dp(70))rescueArt.draw(c,RescueCharacterArt.STARTLED,w/2,portraitBottom,Math.min(dp(260),portraitBottom-portraitTop),w*.45f);
