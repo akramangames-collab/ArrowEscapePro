@@ -34,7 +34,7 @@ def main():
         w,h,walks=unpack(line);seeds.append((w,h,longest(w,h,walks)))
     seeds.sort(key=lambda s:len(s[2]));outputs=[];metrics=[];seen=set()
     for level in range(1,1001):
-        rng=random.Random(510000+level);rank=min(399,max(0,int((level-6)/994*399)))
+        rng=random.Random(510000+level);rank=min(399,max(0,120+int((level-6)/994*279)))
         w,h,source=seeds[rank];walks=[p.copy() for p in source]
         if level<=5:w,h,walks=tutorial(level)
         else:
