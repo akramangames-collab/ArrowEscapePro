@@ -766,7 +766,7 @@ public class ArrowGameView extends View {
         c.drawText(cageRescue.cageOpened()?"Cage open!":cageRescue.boxOpened()?"Unlocking cage…":"Find gold arrow",cx-unit*3.65f,cy+sy*3.25f,paint);
         paint.setColor(MUTED);paint.setTextSize(unit*.35f);
         paint.setColor(cageWater.danger()==2?RED:BLUE);
-        c.drawText("♥ "+Math.round(60000f/Heartbeat.interval(cageWater.fraction()))+"  ·  "+Math.round(cageWater.fraction()*100)+"% "+hazard().meter+" · "+cageWater.remainingSeconds()+"s",cx-unit*3.65f,cy+sy*3.85f,paint);
+        c.drawText(waterTankOpened()?"WATER RELEASED · FIRE OUT":"♥ "+Math.round(60000f/Heartbeat.interval(cageWater.fraction()))+"  ·  "+Math.round(cageWater.fraction()*100)+"% "+hazard().meter+" · "+cageWater.remainingSeconds()+"s",cx-unit*3.65f,cy+sy*3.85f,paint);
         // A low frame rate is enough for idle breathing and a soft platform pulse.
         if(isShown()&&!paused&&!tutorial&&!finished&&!failed)postInvalidateDelayed(80);
         else if(isShown()&&!paused){
