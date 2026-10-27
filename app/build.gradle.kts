@@ -8,6 +8,7 @@ require(playGamesProjectId.isEmpty() || playGamesProjectId.matches(Regex("[0-9]+
     "Play Games project ID must be the numeric ID from Play Console"
 }
 
+val reviewTestAds = providers.environmentVariable("ARROW_REVIEW_TEST_ADS").orNull == "true"
 val releaseStorePath = providers.environmentVariable("ARROW_RELEASE_STORE_FILE").orNull
 val releaseStorePassword = providers.environmentVariable("ARROW_RELEASE_STORE_PASSWORD").orNull
 val releaseKeyAlias = providers.environmentVariable("ARROW_RELEASE_KEY_ALIAS").orNull
@@ -69,11 +70,11 @@ android {
                 "proguard-rules.pro"
             )
             if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
-            manifestPlaceholders["ADMOB_APP_ID"] = "ca-app-pub-2475015099415787~6197424406"
-            buildConfigField("String", "ADMOB_APP_ID", "\"ca-app-pub-2475015099415787~6197424406\"")
-            buildConfigField("String", "ADMOB_BANNER_ID", "\"ca-app-pub-2475015099415787/6590130477\"")
-            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", "\"ca-app-pub-2475015099415787/3782285105\"")
-            buildConfigField("String", "ADMOB_REWARDED_ID", "\"ca-app-pub-2475015099415787/2469203439\"")
+            manifestPlaceholders["ADMOB_APP_ID"] = if (reviewTestAds) "ca-app-pub-3940256099942544~3347511713" else "ca-app-pub-2475015099415787~6197424406"
+            buildConfigField("String", "ADMOB_APP_ID", if (reviewTestAds) "\"ca-app-pub-3940256099942544~3347511713\"" else "\"ca-app-pub-2475015099415787~6197424406\"")
+            buildConfigField("String", "ADMOB_BANNER_ID", if (reviewTestAds) "\"ca-app-pub-3940256099942544/6300978111\"" else "\"ca-app-pub-2475015099415787/6590130477\"")
+            buildConfigField("String", "ADMOB_INTERSTITIAL_ID", if (reviewTestAds) "\"ca-app-pub-3940256099942544/1033173712\"" else "\"ca-app-pub-2475015099415787/3782285105\"")
+            buildConfigField("String", "ADMOB_REWARDED_ID", if (reviewTestAds) "\"ca-app-pub-3940256099942544/5224354917\"" else "\"ca-app-pub-2475015099415787/2469203439\"")
         }
     }
     buildFeatures { buildConfig = true; resValues = true }

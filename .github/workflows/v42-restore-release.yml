@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
+      ARROW_REVIEW_TEST_ADS: 'true'
       ARROW_RELEASE_STORE_FILE: ${{ github.workspace }}/../arrow-original-upload.jks
       ARROW_RELEASE_STORE_PASSWORD: ${{ secrets.ARROW_RELEASE_STORE_PASSWORD }}
       ARROW_RELEASE_KEY_PASSWORD: ${{ secrets.ARROW_RELEASE_KEY_PASSWORD }}
