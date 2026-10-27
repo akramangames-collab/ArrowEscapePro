@@ -1259,9 +1259,8 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         slot.setMinimumHeight(0);
         slot.setBackground(new AdRailBackdrop(dp(10),dp(16)));
         slot.removeAllViews();
-        // Reserve the requested footprint before loading, so controls never move into
-        // the ad area while the creative arrives. Buffer stays non-interactive.
-        slot.setVisibility(View.VISIBLE);
+        // Keep content full-height until an actual creative is available.
+        slot.setVisibility(View.GONE);
         AdView ad=new AdView(this);ad.setVisibility(View.INVISIBLE);
         ad.setAdUnitId(BuildConfig.ADMOB_BANNER_ID);
         ad.setAdSize(size);
@@ -1416,7 +1415,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
     private void showVisibleMenuBanner() {
         if(onboardingStep>=0||menuBannerSlot==null||menu==null||!menu.isShowing()||banner!=null)return;
         if(!canRequestAds()){
-            menuBannerSlot.setVisibility(View.INVISIBLE);
+            menuBannerSlot.setVisibility(View.GONE);
             setMenuBannerSpace(0,false);
             return;
         }

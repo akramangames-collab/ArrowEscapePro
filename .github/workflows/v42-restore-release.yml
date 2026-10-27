@@ -69,7 +69,7 @@ jobs:
           BT="$ANDROID_HOME/build-tools/36.0.0"
           "$BT/apksigner" verify --verbose review/Arrow-Escape-V55-PREVIEW-TEST.apk > review/debug-signature.txt
           "$BT/aapt2" dump badging review/Arrow-Escape-V55-PREVIEW-TEST.apk | sed -n '1p' > review/debug-package.txt
-          grep -F "name='com.arrowescape.pro.preview' versionCode='55'" review/debug-package.txt
+          grep -F "name='com.arrowescape.pro.preview' versionCode='56'" review/debug-package.txt
           if [ "$ORIGINAL_SIGNING_READY" = "true" ]; then
             cp app/build/outputs/apk/release/app-release.apk review/Arrow-Escape-V55-REDESIGN-REVIEW.apk
             cp app/build/outputs/bundle/release/app-release.aab review/Arrow-Escape-V55-REDESIGN-REVIEW.aab
@@ -80,7 +80,7 @@ jobs:
             keytool -printcert -jarfile review/Arrow-Escape-V55-REDESIGN-REVIEW.aab > review/bundle-certificate.txt
             tr -d ':' < review/bundle-certificate.txt | grep -i 'c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f'
             "$BT/aapt2" dump badging review/Arrow-Escape-V55-REDESIGN-REVIEW.apk | sed -n '1p' > review/release-package.txt
-            grep -F "name='com.arrowescape.pro' versionCode='55'" review/release-package.txt
+            grep -F "name='com.arrowescape.pro' versionCode='56'" review/release-package.txt
           fi
           cp -r app/build/approved-ui-previews review/native-ui-previews
           cp -r app/build/game-previews review/native-game-previews
