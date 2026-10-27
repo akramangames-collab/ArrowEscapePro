@@ -1,0 +1,52 @@
+{
+  "versionCode": 55,
+  "versionName": "2.0.0-redesign",
+  "package": "com.arrowescape.pro",
+  "runtimeSourceCommit": "05b55845373d9cc8d6ba1b35abd86b121797b434",
+  "verificationRun": "https://github.com/akramangames-collab/ArrowEscapePro/actions/runs/40376304015",
+  "buildInputsRun": "https://github.com/akramangames-collab/ArrowEscapePro/actions/runs/40377283288",
+  "automatedTests": {
+    "testDebugUnitTest": {
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "testReleaseUnitTest": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "lint": {
+    "warnings": 32,
+    "errors": 0
+  },
+  "signing": {
+    "originalUploadCertificateSha256": "c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f",
+    "apkVerified": true,
+    "aabVerified": true
+  },
+  "unchangedRuntimeBuildInputs": 70,
+  "campaign": "PASS: 1000 distinct layouts; 47142 unique-sequence moves; gold key last; self-tail clearance; four-sided cage shelter.",
+  "wallet": "Wallet: 64 assertions passed.",
+  "daily": "All 366 deterministic challenge outputs verified against committed assets; zero overlap with campaign. Generator log contains a legacy 400-level label; its code checks the full campaign file.",
+  "artifacts": [
+    {
+      "name": "Arrow-Escape-V55-REDESIGN-REVIEW.apk",
+      "bytes": 8950682,
+      "sha256": "37fe392c91941f55d8086e4277a09b039cbada357de67e3be2bfca5c9e2ecd6d"
+    },
+    {
+      "name": "Arrow-Escape-V55-REDESIGN-REVIEW.aab",
+      "bytes": 11266634,
+      "sha256": "a54b9d1da44121b02b4f8eb4fcd772ffdc804eada943abf0dd4251c601846da1"
+    }
+  ],
+  "physicalDeviceQA": false,
+  "emulatorQA": false,
+  "playPublished": false,
+  "productionReady": false,
+  "remainingScope": "See PREMIUM-V2-STATUS.md. Original full V2 feature, account, website and release scope is unfinished."
+}

@@ -14,7 +14,8 @@ final class BoosterIcon extends Drawable {
     BoosterIcon(int kind,int color){this.kind=kind;this.color=color;}
     @Override public void draw(Canvas c){
         c.save();c.translate(getBounds().left,getBounds().top);c.scale(getBounds().width()/48f,getBounds().height()/48f);p.setStyle(Paint.Style.FILL);p.setColor(color);
-        if(kind==1){c.save();c.rotate(-28,24,24);c.drawRoundRect(new RectF(13,8,35,39),5,5,p);p.setColor(0xFFDFF5FF);c.drawRoundRect(new RectF(13,30,35,39),3,3,p);p.setColor(0x55FFFFFF);c.drawRect(16,13,32,17,p);c.restore();}
+        if(kind==0){p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3);c.drawCircle(24,19,13,p);c.drawLine(18,32,30,32,p);c.drawLine(19,38,29,38,p);p.setStyle(Paint.Style.FILL);c.drawRoundRect(20,40,28,44,2,2,p);}
+        else if(kind==1){c.save();c.rotate(-28,24,24);c.drawRoundRect(new RectF(13,8,35,39),5,5,p);p.setColor(0xFFDFF5FF);c.drawRoundRect(new RectF(13,30,35,39),3,3,p);p.setColor(0x55FFFFFF);c.drawRect(16,13,32,17,p);c.restore();}
         else if(kind==2){c.drawCircle(23,28,15,p);c.drawRoundRect(new RectF(20,9,29,16),2,2,p);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3);c.drawArc(new RectF(25,3,39,17),170,140,false,p);p.setStyle(Paint.Style.FILL);p.setColor(0x77FFFFFF);c.drawCircle(18,22,4,p);p.setColor(0xFFFFD76B);c.drawCircle(39,7,3,p);}
         else if(kind==BoosterInventory.SCAN){ // Safe Scan: compact crosshair
             p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3.4f);

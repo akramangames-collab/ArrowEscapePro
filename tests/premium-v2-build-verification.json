@@ -1,0 +1,85 @@
+{
+  "status": "INTERNAL DEVELOPMENT PREVIEW \u2014 NOT PRODUCTION READY",
+  "name": "Arrow Escape: Rescue Puzzle",
+  "package": "com.arrowescape.pro",
+  "versionCode": 53,
+  "versionName": "2.0.0-preview",
+  "source_tree": "e2cf2caf10cd0fd7383d57cf48671f63ce8cf314",
+  "github_commit": "a04f3fe9809e4ed47e5a14a18863412cf4b632a6",
+  "signing_sha256": "C0:F5:B8:4B:37:5B:47:75:BC:C6:7C:37:E0:57:A2:6C:B3:D6:54:FE:79:38:D4:8B:65:8E:B4:23:E4:41:42:9F",
+  "apk_signature": "Verified APK v2 signature",
+  "aab_signature": "JAR verified; original certificate matched",
+  "tests": [
+    {
+      "name": "com.arrowescape.pro.CampaignRuntimeTest",
+      "tests": "27",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.CageWaterTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.PremiumV2RuntimeTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.CageRescueTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.AmbientMusicRuntimeTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.BoosterInventoryRuntimeTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.RouteOnboardingRuntimeTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.BannerLayoutRuntimeTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0"
+    },
+    {
+      "name": "com.arrowescape.pro.StartupRuntimeTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0"
+    }
+  ],
+  "lint": "Passed; 0 errors, 25 warnings. Not equivalent to account policy audit.",
+  "campaign": "1000 layouts; 47142 moves independently verified",
+  "daily_pack": "366 deterministic distinct daily challenges verified; no campaign overlap",
+  "physical_device_or_emulator_qa": false,
+  "published": false,
+  "files": [
+    {
+      "name": "Arrow-Escape-Rescue-Puzzle-V53-INTERNAL-PREVIEW.apk",
+      "bytes": 7740685,
+      "sha256": "aa71c6f41074fbb7160359c2f8392ec7ab569c1b2f03e25ae9f9271eff435408"
+    },
+    {
+      "name": "Arrow-Escape-Rescue-Puzzle-V53-INTERNAL-PREVIEW.aab",
+      "bytes": 10213223,
+      "sha256": "4f66e0992a3b1ddd3ddc02414907d87bf801f9bff4960655dc7c863e0580f9b7"
+    }
+  ]
+}

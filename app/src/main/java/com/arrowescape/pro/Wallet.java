@@ -11,13 +11,13 @@ public final class Wallet {
     public static final class State {
         public int coins = STARTER, streak, arrowTypeMask = 1, themeMask = 1;
         public long dailyDay = -1, challengeDay = -1, weeklyChallengeWeek = -1;
-        public String levelToken = "", adToken = "";
+        public String levelToken = "", adToken = "", clearedLevels = ",", history = "";
         public boolean initialized;
         public State copy() {
             State s = new State();
             s.coins = coins; s.streak = streak; s.arrowTypeMask = arrowTypeMask; s.themeMask = themeMask;
             s.dailyDay = dailyDay; s.challengeDay = challengeDay; s.weeklyChallengeWeek = weeklyChallengeWeek;
-            s.levelToken = levelToken; s.adToken = adToken; s.initialized = initialized;
+            s.levelToken = levelToken; s.adToken = adToken; s.clearedLevels=clearedLevels; s.history=history; s.initialized = initialized;
             return s;
         }
     }
@@ -112,6 +112,7 @@ public final class Wallet {
         state = storage.load().copy();
         return now >= 0 && now / DAY_MS > state.dailyDay;
     }
+    public synchronized long completedChallengeDay(){state=storage.load().copy();return state.challengeDay;}
     public synchronized boolean canRewardDailyChallenge(long day) {
         state = storage.load().copy();
         return day >= 0 && day > state.challengeDay;
@@ -125,7 +126,7 @@ public final class Wallet {
         state = storage.load().copy();
         if (price <= 0 || state.coins < price) return false;
         State next = state.copy(); next.coins -= price;
-        return commit(next);
+        record(next,"Coin purchase",-price);return commit(next);
     }
 
     public synchronized int claimDaily(long now) {
@@ -136,15 +137,15 @@ public final class Wallet {
         next.dailyDay = day;
         int amount = dailyRewardForStreak(next.streak);
         next.coins = add(next.coins, amount);
-        return commit(next) ? amount : 0;
+        record(next,"Reward",amount);return commit(next) ? amount : 0;
     }
 
     public synchronized int rewardLevel(String token, int level, int stars) {
         state = storage.load().copy();
-        if (token == null || token.isEmpty() || token.equals(state.levelToken) || level < 1 || level > CampaignRules.LEVEL_COUNT || stars < 1 || stars > 3) return 0;
+        if (token == null || token.isEmpty() || token.equals(state.levelToken) || state.clearedLevels.contains(","+level+",") || level < 1 || level > CampaignRules.LEVEL_COUNT || stars < 1 || stars > 3) return 0;
         int amount = 15 + (stars == 3 ? 10 : stars == 2 ? 5 : 0) + CampaignRules.bonus(level);
-        State next = state.copy(); next.coins = add(next.coins, amount); next.levelToken = token;
-        return commit(next) ? amount : 0;
+        State next = state.copy(); next.coins = add(next.coins, amount); next.levelToken = token; next.clearedLevels += level+",";
+        record(next,"Reward",amount);return commit(next) ? amount : 0;
     }
     public synchronized int rewardLevel(String token, int level, boolean perfect) {
         return rewardLevel(token, level, perfect ? 3 : 1);
@@ -156,7 +157,7 @@ public final class Wallet {
         State next = state.copy();
         next.coins = add(next.coins, DAILY_CHALLENGE);
         next.challengeDay = day;
-        return commit(next) ? DAILY_CHALLENGE : 0;
+        record(next,"Daily challenge",DAILY_CHALLENGE);return commit(next) ? DAILY_CHALLENGE : 0;
     }
 
     public synchronized int rewardWeeklyChallenge(long week, int stars) {
@@ -166,16 +167,22 @@ public final class Wallet {
         State next = state.copy();
         next.coins = add(next.coins, amount);
         next.weeklyChallengeWeek = week;
-        return commit(next) ? amount : 0;
+        record(next,"Reward",amount);return commit(next) ? amount : 0;
     }
 
     public synchronized int rewardAd(String token) {
         state = storage.load().copy();
         if (token == null || token.isEmpty() || token.equals(state.adToken)) return 0;
         State next = state.copy(); next.coins = add(next.coins, AD_REWARD); next.adToken = token;
-        return commit(next) ? AD_REWARD : 0;
+        record(next,"Rewarded ad",AD_REWARD);return commit(next) ? AD_REWARD : 0;
     }
 
+    public synchronized String rewardHistory(){state=storage.load().copy();return state.history;}
+    private void record(State next,String title,int amount){
+        String line=java.time.Instant.now()+" | "+title+" | "+(amount>=0?"+":"")+amount+" coins | balance "+next.coins;
+        String[] previous=next.history.split("\n");StringBuilder h=new StringBuilder(line);
+        for(int i=0;i<Math.min(99,previous.length);i++)if(!previous[i].isEmpty())h.append('\n').append(previous[i]);next.history=h.toString();
+    }
     private static int add(int balance, int amount) {
         return (int)Math.min(Integer.MAX_VALUE, (long)balance + amount);
     }

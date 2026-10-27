@@ -31,6 +31,10 @@ for level,(line,m) in enumerate(zip(lines,metrics),1):
     if level<=5:assert len(pieces)==level+2 and m['water_seconds']==120
     else:
         assert len(pieces)>=24 and m['water_seconds']>len(pieces)*1.45+2.25
-        assert m['density']>=.50, (level,m['density'])
+        # Density alone rewards overly long tails. Require a real length mix instead.
+        lengths=[len(p[0])-1 for p in pieces]
+        assert any(n<=8 for n in lengths), (level,'missing short arrows')
+        assert any(8<n<=18 for n in lengths), (level,'missing medium arrows')
+        assert any(n>18 for n in lengths), (level,'missing long arrows')
     total+=len(pieces)
 print(f'PASS: 1000 distinct layouts; {total} unique-sequence moves; gold key last; self-tail clearance; four-sided cage shelter.')

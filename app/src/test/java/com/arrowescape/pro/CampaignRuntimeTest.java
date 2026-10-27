@@ -484,4 +484,16 @@ public class CampaignRuntimeTest {
             call(g,"confirmBooster",new Class[]{});assertEquals(remaining,call(g,"remaining",new Class[]{}));assertEquals(0,w.balance());
         }finally{g.release();}
     }
+    @Test public void v55EarnedRewardPreviewUsesRealLegalEscapesAndCreditedWallet()throws Exception{
+        Wallet w=new Wallet(new PreferenceWalletStorage(context));ArrowGameView g=new ArrowGameView(context,new Host(),w);
+        try{render(g,720,1560,null);int before=w.balance();
+            for(int step=0;step<10&&!(Boolean)get(g,"finished");step++){
+                Object chosen=null;CageRescue cage=(CageRescue)get(g,"cageRescue");int remaining=(Integer)call(g,"remaining",new Class[]{});
+                for(Object p:(ArrayList<?>)get(g,"pieces"))if(!(Boolean)get(p,"removed")&&!(Boolean)get(p,"moving")&&((Integer)get(p,"id")!=cage.arrowId()||remaining==1)&&(Boolean)call(g,"isClear",new Class[]{p.getClass()},p)){chosen=p;break;}
+                assertNotNull(chosen);call(g,"tapPiece",new Class[]{chosen.getClass()},chosen);assertEquals(true,get(chosen,"moving"));
+                set(chosen,"moveT",1f);call(g,"updateAnimations",new Class[]{float.class,long.class},3f,10000L+step*3000L);
+            }
+            assertEquals(true,get(g,"finished"));assertEquals(25,get(g,"winReward"));assertEquals(before+25,w.balance());render(g,720,1560,"v55-earned-reward");
+        }finally{g.release();}
+    }
 }

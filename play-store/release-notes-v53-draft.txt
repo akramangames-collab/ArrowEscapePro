@@ -1,0 +1,4 @@
+DRAFT — internal preview, not a production announcement.
+Arrow Escape: Rescue Puzzle redesign foundation:
+Dedicated home menu, booster collection and guides, local-day daily booster selection, optional inactivity reminders, heartbeat settings, water/heat/sand chapter environments, wallet history and stronger first-clear receipts.
+Not production-ready; see PREMIUM-V2-STATUS.md for validation and remaining work.

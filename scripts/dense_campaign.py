@@ -39,6 +39,18 @@ def densify(w,h,walks,level):
     for rank,i in enumerate(sequence):
         for q in rays[i]: ray_min[q]=min(rank,ray_min.get(q,rank))
     positions={i:rank for rank,i in enumerate(sequence)}
+    # Mix short, medium and long arrows in the forced dependency chain.
+    caps={i:(8 if rank%20<7 else 18 if rank%20<15 else 40) for rank,i in enumerate(sequence)}
+    for i in sequence:
+        while len(walks[i])>caps[i]:
+            old=walks[i];walks[i]=old[1:]
+            try: unique_order(w,h,walks)
+            except ValueError:
+                walks[i]=old;break
+    sequence,rays=unique_order(w,h,walks)
+    ray_min={}
+    for rank,i in enumerate(sequence):
+        for q in rays[i]:ray_min[q]=min(rank,ray_min.get(q,rank))
     original_lengths=[len(p) for p in walks]
     headroom={}
     for i,p in enumerate(walks):
@@ -56,7 +68,7 @@ def densify(w,h,walks,level):
         grown=0
         for i in indices:
             p=walks[i]
-            if len(p)>=72 or len(occupied)>=wanted or len(p)-original_lengths[i]>=headroom[i]: continue
+            if len(p)>=caps[i] or len(occupied)>=wanted or len(p)-original_lengths[i]>=headroom[i]: continue
             x,y=p[0];choices=[]
             for dx,dy in dirs:
                 q=(x+dx,y+dy)

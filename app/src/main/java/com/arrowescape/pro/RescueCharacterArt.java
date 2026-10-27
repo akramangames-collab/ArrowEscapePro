@@ -21,7 +21,7 @@ final class RescueCharacterArt {
         BitmapFactory.Options options=new BitmapFactory.Options();
         options.inScaled=false;
         options.inSampleSize=2;
-        try(InputStream stream=context.getAssets().open("characters/rescue-boy-expressions.png")) {
+        try(InputStream stream=context.getAssets().open("characters/rescue-mascot-expressions.png")) {
             atlas=BitmapFactory.decodeStream(stream,null,options);
         } catch(IOException e) {
             throw new IllegalStateException("Bundled rescue character is missing",e);
@@ -40,6 +40,11 @@ final class RescueCharacterArt {
             }
             frames[state]=x0<x1&&y0<y1?new Rect(x0,y0,x1,y1):new Rect(left,top,right,bottom);
         }
+    }
+
+    float drawnHeight(int state,float height,float maxWidth) {
+        Rect source=frames[Math.max(0,Math.min(3,state))];
+        return source.height()*Math.min(height/source.height(),maxWidth/source.width());
     }
 
     void draw(Canvas canvas,int state,float centerX,float feetY,float height,float maxWidth) {
