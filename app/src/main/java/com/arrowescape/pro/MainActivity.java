@@ -606,7 +606,7 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         LinearLayout status=new LinearLayout(this);status.setGravity(Gravity.CENTER_VERTICAL);
         TextView studio=text("AK SOFTWARE LABS",10,MUTED);studio.setLetterSpacing(.14f);status.addView(studio,new LinearLayout.LayoutParams(0,-2,1));
         TextView bank=text("● "+wallet.balance()+"  ·  "+wallet.streak()+" DAY STREAK",12,GOLD);status.addView(bank);body.addView(status);
-        body.addView(new GameLogoView(this),new LinearLayout.LayoutParams(-1,dp(120)));
+        body.addView(new GameLogoView(this),new LinearLayout.LayoutParams(-1,dp(150)));
         body.addView(new RescueHeroView(this),new LinearLayout.LayoutParams(-1,dp(155)));
         TextView chapter=text("CHAPTER "+CampaignRules.chapter(game.currentLevelNumber())+" · "+CampaignRules.chapterName(game.currentLevelNumber()),12,CYAN);chapter.setGravity(Gravity.CENTER);body.addView(chapter);
         body.addView(button("PLAY · LEVEL "+game.currentLevelNumber(),()->{dismissMenuForRoute();game.setPaused(false);game.openPlay();enterGameplay();},true));
