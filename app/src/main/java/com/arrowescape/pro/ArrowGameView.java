@@ -439,7 +439,7 @@ public class ArrowGameView extends View {
         boardTop=boardViewportCenterY-boardH/2f+boardPanY;
         RectF boardFrame=new RectF(boardViewportLeft,boardViewportTop,boardViewportRight,boardViewportBottom);
         paint.setStyle(Paint.Style.FILL);paint.setShader(new LinearGradient(0,boardFrame.top,0,boardFrame.bottom,0xFF103F46,0xFF082D35,Shader.TileMode.CLAMP));c.drawRoundRect(boardFrame,dp(22),dp(22),paint);paint.setShader(null);strokeRound(c,boardFrame,0xFF2A666B,dp(1));
-        c.save();c.clipRect(boardViewportLeft+dp(3),boardViewportTop+dp(3),boardViewportRight-dp(3),boardViewportBottom-dp(3));drawDottedGrid(c);drawRescueGoal(c,now);drawPieces(c,now);drawPathPreview(c);drawBoosterPreview(c,now);c.restore();
+        c.save();c.clipRect(boardViewportLeft+dp(3),boardViewportTop+dp(3),boardViewportRight-dp(3),boardViewportBottom-dp(3));drawBoardWater(c,now);drawDottedGrid(c);drawRescueGoal(c,now);drawPieces(c,now);drawPathPreview(c);drawBoosterPreview(c,now);c.restore();
         if(boosterMode==0)label(c,"PINCH TO ZOOM  ·  "+Math.round(boardZoom*100f)+"%",w/2,areaBottom+dp(16),9,Color.rgb(102,145,194),false);
         RectF[] tools={hintHit,eraseHit,bombHit,rewardHit};
         int[] colors={0xFF68CFFF,0xFF80E8FF,0xFFB295FF,0xFF47E4D4};
@@ -784,6 +784,34 @@ public class ArrowGameView extends View {
     }
 
     private RescueHazard hazard(){return RescueHazard.forLevel(level);}
+
+    /** A translucent rising water backdrop; arrows and controls are drawn above it. */
+    private void drawBoardWater(Canvas c,long now){
+        if(!rescueBoard||challengeActive()||hazard()!=RescueHazard.WATER||cageRescue.cageOpened())return;
+        float f=Math.max(0f,Math.min(1f,cageWater.fraction()));
+        if(f<=0f)return;
+        float left=boardViewportLeft+dp(3),right=boardViewportRight-dp(3);
+        float top=boardViewportTop+dp(3),bottom=boardViewportBottom-dp(3);
+        float surface=bottom-(bottom-top)*f;
+        boolean animate=!paused&&!settings.getBoolean("reduce_motion",false);
+        float phase=animate?(now%3000L)/480f:0f;
+        Path water=new Path();water.moveTo(left,bottom);water.lineTo(left,surface);
+        for(int i=0;i<=40;i++){
+            float x=left+(right-left)*i/40f;
+            float y=surface+(float)Math.sin(i*.42f+phase)*dp(2);
+            water.lineTo(x,y);
+        }
+        water.lineTo(right,bottom);water.close();
+        paint.setStyle(Paint.Style.FILL);paint.setColor(0x3625BFFF);paint.setShader(null);c.drawPath(water,paint);
+        Path crest=new Path();
+        for(int i=0;i<=40;i++){
+            float x=left+(right-left)*i/40f;
+            float y=surface+(float)Math.sin(i*.42f+phase)*dp(2);
+            if(i==0)crest.moveTo(x,y);else crest.lineTo(x,y);
+        }
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1.5f));paint.setColor(0xAA7DEBFF);c.drawPath(crest,paint);
+        paint.setStyle(Paint.Style.FILL);
+    }
 
     private void drawCageWater(Canvas c,float cx,float cy,float unit,float sy,long now){
         float left=cx-unit*3.4f,right=cx+unit*3.4f,top=cy-sy*2.86f,bottom=cy+sy*2.55f;
