@@ -46,9 +46,11 @@ public class BoardWaterRuntimeTest {
    CageWater water=(CageWater)get(game,"cageWater");water.reset(1,3);
    Method surface=ArrowGameView.class.getDeclaredMethod("waterSurfaceY");surface.setAccessible(true);
    Method update=ArrowGameView.class.getDeclaredMethod("updateWater",float.class);update.setAccessible(true);
-   water.restore(119f);assertTrue((float)surface.invoke(game)>119.1f);
+   RescueCharacterArt art=(RescueCharacterArt)get(game,"rescueArt");
+   float head=150f+22.6f-art.drawnHeight(RescueCharacterArt.STARTLED,53.5f,54f);
+   water.restore(119f);assertTrue((float)surface.invoke(game)>head);
    update.invoke(game,.5f);assertFalse((boolean)get(game,"failed"));
-   update.invoke(game,.5f);assertTrue((boolean)get(game,"failed"));assertEquals(119.1f,(float)surface.invoke(game),.01f);
+   update.invoke(game,.5f);assertTrue((boolean)get(game,"failed"));assertEquals(head,(float)surface.invoke(game),.01f);
    game.saveProgress();
    try(var resumed=Robolectric.buildActivity(MainActivity.class).setup()){
     ArrowGameView restored=(ArrowGameView)get(resumed.get(),"game");assertTrue((boolean)get(restored,"failed"));

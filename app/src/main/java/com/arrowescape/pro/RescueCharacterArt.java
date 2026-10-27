@@ -42,6 +42,11 @@ final class RescueCharacterArt {
         }
     }
 
+    float drawnHeight(int state,float height,float maxWidth) {
+        Rect source=frames[Math.max(0,Math.min(3,state))];
+        return source.height()*Math.min(height/source.height(),maxWidth/source.width());
+    }
+
     void draw(Canvas canvas,int state,float centerX,float feetY,float height,float maxWidth) {
         if(atlas.isRecycled())return;
         Rect source=frames[Math.max(0,Math.min(3,state))];

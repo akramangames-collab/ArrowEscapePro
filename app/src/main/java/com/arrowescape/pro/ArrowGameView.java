@@ -746,7 +746,7 @@ public class ArrowGameView extends View {
         c.drawOval(ring,paint);paint.setColor(BOSS_GOLD);c.drawArc(ring,-90,Math.max(12,360*progress),false,paint);
         paint.setStyle(Paint.Style.FILL);
         int expression=rescueExpression(now);
-        float bounce=motion?pulse*sy*.055f:0f;
+        float bounce=motion&&hazard()!=RescueHazard.WATER?pulse*sy*.055f:0f;
         rescueArt.draw(c,expression,cx,cy+sy*2.26f+bounce,sy*5.35f,unit*5.4f);
         drawCageWater(c,cx,cy,unit,sy,now);
         drawWaterTank(c,cx,cy,unit,sy);
@@ -816,8 +816,13 @@ public class ArrowGameView extends View {
         float cy=boardTop+(gridH/2)*cell*boardStretchY;
         // rescueArt is drawn with its head at this height. At 100% the water
         // reaches it, which is the very same threshold that ends the level.
-        float head=cy-cell*boardStretchY*3.09f;
+        float head=waterCharacterHeadY(cy);
         return bottom-(bottom-head)*cageWater.fraction();
+    }
+
+    private float waterCharacterHeadY(float cy){
+        float sy=cell*boardStretchY;
+        return cy+sy*2.26f-rescueArt.drawnHeight(RescueCharacterArt.STARTLED,sy*5.35f,cell*5.4f);
     }
 
     private float waterWaveY(float x,float surface,long now){
@@ -825,7 +830,7 @@ public class ArrowGameView extends View {
         float phase=motion?(now%6000L)/700f:0f;
         float wave=(float)(Math.sin(x*.035f+phase)*.65+Math.sin(x*.071f-phase*.7)*.35)*dp(1.6f);
         float cy=boardTop+(gridH/2)*cell*boardStretchY;
-        float head=cy-cell*boardStretchY*3.09f;
+        float head=waterCharacterHeadY(cy);
         return Math.max(head,surface+wave);
     }
 
