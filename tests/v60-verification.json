@@ -1,0 +1,140 @@
+{
+  "version": "2.0.5-review",
+  "versionCode": 60,
+  "baselineCommit": "8a1208c8ae4bcff9f69752bcf73fcef9caa9e257",
+  "date": "2026-11-02",
+  "productionReady": false,
+  "deviceQA": false,
+  "ci": {
+    "run": "https://github.com/akramangames-collab/ArrowEscapePro/actions/runs/41397904079",
+    "started": false,
+    "reason": "GitHub account locked due to a billing issue"
+  },
+  "localTests": {
+    "testDebugUnitTest": {
+      "tests": 69,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "testReleaseUnitTest": {
+      "tests": 69,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "walletAssertions": 81,
+  "campaign": {
+    "levels": 1000,
+    "uniqueSequenceMoves": 66450,
+    "goldKeyLast": true,
+    "selfTailClearance": true
+  },
+  "daily": {
+    "uniquePuzzles": 366,
+    "campaignOverlap": 0
+  },
+  "lint": {
+    "errors": 0,
+    "warnings": 29
+  },
+  "preview": {
+    "package": "com.arrowescape.pro.preview",
+    "signatureV2Verified": true,
+    "AD_ID": false,
+    "targetSdk": 36,
+    "sha256": "d48077bc9549d97eea87e62749ac2c42b73e4414b0aa99da9a95da580ab728c6"
+  },
+  "runtimeInputs": {
+    "app/build.gradle.kts": "f6453e574ce5ebc31f102875005af44505312fed7ec2201f427e4825e40b05fe",
+    "app/src/androidTest/java/com/arrowescape/pro/GameSmokeTest.java": "f54965712717ee03b03692145e53a69aca3c0ed64a2830a0434b23fbd6be9f3b",
+    "app/src/androidTest/java/com/arrowescape/pro/V17ClearanceTest.java": "4fa3b476a5a91a242600945062c12295705aaa21477682457d0c23db238339f9",
+    "app/src/androidTest/java/com/arrowescape/pro/V18SpecialMechanicsTest.java": "77ed24c8b7c80bff77658b1dd936f719870e93337c260b34462cbf74c925db34",
+    "app/src/androidTest/java/com/arrowescape/pro/V19ProgressionTest.java": "0ece6c17526a53564da44368f8eb8e5cb3cadcf4bad965dc6e010cc4bd752ae0",
+    "app/src/androidTest/java/com/arrowescape/pro/V20ShapeAndArrowTest.java": "b98bcd42d469be166502f2b5725a722a8e9a55172ffea6d681b7479a7a8cd3a6",
+    "app/src/androidTest/java/com/arrowescape/pro/V23TouchRegressionTest.java": "3d4c14a3af28ab4826cefdb21e90f83c1461b2ef9513510508dbf98efe97af65",
+    "app/src/androidTest/java/com/arrowescape/pro/V24DailyChallengeIsolationTest.java": "1930528b2ef7afac7516fffd831d8c318a6271cc9a49a2cdb6824ffe664cc241",
+    "app/src/debug/res/values/strings.xml": "87bbc79a0a7fb06588f19bf793fd396b1041d91191a4bb38d3e5dfe10e00a703",
+    "app/src/main/AndroidManifest.xml": "4d7cf0d2a76be64f255adfadac5521e5353a6485fd4a68b165794df17d492669",
+    "app/src/main/assets/branding/arrow-rescue-logo.png": "c38685d91f90a7dc8bb11ebe6d484545b0f45a987491d440721b238de6117014",
+    "app/src/main/assets/characters/rescue-mascot-expressions.png": "0c63b980a2d7e2b7c95901461cd3d2197cdb357f6abfc15153431b998ef54ea7",
+    "app/src/main/assets/daily_challenges.txt": "3a1f54ce33e6fe37db639a3353b18354212e4bd2ff4542ca0d5f0a171eeff775",
+    "app/src/main/assets/fonts/OFL.txt": "58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b",
+    "app/src/main/assets/fonts/manrope.ttf": "3ae11c49db0455a3cc33e37d380f20fdb8c7f8b41dc07625c177e3d87a9d6ae6",
+    "app/src/main/assets/levels.txt": "0af9aecf3d3c3371d7f680a4fbd71077ce0bc4e5a55a2c4bef3f1b5d25aa41a2",
+    "app/src/main/assets/privacy-policy.txt": "9727770f22ac20f5ca200ce3097256b13c8b63f37498e6258b2f61071c4af166",
+    "app/src/main/java/com/arrowescape/pro/AdRailBackdrop.java": "f638e23ffc9ffcbf71d731a9ebb61e2c0aa181cf81886e08b693e44aebbd024c",
+    "app/src/main/java/com/arrowescape/pro/AmbientMusic.java": "336c8e65cc0d85a18beeda0502fe020c5ab16b24edf9d7960c1f7eed15e4bbce",
+    "app/src/main/java/com/arrowescape/pro/AppTypography.java": "64729bfc5505d55841b952b69935e0205acdd1e74108e7a44884004e040771ee",
+    "app/src/main/java/com/arrowescape/pro/ArrowApplication.java": "f4d296133c5177b86dd4dc74b63da660b65b02a3d5d700bab3c75988826d019e",
+    "app/src/main/java/com/arrowescape/pro/ArrowGameView.java": "f477209ce518a3fe8dfcf51c1fb4d8f4d9e9325a07aa72e36616450353cb356e",
+    "app/src/main/java/com/arrowescape/pro/ArrowPreviewView.java": "87fc1f24d1e9f62894c9c301172d962350116aca12c4ba432515f34541f857c5",
+    "app/src/main/java/com/arrowescape/pro/BoosterDemoView.java": "4fc848bdecca98c3645d1b26dbb3e3820a529fa9eacb6abdb6164f2f65120d28",
+    "app/src/main/java/com/arrowescape/pro/BoosterGeometry.java": "b4cb320256fdc5abadfc0750ed51cfc40eaf25fb28d4e1f84b2a3d065146a215",
+    "app/src/main/java/com/arrowescape/pro/BoosterIcon.java": "28da0695b8d6d1904f4f84d921d27f133034026d4137b52ddc5070360efa4a5a",
+    "app/src/main/java/com/arrowescape/pro/BoosterInventory.java": "5b77f0d86571cdfcbbf5e0fd5551649914892a971fa5ae91e962b2c30aad80a7",
+    "app/src/main/java/com/arrowescape/pro/CageRescue.java": "a757b5d40dacf601442092d1253143791bf9d7edcfd958bcb51bde50259811a4",
+    "app/src/main/java/com/arrowescape/pro/CageWater.java": "502850bd2d26604e1a8a84f082cf201a590cc1dfeea50790542ff1829a84b63d",
+    "app/src/main/java/com/arrowescape/pro/CampaignRules.java": "b1936e1bb3ff9246eef5e4868a41d1a0d134d3618d48c87cf52718242cb14592",
+    "app/src/main/java/com/arrowescape/pro/GameDay.java": "1026f9ebbc49475cb05c9e47016e8892039655aac6ff8370b4743dce769d038e",
+    "app/src/main/java/com/arrowescape/pro/GameLogoView.java": "5dfc160632d854640d1bba93bddda9de2c01f453e6fde875fe1579a368fb6e6f",
+    "app/src/main/java/com/arrowescape/pro/Heartbeat.java": "203e67b797f940a57b38206fefa8fcba0262d59a07ee074dc3378823f0f3016d",
+    "app/src/main/java/com/arrowescape/pro/MainActivity.java": "767b0439241fea2a9d173864d6cffe724f4058fa8335bf98703f43f9b36d962b",
+    "app/src/main/java/com/arrowescape/pro/PreferenceWalletStorage.java": "dd070e9cb129a40cfd3639e42c89a1d1d15d76b705f9e359c884df1578ecfa4f",
+    "app/src/main/java/com/arrowescape/pro/RescueCharacterArt.java": "a7a1fdd085dba49710d99265764222abef00ed30e804dfc3ca1997806249c13b",
+    "app/src/main/java/com/arrowescape/pro/RescueHazard.java": "11d99208f5c506b915d9487f27efbd36e399e9fbcad1818275e78a518e276b69",
+    "app/src/main/java/com/arrowescape/pro/RescueHeroView.java": "084d92fd6826d40db7198cc1b7a86e0272d63865332de09a5cfb7c45c093204b",
+    "app/src/main/java/com/arrowescape/pro/RescueReminder.java": "6a7da755be791b3c5a549bf58494782b748ea5269066332b7db7a057c699d005",
+    "app/src/main/java/com/arrowescape/pro/RouteNavIcon.java": "06986897a598592ab0ffc2de2b1a41955a1abc9fe36b7dfb5a133c2054501a34",
+    "app/src/main/java/com/arrowescape/pro/TutorialPracticeView.java": "6cb6a4805748765d88a16879bf5b5e80b3ca17d3e472ada9523ecf4629c7f128",
+    "app/src/main/java/com/arrowescape/pro/Wallet.java": "6c27a9f900964d488ceb4fbc7e982b772cea08cff3f3388ac06dfba0f95a4b6c",
+    "app/src/main/res/anim/premium_window_enter.xml": "f068444db8ed2bc115dce68968d67da0378a7f883b2c03c7ce584f3a0cf002ce",
+    "app/src/main/res/anim/premium_window_exit.xml": "e57a7f6fac0d8c3834222612cce0947ab876ffbc88f138ebe15a580b0fa88f87",
+    "app/src/main/res/drawable/dialog_background.xml": "3e61c97b17fb28ae9ba4c77ac9e8ed690fb0922cf4f4dfb950095cf4a0afab18",
+    "app/src/main/res/drawable/ic_arrow_escape.xml": "96c5c6059a84248e9a2c8d9692b4457059bf5674a23057f2071c41b33c65d352",
+    "app/src/main/res/drawable/ic_launcher.xml": "476e93c8b61b8a7204175f87305ef3452447858ed2fd3d6e3c196793acb56346",
+    "app/src/main/res/drawable/icon_art.png": "c38685d91f90a7dc8bb11ebe6d484545b0f45a987491d440721b238de6117014",
+    "app/src/main/res/drawable/icon_foreground.xml": "368a6e87515052614bf603cd38bc876afe832141dd685c063c662665fc83f11e",
+    "app/src/main/res/drawable/icon_monochrome.xml": "37c95d0ade5ad4d6e924b2262a04758116476601dac17b4b4bf32efdaa2d549f",
+    "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml": "26f045d965d04ea923732f0df4fba2d5618d021696f5360a00b25117e49cfe2d",
+    "app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml": "4f6207c26cb149ce9e0b1b4757f70025d0bda96b8b7edffb4b99c422196de414",
+    "app/src/main/res/mipmap-nodpi/ic_launcher.png": "c38685d91f90a7dc8bb11ebe6d484545b0f45a987491d440721b238de6117014",
+    "app/src/main/res/raw/quiet_trail.ogg": "6ad3288fd7f43f0331618798d1b731027d9c0045b0ab2f92979c497c74dddea5",
+    "app/src/main/res/values/strings.xml": "2bbeae0801960e0777787c4bd25b64cd0520d351c6e14b75ff9ca9f90a797726",
+    "app/src/main/res/values/styles.xml": "9c9abad02abf4164d86c14b92ec97cfdf4fecb147c2dfb47ece3b7e88186bb0f",
+    "app/src/main/res/values-v31/styles.xml": "ed2c62da9a911b069a4935e3180358fc1d21d18653970a0a58a64350bb0c5524",
+    "app/src/test/java/com/arrowescape/pro/AmbientMusicRuntimeTest.java": "dbe43aeeb2763435102e43ac6f606c7a2984ac510bcfd45145f7f816b8dac668",
+    "app/src/test/java/com/arrowescape/pro/BannerLayoutRuntimeTest.java": "6148ec90012e1bce48074a03d79052e27b51e51d222e490f6d3fca3b941e900c",
+    "app/src/test/java/com/arrowescape/pro/BoardWaterRuntimeTest.java": "3aa72e875174999dafbe5681a13d9a9c7adaa48d6a7db9cdb19fce635cab243a",
+    "app/src/test/java/com/arrowescape/pro/BoosterDemoRuntimeTest.java": "2e008fc4386dac88f1aea106b64071e456d541e3657555a23695eb9e8df92e63",
+    "app/src/test/java/com/arrowescape/pro/BoosterInventoryRuntimeTest.java": "3aff5ca370d78864d7f063c3aa5b0c34e3603c476e8512f0222026036f1f0ae1",
+    "app/src/test/java/com/arrowescape/pro/CageRescueTest.java": "1dda6296f86c154aa8be3969785e28fa1c895e18d2672e83820a92476391b20d",
+    "app/src/test/java/com/arrowescape/pro/CageWaterTest.java": "59dd1532408351dca0d0274d32e547e9b68b2febe1fc792476dd38b95b0b3b97",
+    "app/src/test/java/com/arrowescape/pro/CampaignRuntimeTest.java": "f54f3e12383399bb3727d2c320e8ae62dfbb922d832b99bc6ac7f994f3dfe408",
+    "app/src/test/java/com/arrowescape/pro/ChapterRewardRuntimeTest.java": "4d87272fb24a4483ce3be0496c5cb99161ca8c20dd3e75b935ab713f1906190b",
+    "app/src/test/java/com/arrowescape/pro/FireTankRuntimeTest.java": "133b3c87b679af1a74aded51e6711208425bb9867aaed7dadf4b308c41838569",
+    "app/src/test/java/com/arrowescape/pro/PremiumV2RuntimeTest.java": "42f22cd6039afc7f7903865ed2b619c24ddb29b74156cc01faf7a729d28c883c",
+    "app/src/test/java/com/arrowescape/pro/RouteOnboardingRuntimeTest.java": "786b902db939c784829682a98863262c5c29e766997f6b1a0fabfc36dbd9168e",
+    "app/src/test/java/com/arrowescape/pro/StartupRuntimeTest.java": "5c819363335abe62fe39eb07f485d25e4cd2c639c172426b6e03b3dababe0753",
+    "build.gradle.kts": "786a6aef9d41e1075240be92fad07fb11f25717c0253245646957542649034f3",
+    "gradle.properties": "e378a0683753409ea059b9244bfef17544560c3f35b017adc3125770d9b1e986",
+    "settings.gradle.kts": "99b538ab09e066369d2325a3a65b81c1b87a1eaac1c6103f411b2bfd462d2a1b"
+  },
+  "releaseBuild": {
+    "status": "passed",
+    "signedWithOriginalKey": false,
+    "reviewTestAds": true,
+    "AD_ID": false,
+    "artifacts": {
+      "app-release-unsigned.apk": {
+        "bytes": 5982655,
+        "sha256": "88d7d9200d6b12f08dc9c8e99a4f10235537c36ccf4a7b02db671402a0bfa11e"
+      },
+      "app-release.aab": {
+        "bytes": 8400735,
+        "sha256": "ea28620b60b74d763af8d9e405dc2c8812a04119cb1beb0023322fc06adee4a1"
+      }
+    }
+  }
+}

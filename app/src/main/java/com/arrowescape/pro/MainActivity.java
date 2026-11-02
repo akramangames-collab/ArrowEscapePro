@@ -649,6 +649,17 @@ public class MainActivity extends ComponentActivity implements ArrowGameView.Hos
         String[][] cards=game.chapterAwardCards();for(int i=0;i<cards.length;i++){final int ch=i+1;boolean unlocked=CampaignRules.chapterStart(ch)<=game.unlockedLevel();
             LinearLayout card=panel();card.addView(text(cards[i][0],18,unlocked?GOLD:MUTED));card.addView(text(cards[i][1]+" · "+cards[i][2],14,MUTED));
             card.addView(text(RescueHazard.forLevel(CampaignRules.chapterStart(ch)).title,14,CYAN));
+            boolean complete=Boolean.parseBoolean(cards[i][3]);
+            boolean claimed=wallet.chapterRewardClaimed(ch);
+            Button gift=button(claimed?"CHAPTER REWARD CLAIMED":complete?"CLAIM CHAPTER GIFT · +"+Wallet.CHAPTER_REWARD+" COINS":"CLEAR ALL 40 · +"+Wallet.CHAPTER_REWARD+" COINS",()->{
+                int amount=wallet.claimChapterReward(ch);
+                showChapters();
+                if(amount>0)new AlertDialog.Builder(this).setTitle("Chapter "+ch+" rescued!")
+                    .setMessage("All 40 levels cleared.\n\n+"+amount+" coins added\nWallet: "+wallet.balance()+" coins")
+                    .setPositiveButton("CONTINUE",(dialog,which)->{}).show();
+                else toast("Reward could not be saved. Reopen Chapters to try again.");
+            },complete&&!claimed);
+            gift.setEnabled(complete&&!claimed);card.addView(gift);
             Button open=button(unlocked?"VIEW LEVELS":"LOCKED",()->{dismissMenuForRoute();game.setPaused(false);game.openChapter(ch);},false);open.setEnabled(unlocked);card.addView(open);body.addView(card);
         }presentFullScreen(body,0);
     }
