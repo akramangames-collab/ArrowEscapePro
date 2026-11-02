@@ -5,8 +5,10 @@ import android.content.SharedPreferences;
 
 final class PreferenceWalletStorage implements Wallet.Storage {
     private final SharedPreferences prefs;
+    private final SharedPreferences campaign;
     PreferenceWalletStorage(Context context) {
         prefs = context.getSharedPreferences("arrow_escape_pro", Context.MODE_PRIVATE);
+        campaign = context.getSharedPreferences("arrow_puzzle_faithful", Context.MODE_PRIVATE);
     }
     public Wallet.State load() {
         Wallet.State s = new Wallet.State();
@@ -22,6 +24,7 @@ final class PreferenceWalletStorage implements Wallet.Storage {
         s.levelToken = prefs.getString("wallet_level_token", "");
         s.adToken = prefs.getString("wallet_ad_token", "");
         s.initialized = prefs.getBoolean("wallet_v16_ready", false);
+        s.claimedChapterMask = prefs.getInt("wallet_claimed_chapters", 0);
         return s;
     }
     public boolean save(Wallet.State s) {
@@ -33,6 +36,14 @@ final class PreferenceWalletStorage implements Wallet.Storage {
             .putString("wallet_reward_history",s.history)
             .putString("wallet_cleared_levels",s.clearedLevels)
             .putString("wallet_level_token", s.levelToken).putString("wallet_ad_token", s.adToken)
+            .putInt("wallet_claimed_chapters", s.claimedChapterMask)
             .putBoolean("wallet_v16_ready", s.initialized).commit();
+    }
+    public boolean chapterCompleted(int chapter) {
+        if (chapter < 1 || chapter > CampaignRules.CHAPTER_COUNT) return false;
+        for (int level = CampaignRules.chapterStart(chapter); level <= CampaignRules.chapterEnd(chapter); level++) {
+            if (campaign.getInt("stars_" + level, 0) <= 0) return false;
+        }
+        return true;
     }
 }

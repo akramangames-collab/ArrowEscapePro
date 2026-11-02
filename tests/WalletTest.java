@@ -1,9 +1,10 @@
 import com.arrowescape.pro.Wallet;
 public class WalletTest {
     static class Storage implements Wallet.Storage {
-        Wallet.State state = new Wallet.State(); boolean fail;
+        Wallet.State state = new Wallet.State(); boolean fail; int completedChapterMask;
         public Wallet.State load(){return state.copy();}
         public boolean save(Wallet.State next){if(fail)return false;state=next.copy();return true;}
+        public boolean chapterCompleted(int chapter){return (completedChapterMask & (1 << (chapter-1))) != 0;}
     }
     static int assertions;
     static void eq(long expected,long actual){assertions++;if(expected!=actual)throw new AssertionError("Expected "+expected+" but got "+actual);}
@@ -48,6 +49,17 @@ public class WalletTest {
 
         Storage legacy=new Storage();legacy.state.coins=460;legacy.state.dailyDay=20;legacy.state.streak=4;
         Wallet migrated=new Wallet(legacy);eq(460,migrated.balance());eq(40,migrated.claimDaily(21*Wallet.DAY_MS));eq(5,migrated.currentStreak(21*Wallet.DAY_MS));
+        Storage chapters=new Storage();Wallet gifts=new Wallet(chapters);
+        eq(0,gifts.claimChapterReward(0));eq(0,gifts.claimChapterReward(26));
+        eq(0,gifts.claimChapterReward(1));eq(100,gifts.balance());
+        chapters.completedChapterMask=1;chapters.fail=true;
+        eq(0,gifts.claimChapterReward(1));no(gifts.chapterRewardClaimed(1));eq(100,gifts.balance());
+        chapters.fail=false;eq(200,gifts.claimChapterReward(1));eq(300,gifts.balance());
+        yes(new Wallet(chapters).chapterRewardClaimed(1));eq(0,new Wallet(chapters).claimChapterReward(1));
+        // Spending and other reward writes must retain the chapter receipt.
+        yes(gifts.spend(40));eq(75,gifts.rewardAd("after-chapter"));eq(0,gifts.claimChapterReward(1));
+        chapters.completedChapterMask|=1<<24;eq(200,gifts.claimChapterReward(25));eq(535,gifts.balance());
+        yes(gifts.rewardHistory().contains("Chapter 25 complete"));
         System.out.println("Wallet: "+assertions+" assertions passed.");
     }
 }

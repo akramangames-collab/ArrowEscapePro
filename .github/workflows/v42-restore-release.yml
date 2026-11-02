@@ -1,12 +1,12 @@
-name: Arrow Escape V55 Redesign Review
+name: Arrow Escape V60 Redesign Review
 on:
   push:
-    branches: [redesign/premium-v2]
+    branches: [complete/arrow-v60]
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: arrow-v55-review-${{ github.ref }}
+  group: arrow-v60-review-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   verify:
@@ -59,33 +59,33 @@ jobs:
       - name: Build and test frozen source
         run: |
           set -euo pipefail
-          gradle --no-daemon --console=plain --max-workers=4 :app:testDebugUnitTest :app:testReleaseUnitTest --tests com.arrowescape.pro.StartupRuntimeTest :app:assembleDebug :app:assembleRelease :app:bundleRelease :app:lintRelease
+          gradle --no-daemon --console=plain --max-workers=4 :app:testDebugUnitTest :app:testReleaseUnitTest :app:assembleDebug :app:assembleRelease :app:bundleRelease :app:lintRelease
           sha256sum -c review/runtime-inputs.sha256 > review/runtime-inputs-verified.txt
       - name: Collect verified review artifacts
         env:
           ORIGINAL_SIGNING_READY: ${{ steps.signing.outputs.ready }}
         run: |
           set -euo pipefail
-          cp app/build/outputs/apk/debug/app-debug.apk review/Arrow-Escape-V55-PREVIEW-TEST.apk
+          cp app/build/outputs/apk/debug/app-debug.apk review/Arrow-Escape-V60-PREVIEW-TEST.apk
           BT="$ANDROID_HOME/build-tools/36.0.0"
-          "$BT/apksigner" verify --verbose review/Arrow-Escape-V55-PREVIEW-TEST.apk > review/debug-signature.txt
-          "$BT/aapt2" dump badging review/Arrow-Escape-V55-PREVIEW-TEST.apk | sed -n '1p' > review/debug-package.txt
-          grep -F "name='com.arrowescape.pro.preview' versionCode='59'" review/debug-package.txt
+          "$BT/apksigner" verify --verbose review/Arrow-Escape-V60-PREVIEW-TEST.apk > review/debug-signature.txt
+          "$BT/aapt2" dump badging review/Arrow-Escape-V60-PREVIEW-TEST.apk | sed -n '1p' > review/debug-package.txt
+          grep -F "name='com.arrowescape.pro.preview' versionCode='60'" review/debug-package.txt
           if [ "$ORIGINAL_SIGNING_READY" = "true" ]; then
-            cp app/build/outputs/apk/release/app-release.apk review/Arrow-Escape-V55-REDESIGN-REVIEW.apk
-            cp app/build/outputs/bundle/release/app-release.aab review/Arrow-Escape-V55-REDESIGN-REVIEW.aab
-            "$BT/apksigner" verify --verbose --print-certs review/Arrow-Escape-V55-REDESIGN-REVIEW.apk > review/release-signature.txt
+            cp app/build/outputs/apk/release/app-release.apk review/Arrow-Escape-V60-REDESIGN-REVIEW.apk
+            cp app/build/outputs/bundle/release/app-release.aab review/Arrow-Escape-V60-REDESIGN-REVIEW.aab
+            "$BT/apksigner" verify --verbose --print-certs review/Arrow-Escape-V60-REDESIGN-REVIEW.apk > review/release-signature.txt
             grep -i 'c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f' review/release-signature.txt
-            jarsigner -verify review/Arrow-Escape-V55-REDESIGN-REVIEW.aab > review/bundle-signature.txt
+            jarsigner -verify review/Arrow-Escape-V60-REDESIGN-REVIEW.aab > review/bundle-signature.txt
             grep -F 'jar verified' review/bundle-signature.txt
-            keytool -printcert -jarfile review/Arrow-Escape-V55-REDESIGN-REVIEW.aab > review/bundle-certificate.txt
+            keytool -printcert -jarfile review/Arrow-Escape-V60-REDESIGN-REVIEW.aab > review/bundle-certificate.txt
             tr -d ':' < review/bundle-certificate.txt | grep -i 'c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f'
-            "$BT/aapt2" dump badging review/Arrow-Escape-V55-REDESIGN-REVIEW.apk | sed -n '1p' > review/release-package.txt
-            grep -F "name='com.arrowescape.pro' versionCode='59'" review/release-package.txt
+            "$BT/aapt2" dump badging review/Arrow-Escape-V60-REDESIGN-REVIEW.apk | sed -n '1p' > review/release-package.txt
+            grep -F "name='com.arrowescape.pro' versionCode='60'" review/release-package.txt
           fi
           cp -r app/build/approved-ui-previews review/native-ui-previews
           cp -r app/build/game-previews review/native-game-previews
-          cp PREMIUM-V2-STATUS.md design/REDESIGN-V55.md review/
+          cp PREMIUM-V2-STATUS.md design/REDESIGN-V60.md review/
           cd review
           sha256sum *.apk > SHA256SUMS.txt
           if ls *.aab >/dev/null 2>&1; then sha256sum *.aab >> SHA256SUMS.txt; fi
@@ -93,7 +93,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-V55-Reports
+          name: Arrow-Escape-V60-Reports
           path: |
             app/build/reports/
             app/build/test-results/
@@ -103,7 +103,7 @@ jobs:
       - name: Retain successful review build
         uses: actions/upload-artifact@v4
         with:
-          name: Arrow-Escape-V55-Review
+          name: Arrow-Escape-V60-Review
           path: review/
           retention-days: 30
           if-no-files-found: error

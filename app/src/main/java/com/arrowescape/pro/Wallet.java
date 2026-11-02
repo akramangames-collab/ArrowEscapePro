@@ -4,6 +4,7 @@ package com.arrowescape.pro;
 public final class Wallet {
     public static final int STARTER = 100, HINT_COST = 25, DAILY = 10, AD_REWARD = 75;
     public static final int DAILY_CHALLENGE = 200;
+    public static final int CHAPTER_REWARD = 200;
     public static final int HEART_COST = 40, CONTINUE_COST = 60;
     public static final long DAY_MS = 86400000L;
     private static final int[] DAILY_STREAK_REWARDS = {10, 15, 20, 30, 40, 50, 75};
@@ -13,16 +14,22 @@ public final class Wallet {
         public long dailyDay = -1, challengeDay = -1, weeklyChallengeWeek = -1;
         public String levelToken = "", adToken = "", clearedLevels = ",", history = "";
         public boolean initialized;
+        public int claimedChapterMask;
         public State copy() {
             State s = new State();
             s.coins = coins; s.streak = streak; s.arrowTypeMask = arrowTypeMask; s.themeMask = themeMask;
             s.dailyDay = dailyDay; s.challengeDay = challengeDay; s.weeklyChallengeWeek = weeklyChallengeWeek;
             s.levelToken = levelToken; s.adToken = adToken; s.clearedLevels=clearedLevels; s.history=history; s.initialized = initialized;
+            s.claimedChapterMask = claimedChapterMask;
             return s;
         }
     }
 
-    public interface Storage { State load(); boolean save(State state); }
+    public interface Storage {
+        State load();
+        boolean save(State state);
+        default boolean chapterCompleted(int chapter) { return false; }
+    }
     private final Storage storage;
     private State state;
 
@@ -149,6 +156,23 @@ public final class Wallet {
     }
     public synchronized int rewardLevel(String token, int level, boolean perfect) {
         return rewardLevel(token, level, perfect ? 3 : 1);
+    }
+
+    public synchronized boolean chapterRewardClaimed(int chapter) {
+        state = storage.load().copy();
+        return chapter >= 1 && chapter <= CampaignRules.CHAPTER_COUNT
+            && (state.claimedChapterMask & (1 << (chapter - 1))) != 0;
+    }
+
+    /** Receipt and coins commit together. Completion comes from saved campaign stars. */
+    public synchronized int claimChapterReward(int chapter) {
+        if (chapter < 1 || chapter > CampaignRules.CHAPTER_COUNT
+                || chapterRewardClaimed(chapter) || !storage.chapterCompleted(chapter)) return 0;
+        State next = state.copy();
+        next.claimedChapterMask |= 1 << (chapter - 1);
+        next.coins = add(next.coins, CHAPTER_REWARD);
+        record(next, "Chapter " + chapter + " complete", CHAPTER_REWARD);
+        return commit(next) ? CHAPTER_REWARD : 0;
     }
 
     public synchronized int rewardDailyChallenge(long day, int stars) {
