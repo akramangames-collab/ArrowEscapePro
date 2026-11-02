@@ -71,6 +71,10 @@ jobs:
           "$BT/apksigner" verify --verbose review/Arrow-Escape-V60-PREVIEW-TEST.apk > review/debug-signature.txt
           "$BT/aapt2" dump badging review/Arrow-Escape-V60-PREVIEW-TEST.apk | sed -n '1p' > review/debug-package.txt
           grep -F "name='com.arrowescape.pro.preview' versionCode='60'" review/debug-package.txt
+          "$BT/aapt2" dump permissions review/Arrow-Escape-V60-PREVIEW-TEST.apk > review/debug-permissions.txt
+          if grep -Fq 'com.google.android.gms.permission.AD_ID' review/debug-permissions.txt; then
+            echo "Unexpected advertising ID permission in preview APK"; exit 1
+          fi
           if [ "$ORIGINAL_SIGNING_READY" = "true" ]; then
             cp app/build/outputs/apk/release/app-release.apk review/Arrow-Escape-V60-REDESIGN-REVIEW.apk
             cp app/build/outputs/bundle/release/app-release.aab review/Arrow-Escape-V60-REDESIGN-REVIEW.aab
@@ -82,10 +86,14 @@ jobs:
             tr -d ':' < review/bundle-certificate.txt | grep -i 'c0f5b84b375b4775bcc67c37e057a26cb3d654fe7938d48b658eb423e441429f'
             "$BT/aapt2" dump badging review/Arrow-Escape-V60-REDESIGN-REVIEW.apk | sed -n '1p' > review/release-package.txt
             grep -F "name='com.arrowescape.pro' versionCode='60'" review/release-package.txt
+            "$BT/aapt2" dump permissions review/Arrow-Escape-V60-REDESIGN-REVIEW.apk > review/release-permissions.txt
+            if grep -Fq 'com.google.android.gms.permission.AD_ID' review/release-permissions.txt; then
+              echo "Unexpected advertising ID permission in release APK"; exit 1
+            fi
           fi
           cp -r app/build/approved-ui-previews review/native-ui-previews
           cp -r app/build/game-previews review/native-game-previews
-          cp PREMIUM-V2-STATUS.md design/REDESIGN-V60.md review/
+          cp PREMIUM-V2-STATUS.md RELEASE-V60-STATUS.md design/REDESIGN-V55.md review/
           cd review
           sha256sum *.apk > SHA256SUMS.txt
           if ls *.aab >/dev/null 2>&1; then sha256sum *.aab >> SHA256SUMS.txt; fi

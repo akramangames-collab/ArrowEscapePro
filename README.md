@@ -1,5 +1,7 @@
 # Arrow Escape: Puzzle Maze
 
+Current development review: **V60 / 2.0.5-review**. Chapter gifts and the signed preview APK are verified locally (69 debug + 69 release tests). GitHub Actions is blocked by the account billing lock. See [RELEASE-V60-STATUS.md](RELEASE-V60-STATUS.md) for current verification and unfinished scope. The V51 description below is historical.
+
 Android package: `com.arrowescape.pro` · **v1.7.0 candidate (versionCode 51)** · minimum Android API 24 · target API 36.
 
 ## Gameplay and release contents

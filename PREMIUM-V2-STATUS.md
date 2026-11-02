@@ -1,5 +1,7 @@
 # Premium V2 — V55 redesign checkpoint
 
+**V60 update:** chapter gift transactions and native claim/celebration UI are now implemented. Local wallet/campaign/daily checks, all 69 debug and 69 release tests, signed preview packaging and release lint passed. GitHub Actions rejected its job for an account billing lock; local verification succeeded instead. See `RELEASE-V60-STATUS.md`; the V55 results below remain historical.
+
 **V53 startup crash:** superseded by the V54 hotfix. See `HOTFIX-V54.md`. Earlier V53 test results did not cover the final callback edit. The redesign remains an internal preview.
 
 Selected name: **Arrow Escape: Rescue Puzzle** (27 characters). Package remains `com.arrowescape.pro`. Version code 55; version name `2.0.0-redesign`.
@@ -22,7 +24,7 @@ This branch is an internal development preview, not the finished redesign and no
 | Daily booster rewards | TESTED | 200-coin wallet reward retained; completed-day entitlement gates an atomic stock+receipt choice. Choice shown after win and on Daily; repeat claims rejected across recreation. |
 | Notifications | PENDING | Native opt-in settings, permission request, inexact daytime scheduling, boot/timezone rescheduling, play-day suppression and two-hour minimum gap implemented. Delivery on real devices, configurable quiet hours and effectiveness analytics pending. Standard at 18:00; frequent 10/12/14/16/18/20; fixed quiet hours 21:00–10:00. |
 | Level completion rewards | TESTED | Existing payout retained (15 base, +5/+10 stars, existing milestone bonus). Persistent per-level wallet receipts prevent alternate-run duplicate payouts. Claimed amount and wallet balance displayed. V55 shows a breakdown derived from actual credit; a legal level-clear integration test verifies the wallet balance. |
-| Chapter rewards | PENDING | Existing trophies and level milestone gifts retained. Dedicated chapter reward transaction/celebration not implemented. |
+| Chapter rewards | TESTED (V60) | Dedicated 200-coin gift after all 40 campaign clears; saved-star eligibility, atomic receipt/credit, claim/claimed cards and celebration implemented. Local wallet, Android preference and native UI tests passed. Physical-device QA pending. |
 | All native screens | PENDING | Many new native destinations implemented; all 30 requested screen flows/back-stack behavior are not complete. |
 | Official website redesign | PENDING | Responsive, accessible landing-page source in `website/arrow-escape/index.html`, clearly labeled redesign preview. Not deployed. Actual screenshots/trailer pending. |
 | app-ads.txt | BLOCKED | Public `https://aksoftwarelabs.tech/app-ads.txt` returned HTTP 404. Repository contains existing publisher entry; root deployment and Play developer-site verification required. |

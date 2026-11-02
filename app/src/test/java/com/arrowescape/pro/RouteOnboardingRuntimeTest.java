@@ -96,4 +96,23 @@ public class RouteOnboardingRuntimeTest {
   }
  }
 
+ @Test public void chapterGiftCanBeClaimedFromTheChapterCardOnlyOnce()throws Exception{
+  try(var c=Robolectric.buildActivity(MainActivity.class).setup()){
+   MainActivity a=c.get();idle();call(a,"finishOnboarding",new Class[]{});
+   var progress=a.getSharedPreferences("arrow_puzzle_faithful",0).edit();
+   for(int level=1;level<=40;level++)progress.putInt("stars_"+level,1);
+   assertTrue(progress.commit());
+   Wallet wallet=walletFor(a);int before=wallet.balance();
+   call(a,"showChapters",new Class[]{});
+   TextView claim=text(dialog(a),"CLAIM CHAPTER GIFT");assertNotNull(claim);assertTrue(claim.isEnabled());
+   claim.performClick();assertEquals(before+Wallet.CHAPTER_REWARD,wallet.balance());
+   AlertDialog celebration=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+   celebration.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+   TextView claimed=text(dialog(a),"CHAPTER REWARD CLAIMED");assertNotNull(claimed);assertFalse(claimed.isEnabled());
+   assertNotNull(text(dialog(a),"CLEAR ALL 40"));render(dialog(a),720,1560,"chapter-rewards");
+   call(a,"showChapters",new Class[]{});assertNull(text(dialog(a),"CLAIM CHAPTER GIFT"));
+   assertEquals(before+Wallet.CHAPTER_REWARD,wallet.balance());
+  }
+ }
+
 }
